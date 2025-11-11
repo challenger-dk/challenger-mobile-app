@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { getTeams, getTeamsByUser } from '../../api/teams';
+import { LoadingScreen } from '../../components/common';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { Team } from '../../types/team';
 
@@ -63,12 +64,7 @@ export default function TeamsScreen() {
   );
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-black justify-center items-center">
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="text-white mt-4">Loading...</Text>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (

@@ -3,8 +3,9 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { updateUser } from '../../api/users';
+import { ErrorScreen, LoadingScreen, ScreenHeader, SubmitButton } from '../../components/common';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { SPORTS_TRANSLATION_EN_TO_DK, type Sport } from '../../types/sports';
 import type { UpdateUser } from '../../types/user';
@@ -165,20 +166,11 @@ export default function ProfileInformationScreen() {
   };
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-[#171616] justify-center items-center">
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="text-white mt-4">Loading...</Text>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
-    return (
-      <View className="flex-1 bg-[#171616] justify-center items-center px-6">
-        <Text className="text-white text-lg">Error: {error.message}</Text>
-      </View>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (
@@ -191,16 +183,7 @@ export default function ProfileInformationScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Top bar with back button and header */}
-        <View className="w-full flex-row items-center mb-8 mt-8" style={{ maxWidth: 384 }}>
-          <Pressable
-            onPress={() => router.back()}
-            style={{ flex: 1 }}
-          >
-            <Ionicons name="chevron-back-outline" size={24} color="#9CA3AF" />
-          </Pressable>
-          <Text className="text-white text-2xl font-bold text-center" style={{ flex: 4 }}>Rediger Profil</Text>
-          <View style={{ flex: 1 }} />
-        </View>
+        <ScreenHeader title="Rediger Profil" />
 
         {/* Profile Picture Section */}
         <View className="mb-8 items-center">
@@ -292,25 +275,14 @@ export default function ProfileInformationScreen() {
         </View>
 
         {/* Save Button */}
-        <View className="w-full max-w-sm flex-row gap-4 mt-auto">
-          <Pressable
-            onPress={handleSubmit}
-            disabled={!hasChanges || isSubmitting || firstName.trim() === ''}
-            className={`flex-1 rounded-lg px-4 py-4 ${
-              hasChanges && !isSubmitting && firstName.trim() !== ''
-                ? 'bg-white'
-                : 'bg-[#575757]'
-            }`}
-          >
-            <Text className={`text-center font-medium ${
-              hasChanges && !isSubmitting && firstName.trim() !== ''
-                ? 'text-black'
-                : 'text-gray-400'
-            }`}>
-              {isSubmitting ? 'Gemmer...' : 'Gem ændringer'}
-            </Text>
-          </Pressable>
-        </View>
+        <SubmitButton
+          label="Gem ændringer"
+          loadingLabel="Gemmer..."
+          onPress={handleSubmit}
+          disabled={!hasChanges || firstName.trim() === ''}
+          isLoading={isSubmitting}
+          className="max-w-sm"
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

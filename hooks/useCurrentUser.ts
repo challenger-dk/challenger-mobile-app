@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getCurrentUser } from '../api/users';
 import { useAuth } from '../contexts/AuthContext';
 import type { User } from '../types/user';
+import { AuthenticationError } from '../utils/api';
 
 type UseCurrentUserResult =
   | { user: User; loading: false; error: null }
@@ -27,7 +28,7 @@ export const useCurrentUser = (): UseCurrentUserResult => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     // Only fetch user if authenticated
@@ -44,12 +45,22 @@ export const useCurrentUser = (): UseCurrentUserResult => {
         setError(null);
         const currentUser = await getCurrentUser();
 
+
         if (!currentUser) {
           throw new Error('User not found. Please log in again.');
         }
 
         setUser(currentUser);
       } catch (err) {
+        // If it's an authentication error, automatically log out
+        if (err instanceof AuthenticationError) {
+          console.log('Authentication error detected, logging out...');
+          await logout();
+          setUser(null);
+          setError(null);
+          return;
+        }
+
         const errorMessage = err instanceof Error
           ? err.message
           : 'Failed to fetch current user';
@@ -61,7 +72,7 @@ export const useCurrentUser = (): UseCurrentUserResult => {
     };
 
     fetchUser();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, logout]);
 
   // Return discriminated union based on state
   if (loading) {

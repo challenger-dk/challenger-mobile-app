@@ -1,36 +1,51 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ErrorScreen, LoadingScreen, TopActionBar } from '../../components/common';
+import { useAuth } from '../../contexts/AuthContext';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export default function ProfileScreen() {
   const { user, loading, error } = useCurrentUser();
   const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Log ud',
+      'Er du sikker på, at du vil logge ud?',
+      [
+        {
+          text: 'Annuller',
+          style: 'cancel',
+        },
+        {
+          text: 'Log ud',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/(auth)/login' as any);
+          },
+        },
+      ]
+    );
+  };
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-[#171616] justify-center items-center">
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="text-white mt-4">Loading...</Text>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
-    return (
-      <View className="flex-1 bg-[#171616] justify-center items-center px-6">
-        <Text className="text-white text-lg">Error: {error.message}</Text>
-      </View>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (
     <ScrollView className="flex-1 bg-[#171616]">
       {/* Top actions bar */}
-      <View className="flex-row items-center px-6 py-3">
-        {/* User logo on the left */}
-        <View className="flex-1 items-start">
+      <TopActionBar
+        title="Profil"
+        leftAction={
           <Pressable
             onPress={() => router.push('/profile/information' as any)}
             className="rounded-full overflow-hidden w-10 h-10"
@@ -51,29 +66,9 @@ export default function ProfileScreen() {
               </View>
             )}
           </Pressable>
-        </View>
-
-        {/* "Profil" text in the middle */}
-        <View className="flex-1 items-center">
-          <Text className="text-white text-lg font-medium">Profil</Text>
-        </View>
-
-        {/* Icons on the right */}
-        <View className="flex-1 flex-row items-center justify-end gap-2">
-          <Pressable aria-label="Notifications">
-            <Ionicons name="notifications" size={28} color="#ffffff" />
-          </Pressable>
-          <Pressable aria-label="Calendar">
-            <Ionicons name="calendar-outline" size={28} color="#ffffff" />
-          </Pressable>
-          <Pressable
-            onPress={() => router.push('/profile/information' as any)}
-            aria-label="Settings"
-          >
-            <Ionicons name="settings" size={28} color="#ffffff" />
-          </Pressable>
-        </View>
-      </View>
+        }
+        settingsRoute="/profile/information"
+      />
 
       {/* Divider line */}
       <View className="border-t border-[#272626]" />
@@ -123,6 +118,16 @@ export default function ProfileScreen() {
         <View className="bg-[#2c2c2c] rounded-lg p-4 min-h-[200px] mb-6">
           <Text className="text-white text-lg font-medium mb-4">Stats</Text>
           {/* Stats content can be added here later */}
+        </View>
+
+        {/* Logout button */}
+        <View className="mb-6">
+          <Pressable
+            onPress={handleLogout}
+            className="bg-[#943d40] rounded-lg p-4 items-center justify-center"
+          >
+            <Text className="text-white text-base font-medium">Log ud</Text>
+          </Pressable>
         </View>
       </View>
     </ScrollView>

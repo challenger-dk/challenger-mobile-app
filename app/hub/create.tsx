@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { createChallenge } from '../../api/challenges';
 import { getUsers } from '../../api/users';
+import { BooleanToggle, ErrorScreen, FormFieldButton, HorizontalPicker, LoadingScreen, ScreenHeader, SubmitButton, TabNavigation } from '../../components/common';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { CreateChallenge } from '../../types/challenge';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '../../types/sports';
@@ -84,20 +85,11 @@ export default function CreateChallengeScreen() {
   };
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-[#171616] justify-center items-center">
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="text-white mt-4">Loading...</Text>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
-    return (
-      <View className="flex-1 bg-[#171616] justify-center items-center px-6">
-        <Text className="text-white text-lg">Error: {error.message}</Text>
-      </View>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   const selectedSportName = sport ? SPORTS_TRANSLATION_EN_TO_DK[sport] : '';
@@ -112,51 +104,27 @@ export default function CreateChallengeScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Top bar with back button and header */}
-        <View className="w-full flex-row items-center mb-6 mt-8" style={{ maxWidth: 384 }}>
-          <Pressable
-            onPress={() => router.back()}
-            style={{ flex: 1 }}
-          >
-            <Ionicons name="chevron-back-outline" size={24} color="#9CA3AF" />
-          </Pressable>
-          <Text className="text-white text-2xl font-bold text-center" style={{ flex: 4 }}>Opret Challenge</Text>
-          <View style={{ flex: 1 }} />
-        </View>
+        <ScreenHeader title="Opret Challenge" />
 
         {/* Header with Tabs */}
         <View className="w-full items-center mb-6">
-          
-          {/* Tabs */}
-          <View className="flex-row border-b border-[#272626]">
-            <Pressable onPress={() => setChallengeType('public')} className={`flex-1 py-3 ${challengeType === 'public' ? '' : ''}`}>
-              <Text className={`text-white text-center ${challengeType === 'public' ? 'font-medium' : ''}`}>
-                Offentligt
-              </Text>
-              {challengeType === 'public' && (
-                <View className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-              )}
-            </Pressable>
-            <Pressable onPress={() => setChallengeType('friends')} className={`flex-1 py-3 ${challengeType === 'friends' ? '' : ''}`}>
-              <Text className={`text-white text-center ${challengeType === 'friends' ? 'font-medium' : ''}`}>
-                Venner
-              </Text>
-              {challengeType === 'friends' && (
-                <View className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-              )}
-            </Pressable>
-          </View>
+          <TabNavigation
+            tabs={[
+              { key: 'public', label: 'Offentligt' },
+              { key: 'friends', label: 'Venner' },
+            ]}
+            activeTab={challengeType}
+            onTabChange={(key) => setChallengeType(key as 'public' | 'friends')}
+          />
         </View>
 
         {/* Participants Section */}
         <View className="w-full mb-8">
           <View className="flex-row items-center mb-4">
             {/* Left Person Icon */}
-            <View className="w-8 h-8 rounded-full bg-[#575757] items-center justify-center">
-              <Ionicons name="person" size={20} color="#ffffff" />
-              <View className="w-8 h-8 rounded-full bg-[#575757] items-center justify-center border-2 border-white">
+            <View className="w-8 h-8 rounded-full bg-[#575757] items-center justify-center border-2 border-white">
                   <Ionicons name="add" size={16} color="#ffffff" />
                 </View>
-            </View>
             
             {/* Middle Team Size Selector Button */}
             <View className="flex-1 mx-4">
@@ -203,28 +171,32 @@ export default function CreateChallengeScreen() {
 
           {/* Team Size Picker */}
           {showTeamSizePicker && (
-            <View className="bg-[#272626] rounded-lg p-4 mt-4">
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row gap-2">
-                  {TEAM_SIZES.map((size) => {
-                    const isSelected = teamSize === size;
-                    return (
-                      <Pressable
-                        key={size}
-                        onPress={() => {
-                          setTeamSize(size);
-                          setShowTeamSizePicker(false);
-                        }}
-                        className={`px-6 py-3 rounded-full ${isSelected ? 'bg-white' : 'bg-[#575757]'}`}
-                      >
-                        <Text className={`text-base font-bold ${isSelected ? 'text-black' : 'text-white'}`}>
-                          {size}v{size}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </ScrollView>
+            <View className="mt-4">
+              <HorizontalPicker
+                options={TEAM_SIZES.map((size) => ({
+                  key: String(size),
+                  label: `${size}v${size}`,
+                }))}
+                selectedKey={teamSize ? String(teamSize) : null}
+                onSelect={(key) => {
+                  setTeamSize(parseInt(key, 10));
+                  setShowTeamSizePicker(false);
+                }}
+                renderOption={(option, isSelected) => (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => {
+                      setTeamSize(parseInt(option.key, 10));
+                      setShowTeamSizePicker(false);
+                    }}
+                    className={`px-6 py-3 rounded-full ${isSelected ? 'bg-white' : 'bg-[#575757]'}`}
+                  >
+                    <Text className={`text-base font-bold ${isSelected ? 'text-black' : 'text-white'}`}>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                )}
+              />
             </View>
           )}
         </View>
@@ -232,60 +204,39 @@ export default function CreateChallengeScreen() {
         {/* Form Fields */}
         <View className="w-full gap-6 mb-8">
           {/* Sport */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-white text-base flex-1">Sport</Text>
-            <Pressable
-              onPress={() => setShowSportPicker(!showSportPicker)}
-              disabled={isSubmitting}
-              className="bg-[#575757] px-4 py-2 rounded-full flex-1 ml-4"
-            >
-              <Text className="text-white text-sm text-center">
-                {selectedSportName || 'Vælg sport'}
-              </Text>
-            </Pressable>
-          </View>
+          <FormFieldButton
+            label="Sport"
+            value={selectedSportName}
+            placeholder="Vælg sport"
+            onPress={() => setShowSportPicker(!showSportPicker)}
+            disabled={isSubmitting}
+          />
 
           {/* Sport Picker */}
           {showSportPicker && (
-            <View className="bg-[#272626] rounded-lg p-4 mb-4">
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row gap-2">
-                  {AVAILABLE_SPORTS.map((sportKey) => {
-                    const danishName = SPORTS_TRANSLATION_EN_TO_DK[sportKey];
-                    const isSelected = sport === sportKey;
-                    return (
-                      <Pressable
-                        key={sportKey}
-                        onPress={() => {
-                          setSport(sportKey);
-                          setShowSportPicker(false);
-                        }}
-                        className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-[#575757]'}`}
-                      >
-                        <Text className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-white'}`}>
-                          {danishName}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </ScrollView>
+            <View className="mb-4">
+              <HorizontalPicker
+                options={AVAILABLE_SPORTS.map((sportKey) => ({
+                  key: sportKey,
+                  label: SPORTS_TRANSLATION_EN_TO_DK[sportKey],
+                }))}
+                selectedKey={sport}
+                onSelect={(key) => {
+                  setSport(key);
+                  setShowSportPicker(false);
+                }}
+              />
             </View>
           )}
 
           {/* Location */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-white text-base flex-1">Lokation</Text>
-            <Pressable
-              onPress={() => setShowLocationPicker(!showLocationPicker)}
-              disabled={isSubmitting}
-              className="bg-[#575757] px-4 py-2 rounded-full flex-1 ml-4"
-            >
-              <Text className="text-white text-sm text-center">
-                {location || 'Vælg lokation'}
-              </Text>
-            </Pressable>
-          </View>
+          <FormFieldButton
+            label="Lokation"
+            value={location}
+            placeholder="Vælg lokation"
+            onPress={() => setShowLocationPicker(!showLocationPicker)}
+            disabled={isSubmitting}
+          />
 
           {/* Location Input (shown when picker is open) */}
           {showLocationPicker && (
@@ -308,23 +259,18 @@ export default function CreateChallengeScreen() {
           )}
 
           {/* Dato / Tid */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-white text-base flex-1">Dato / Tid</Text>
-            <Pressable
-              onPress={() => {
-                setTempDateTime(dateTime || new Date());
-                setShowDateTimePicker(true);
-              }}
-              disabled={isSubmitting}
-              className="bg-[#575757] px-4 py-2 rounded-full flex-1 ml-4"
-            >
-              <Text className="text-white text-sm text-center">
-                {dateTime
-                  ? `${dateTime.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${dateTime.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
-                  : 'Vælg dato og tid'}
-              </Text>
-            </Pressable>
-          </View>
+          <FormFieldButton
+            label="Dato / Tid"
+            value={dateTime
+              ? `${dateTime.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${dateTime.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
+              : ''}
+            placeholder="Vælg dato og tid"
+            onPress={() => {
+              setTempDateTime(dateTime || new Date());
+              setShowDateTimePicker(true);
+            }}
+            disabled={isSubmitting}
+          />
 
           {/* DateTime Picker */}
           {Platform.OS === 'ios' ? (
@@ -391,39 +337,23 @@ export default function CreateChallengeScreen() {
           )}
 
           {/* INT/EXT */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-white text-base flex-1">INT/EXT</Text>
-            <View className="flex-row gap-2 flex-1 ml-4">
-              <Pressable
-                onPress={() => setIsIndoor(true)}
-                disabled={isSubmitting}
-                className={`px-4 py-2 rounded-full flex-1 ${isIndoor === true ? 'bg-[#0A84FF]' : 'bg-[#575757]'}`}
-              >
-                <Text className="text-white text-sm text-center">INT</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setIsIndoor(false)}
-                disabled={isSubmitting}
-                className={`px-4 py-2 rounded-full flex-1 ${isIndoor === false ? 'bg-[#0A84FF]' : 'bg-[#575757]'}`}
-              >
-                <Text className="text-white text-sm text-center">EXT</Text>
-              </Pressable>
-            </View>
-          </View>
+          <BooleanToggle
+            label="INT/EXT"
+            value={isIndoor}
+            onValueChange={setIsIndoor}
+            trueLabel="INT"
+            falseLabel="EXT"
+            disabled={isSubmitting}
+          />
 
           {/* Spil om */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-white text-base flex-1">Spil om</Text>
-            <Pressable
-              onPress={() => setShowPlayForPicker(!showPlayForPicker)}
-              disabled={isSubmitting}
-              className="bg-[#575757] px-4 py-2 rounded-full flex-1 ml-4"
-            >
-              <Text className="text-white text-sm text-center">
-                {playFor || '...'}
-              </Text>
-            </Pressable>
-          </View>
+          <FormFieldButton
+            label="Spil om"
+            value={playFor}
+            placeholder="..."
+            onPress={() => setShowPlayForPicker(!showPlayForPicker)}
+            disabled={isSubmitting}
+          />
 
           {/* Play For Input (shown when picker is open) */}
           {showPlayForPicker && (
@@ -446,25 +376,14 @@ export default function CreateChallengeScreen() {
           )}
 
           {/* Omkostninger */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-white text-base flex-1">Omkostninger</Text>
-            <View className="flex-row gap-2 flex-1 ml-4">
-              <Pressable
-                onPress={() => setHasCosts(true)}
-                disabled={isSubmitting}
-                className={`px-4 py-2 rounded-full flex-1 ${hasCosts === true ? 'bg-[#0A84FF]' : 'bg-[#575757]'}`}
-              >
-                <Text className="text-white text-sm text-center">Ja</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setHasCosts(false)}
-                disabled={isSubmitting}
-                className={`px-4 py-2 rounded-full flex-1 ${hasCosts === false ? 'bg-[#0A84FF]' : 'bg-[#575757]'}`}
-              >
-                <Text className="text-white text-sm text-center">Nej</Text>
-              </Pressable>
-            </View>
-          </View>
+          <BooleanToggle
+            label="Omkostninger"
+            value={hasCosts}
+            onValueChange={setHasCosts}
+            trueLabel="Ja"
+            falseLabel="Nej"
+            disabled={isSubmitting}
+          />
         </View>
 
         {/* Kommentar Section */}
@@ -485,25 +404,13 @@ export default function CreateChallengeScreen() {
         </View>
 
         {/* Submit Button */}
-        <View className="w-full flex-row gap-4 mt-auto">
-          <Pressable
-            onPress={handleSubmit}
-            disabled={isSubmitting || !sport || !location || !dateTime || isIndoor === null || hasCosts === null}
-            className={`flex-1 rounded-lg px-4 py-4 ${
-              !isSubmitting && sport && location && dateTime && isIndoor !== null && hasCosts !== null
-                ? 'bg-white'
-                : 'bg-[#575757]'
-            }`}
-          >
-            <Text className={`text-center font-medium ${
-              !isSubmitting && sport && location && dateTime && isIndoor !== null && hasCosts !== null
-                ? 'text-black'
-                : 'text-gray-400'
-            }`}>
-              {isSubmitting ? 'Opretter...' : 'Opret Challenge'}
-            </Text>
-          </Pressable>
-        </View>
+        <SubmitButton
+          label="Opret Challenge"
+          loadingLabel="Opretter..."
+          onPress={handleSubmit}
+          disabled={!sport || !location || !dateTime || isIndoor === null || hasCosts === null}
+          isLoading={isSubmitting}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

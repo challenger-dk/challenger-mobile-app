@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { getTeam } from '../../api/teams';
+import { LoadingScreen } from '../../components/common';
 import type { Team } from '../../types/team';
 
 // TODO: Most of this page is hardcoded for now, needs to be dynamic later on
@@ -31,12 +32,7 @@ export default function TeamDetailScreen() {
   }, [id]);
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-black justify-center items-center">
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="text-white mt-4">Indlæser hold...</Text>
-      </View>
-    );
+    return <LoadingScreen message="Indlæser hold..." />;
   }
 
   if (!team) {

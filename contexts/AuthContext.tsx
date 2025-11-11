@@ -7,6 +7,7 @@ interface AuthContextType {
   setIsAuthenticated: (value: boolean) => void;
   setToken: (token: string) => Promise<void>;
   checkAuth: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +54,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const logout = async () => {
+    try {
+      await SecureStore.deleteItemAsync('token');
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Still set authenticated to false even if token deletion fails
+      setIsAuthenticated(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -60,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated: handleSetIsAuthenticated,
         setToken,
         checkAuth,
+        logout,
       }}
     >
       {isLoading ? (

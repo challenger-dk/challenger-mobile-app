@@ -58,8 +58,19 @@ export const getApiUrl = (endpoint: string): string => {
 };
 
 /**
+ * Custom error class for authentication errors
+ */
+export class AuthenticationError extends Error {
+  constructor(message: string = 'Authentication failed') {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
+}
+
+/**
  * Creates an authenticated fetch function that automatically includes
- * the Bearer token from secure storage in the Authorization header
+ * the Bearer token from secure storage in the Authorization header.
+ * Throws AuthenticationError if the response is 401 or 403.
  */
 export const authenticatedFetch = async (
   url: string,
@@ -80,6 +91,13 @@ export const authenticatedFetch = async (
     headers,
   };
 
-  return fetch(url, fetchOptions);
+  const response = await fetch(url, fetchOptions);
+
+  // Check for authentication errors (401 Unauthorized or 403 Forbidden)
+  if (response.status === 401 || response.status === 403) {
+    throw new AuthenticationError(`Authentication failed: ${response.status}`);
+  }
+
+  return response;
 };
 
