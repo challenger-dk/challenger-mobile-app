@@ -15,6 +15,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="profile" />
             <Stack.Screen name="teams" />
+            <Stack.Screen name="hub" />
           </Stack>
           <StatusBar style="light" />
         </AuthProvider>

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
@@ -54,11 +55,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="challenges"
+        name="hub"
         options={{
           title: 'Hub',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="football" size={size || 28} color={color} />
+            <MaterialCommunityIcons name="soccer-field" size={size || 28} color={color} />
           ),
         }}
       />
