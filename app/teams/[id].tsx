@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { getTeam } from '../../api/teams';
-import { LoadingScreen } from '../../components/common';
-import type { Team } from '../../types/team';
+import { getTeam } from '@/api/teams';
+import { LoadingScreen } from '@/components/common';
+import type { Team } from '@/types/team';
 
 // TODO: Most of this page is hardcoded for now, needs to be dynamic later on
 
