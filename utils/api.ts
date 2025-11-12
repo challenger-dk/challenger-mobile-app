@@ -1,13 +1,14 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 /**
  * Gets the API base URL from environment variables.
  * Uses EXPO_PUBLIC_API_BASE_URL from .env file.
  * 
  * For mobile development:
- * - iOS Simulator: http://localhost:3000
- * - Android Emulator: http://10.0.2.2:3000
- * - Physical Device: http://YOUR_COMPUTER_IP:3000 (e.g., http://192.168.1.100:3000)
+ * - iOS Simulator: http://localhost:PORT
+ * - Android Emulator: http://10.0.2.2:PORT (10.0.2.2 maps to host machine's localhost)
+ * - Physical Device: http://YOUR_COMPUTER_IP:PORT (e.g., http://192.168.1.100:8080)
  */
 export const getApiBaseUrl = (): string => {
   let apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
@@ -19,17 +20,27 @@ export const getApiBaseUrl = (): string => {
       console.warn('Warning: API URL should start with http:// or https://. Got:', apiUrl);
     }
     
+    // On Android, replace localhost with 10.0.2.2 (maps to host machine's localhost)
+    if (Platform.OS === 'android' && apiUrl.includes('localhost')) {
+      apiUrl = apiUrl.replace('localhost', '10.0.2.2');
+    }
+    
     return apiUrl;
   }
   
   // Fallback: For mobile, we need an absolute URL
-  // Default to localhost for iOS simulator (most common case)
+  // Default to localhost for iOS simulator, 10.0.2.2 for Android emulator
   // User should set EXPO_PUBLIC_API_BASE_URL in .env for their setup
   if (__DEV__) {
     // For web, /api works with proxy
-    // For mobile, we need absolute URL - defaulting to localhost
-    // This will work for iOS simulator but NOT for Android emulator or physical devices
-    return 'http://localhost:3000';
+    // For mobile, we need absolute URL
+    if (Platform.OS === 'android') {
+      // Android emulator: use 10.0.2.2 to access host machine's localhost
+      return 'http://10.0.2.2:3000';
+    } else {
+      // iOS simulator: localhost works fine
+      return 'http://localhost:3000';
+    }
   }
   
   // Production fallback (should not happen if env is set)
