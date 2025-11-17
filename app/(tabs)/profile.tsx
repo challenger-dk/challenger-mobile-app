@@ -40,6 +40,10 @@ export default function ProfileScreen() {
     return <ErrorScreen error={error} />;
   }
 
+  if (!user) {
+    return <LoadingScreen />;
+  }
+
   return (
     <ScrollView className="flex-1 bg-[#171616]">
       {/* Top actions bar */}

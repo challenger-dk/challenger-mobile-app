@@ -2,13 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { createChallenge } from '../../api/challenges';
+import { getTeams } from '../../api/teams';
 import { getUsers } from '../../api/users';
-import { BooleanToggle, ErrorScreen, FormFieldButton, HorizontalPicker, LoadingScreen, ScreenHeader, SubmitButton, TabNavigation } from '../../components/common';
+import { BooleanToggle, ErrorScreen, FormFieldButton, HorizontalPicker, LoadingScreen, LocationSearch, ScreenHeader, SubmitButton, TabNavigation, TeamSizeSelector } from '../../components/common';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { CreateChallenge } from '../../types/challenge';
+import type { Location } from '../../types/location';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '../../types/sports';
+import type { Team } from '../../types/team';
 import type { User } from '../../types/user';
 
 const AVAILABLE_SPORTS = Object.keys(SPORTS_TRANSLATION_EN_TO_DK);
@@ -18,13 +21,24 @@ export default function CreateChallengeScreen() {
   const { user, loading, error } = useCurrentUser();
   const [challengeType, setChallengeType] = useState<'public' | 'friends'>('public');
   const [participants, setParticipants] = useState<User[]>([]);
+  const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
   const [teamSize, setTeamSize] = useState<number | null>(null);
+  const [showParticipantModal, setShowParticipantModal] = useState(false);
+  const [participantModalTab, setParticipantModalTab] = useState<'teams' | 'friends'>('teams');
+  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
   const [showTeamSizePicker, setShowTeamSizePicker] = useState(false);
   const [sport, setSport] = useState<string>('');
-  const [location, setLocation] = useState('');
-  const [dateTime, setDateTime] = useState<Date | null>(null);
-  const [showDateTimePicker, setShowDateTimePicker] = useState(false);
-  const [tempDateTime, setTempDateTime] = useState<Date>(new Date());
+  const [location, setLocation] = useState<Location | null>(null);
+  const [date, setDate] = useState<Date | null>(null);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
+  const [tempStartTime, setTempStartTime] = useState<Date>(new Date());
+  const [tempEndTime, setTempEndTime] = useState<Date>(new Date());
   const [isIndoor, setIsIndoor] = useState<boolean | null>(null);
   const [playFor, setPlayFor] = useState('');
   const [hasCosts, setHasCosts] = useState<boolean | null>(null);
@@ -50,13 +64,31 @@ export default function CreateChallengeScreen() {
     loadUsers();
   }, []);
 
+  // Load teams when modal opens
+  useEffect(() => {
+    if (showParticipantModal && participantModalTab === 'teams') {
+      const loadTeams = async () => {
+        setLoadingTeams(true);
+        try {
+          const teams = await getTeams();
+          setAvailableTeams(teams);
+        } catch (err) {
+          console.error('Failed to load teams:', err);
+        } finally {
+          setLoadingTeams(false);
+        }
+      };
+      loadTeams();
+    }
+  }, [showParticipantModal, participantModalTab]);
+
   const handleSubmit = async () => {
     if (!user) {
       Alert.alert('Fejl', 'Du skal være logget ind for at oprette en udfordring');
       return;
     }
 
-    if (!sport || !location || !dateTime || isIndoor === null || hasCosts === null) {
+    if (!sport || !location || !date || !startTime || !endTime || isIndoor === null || hasCosts === null) {
       Alert.alert('Fejl', 'Udfyld venligst alle påkrævede felter');
       return;
     }
@@ -64,12 +96,57 @@ export default function CreateChallengeScreen() {
     setIsSubmitting(true);
 
     try {
+      // Create ISO 8601 datetime strings (RFC3339 format)
+      // For date: create a date at midnight local time, then convert to ISO string
+      const dateAtMidnight = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        0, 0, 0, 0
+      );
+      const dateISO = dateAtMidnight.toISOString();
+
+      // For start_time: combine date with startTime's hours, minutes, seconds, and milliseconds
+      const startDateTime = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        startTime.getHours(),
+        startTime.getMinutes(),
+        startTime.getSeconds(),
+        startTime.getMilliseconds()
+      );
+      const startDateTimeISO = startDateTime.toISOString();
+
+      // For end_time: combine date with endTime's hours, minutes, seconds, and milliseconds
+      const endDateTime = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        endTime.getHours(),
+        endTime.getMinutes(),
+        endTime.getSeconds(),
+        endTime.getMilliseconds()
+      );
+      const endDateTimeISO = endDateTime.toISOString();
+
       const challengeData: CreateChallenge = {
-        name: `${sport} - ${location}`, // Temporary name
+        name: `${sport} - ${location.address} - ${teamSize}v${teamSize}`,
         description: comment.trim() || '',
         sport: sport,
-        location: location.trim(),
+        location: location,
         creator_id: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
+        is_public: challengeType === 'public',
+        is_indoor: isIndoor,
+        play_for: playFor.trim(),
+        has_costs: hasCosts,
+        comment: comment.trim(),
+        users: participants.map(p => typeof p.id === 'string' ? parseInt(p.id, 10) : p.id),
+        teams: selectedTeams.map(t => typeof t.id === 'string' ? parseInt(t.id, 10) : t.id),
+        date: dateISO,
+        start_time: startDateTimeISO,
+        end_time: endDateTimeISO,
+        team_size: teamSize || 0,
       };
 
       await createChallenge(challengeData);
@@ -121,50 +198,80 @@ export default function CreateChallengeScreen() {
         {/* Participants Section */}
         <View className="w-full mb-8">
           <View className="flex-row items-center mb-4">
-            {/* Left Person Icon */}
-            <View className="w-8 h-8 rounded-full bg-[#575757] items-center justify-center border-2 border-white">
-                  <Ionicons name="add" size={16} color="#ffffff" />
-                </View>
+            {/* Left Person Icon - Add Teams */}
+            <Pressable
+              onPress={() => {
+                setParticipantModalTab('teams');
+                setShowParticipantModal(true);
+              }}
+              disabled={isSubmitting}
+            >
+              <View className="w-8 h-8 rounded-full bg-[#575757] items-center justify-center border-2 border-white">
+                <Ionicons name="add" size={16} color="#ffffff" />
+              </View>
+            </Pressable>
             
             {/* Middle Team Size Selector Button */}
-            <View className="flex-1 mx-4">
-              <Pressable
-                onPress={() => setShowTeamSizePicker(!showTeamSizePicker)}
-                disabled={isSubmitting}
-                className="bg-[#272626] rounded-lg border border-[#575757] py-3 px-4"
-              >
-                <Text className="text-white text-center text-base font-medium">
-                  {teamSize ? `${teamSize}v${teamSize}` : 'Vælg team størrelse'}
-                </Text>
-              </Pressable>
-            </View>
+            <TeamSizeSelector
+              teamSize={teamSize}
+              onPress={() => setShowTeamSizePicker(!showTeamSizePicker)}
+              disabled={isSubmitting}
+            />
 
-            {/* Right Side - Person Icon and Add Button */}
-            <View className="flex-column items-center gap-2">
-              <View className="w-8 h-8 rounded-full bg-[#575757] items-center justify-center">
-                <Ionicons name="person" size={20} color="#ffffff" />
+            {/* Right Side - Person Icon and Add Friends Button */}
+            <Pressable
+              onPress={() => {
+                setParticipantModalTab('friends');
+                setShowParticipantModal(true);
+              }}
+              disabled={isSubmitting}
+            >
+              <View className="flex-column items-center gap-2">
+                <View className="w-8 h-8 rounded-full bg-[#575757] items-center justify-center">
+                  <Ionicons name="person" size={20} color="#ffffff" />
+                </View>
               </View>
-              <Pressable onPress={() => {
-                // TODO: Open participant selection modal
-                if (challengeType === 'friends' && availableUsers.length > 0) {
-                  // For now, just add first available user as placeholder
-                  const firstUser = availableUsers.find(u => u.id !== user?.id);
-                  if (firstUser && !participants.find(p => p.id === firstUser.id)) {
-                    setParticipants([...participants, firstUser]);
-                  }
-                }
-              }}>
-              </Pressable>
-            </View>
+            </Pressable>
           </View>
+
+          {/* Selected Teams List */}
+          {selectedTeams.length > 0 && (
+            <View className="ml-12 mb-2">
+              {selectedTeams.map((team, index) => (
+                <View key={index} className="flex-row items-center mb-1">
+                  <Text className="text-white text-sm">
+                    {team.name}
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
+                    }}
+                    className="ml-2"
+                  >
+                    <Ionicons name="close-circle" size={16} color="#ffffff" />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
 
           {/* Participants List */}
           {participants.length > 0 && (
             <View className="ml-12 mb-2">
-              {participants.slice(0, 5).map((participant, index) => (
-                <Text key={index} className="text-white text-sm mb-1">
-                  {participant.first_name} {participant.last_name || ''}
-                </Text>
+              {participants.map((participant, index) => (
+                <View key={index} className="flex-row items-center mb-1">
+                  <Text className="text-white text-sm">
+                    {participant.first_name} {participant.last_name || ''}
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      setParticipants(participants.filter(p => p.id !== participant.id));
+                    }}
+                    className="ml-2"
+                  >
+                    <Ionicons name="close-circle" size={16} color="#ffffff" />
+                  </Pressable>
+                </View>
               ))}
             </View>
           )}
@@ -201,6 +308,124 @@ export default function CreateChallengeScreen() {
           )}
         </View>
 
+        {/* Participant Selection Modal */}
+        <Modal
+          visible={showParticipantModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowParticipantModal(false)}
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <Pressable 
+              className="flex-1" 
+              onPress={() => setShowParticipantModal(false)}
+            />
+            <View className="bg-[#171616] rounded-t-3xl pb-8 max-h-[80%]">
+              <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                <Pressable onPress={() => setShowParticipantModal(false)}>
+                  <Text className="text-white text-base">Annuller</Text>
+                </Pressable>
+                <Text className="text-white text-lg font-bold">
+                  {participantModalTab === 'teams' ? 'Vælg teams' : 'Vælg venner'}
+                </Text>
+                <Pressable onPress={() => setShowParticipantModal(false)}>
+                  <Text className="text-white text-base font-medium">Færdig</Text>
+                </Pressable>
+              </View>
+
+              {/* Tabs */}
+              <View className="px-6 pt-4">
+                <TabNavigation
+                  tabs={[
+                    { key: 'teams', label: 'Teams' },
+                    { key: 'friends', label: 'Venner' },
+                  ]}
+                  activeTab={participantModalTab}
+                  onTabChange={(key) => setParticipantModalTab(key as 'teams' | 'friends')}
+                />
+              </View>
+
+              {/* Content */}
+              <ScrollView className="flex-1 px-6 pt-4">
+                {participantModalTab === 'teams' ? (
+                  loadingTeams ? (
+                    <View className="py-8 items-center">
+                      <Text className="text-white">Indlæser teams...</Text>
+                    </View>
+                  ) : availableTeams.length === 0 ? (
+                    <View className="py-8 items-center">
+                      <Text className="text-white text-center">Ingen teams tilgængelige</Text>
+                    </View>
+                  ) : (
+                    <View className="gap-2">
+                      {availableTeams.map((team) => {
+                        const isSelected = selectedTeams.some(t => t.id === team.id);
+                        return (
+                          <Pressable
+                            key={team.id}
+                            onPress={() => {
+                              if (isSelected) {
+                                setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
+                              } else {
+                                setSelectedTeams([...selectedTeams, team]);
+                              }
+                            }}
+                            className={`flex-row items-center justify-between p-4 rounded-lg border ${
+                              isSelected ? 'bg-white border-white' : 'bg-[#272626] border-[#575757]'
+                            }`}
+                          >
+                            <Text className={`text-base font-medium ${isSelected ? 'text-black' : 'text-white'}`}>
+                              {team.name}
+                            </Text>
+                            {isSelected && (
+                              <Ionicons name="checkmark-circle" size={24} color="#000000" />
+                            )}
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  )
+                ) : (
+                  <View className="gap-2">
+                    {availableUsers
+                      .filter(u => u.id !== user?.id)
+                      .map((friend) => {
+                        const isSelected = participants.some(p => p.id === friend.id);
+                        return (
+                          <Pressable
+                            key={friend.id}
+                            onPress={() => {
+                              if (isSelected) {
+                                setParticipants(participants.filter(p => p.id !== friend.id));
+                              } else {
+                                setParticipants([...participants, friend]);
+                              }
+                            }}
+                            className={`flex-row items-center justify-between p-4 rounded-lg border ${
+                              isSelected ? 'bg-white border-white' : 'bg-[#272626] border-[#575757]'
+                            }`}
+                          >
+                            <Text className={`text-base font-medium ${isSelected ? 'text-black' : 'text-white'}`}>
+                              {friend.first_name} {friend.last_name || ''}
+                            </Text>
+                            {isSelected && (
+                              <Ionicons name="checkmark-circle" size={24} color="#000000" />
+                            )}
+                          </Pressable>
+                        );
+                      })}
+                    {availableUsers.filter(u => u.id !== user?.id).length === 0 && (
+                      <View className="py-8 items-center">
+                        <Text className="text-white text-center">Ingen venner tilgængelige</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
         {/* Form Fields */}
         <View className="w-full gap-6 mb-8">
           {/* Sport */}
@@ -232,69 +457,102 @@ export default function CreateChallengeScreen() {
           {/* Location */}
           <FormFieldButton
             label="Lokation"
-            value={location}
+            value={location?.address || ''}
             placeholder="Vælg lokation"
-            onPress={() => setShowLocationPicker(!showLocationPicker)}
+            onPress={() => setShowLocationPicker(true)}
             disabled={isSubmitting}
           />
 
-          {/* Location Input (shown when picker is open) */}
-          {showLocationPicker && (
-            <View className="mb-4">
-              <TextInput
-                placeholder="Indtast lokation"
-                placeholderTextColor="#9CA3AF"
-                value={location}
-                onChangeText={(text) => {
-                  setLocation(text);
-                  if (text.trim()) {
-                    setShowLocationPicker(false);
-                  }
-                }}
-                className="bg-[#575757] text-white rounded-lg px-4 py-3"
-                style={{ color: '#ffffff' }}
-                autoFocus
-              />
-            </View>
-          )}
+          {/* Location Search Modal */}
+          <Modal
+            visible={showLocationPicker}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowLocationPicker(false)}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              className="flex-1"
+            >
+              <View className="flex-1 bg-black/50 justify-end">
+                <Pressable 
+                  className="absolute inset-0" 
+                  onPress={() => setShowLocationPicker(false)}
+                />
+                <View 
+                  className="bg-[#171616] rounded-t-3xl"
+                  style={{ 
+                    maxHeight: Dimensions.get('window').height * 0.85,
+                    minHeight: Dimensions.get('window').height * 0.5 
+                  }}
+                >
+                  <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                    <Pressable onPress={() => setShowLocationPicker(false)}>
+                      <Text className="text-white text-base">Annuller</Text>
+                    </Pressable>
+                    <Text className="text-white text-lg font-bold">Søg efter lokation</Text>
+                    <Pressable
+                      onPress={() => setShowLocationPicker(false)}
+                    >
+                      <Text className="text-white text-base font-medium">Færdig</Text>
+                    </Pressable>
+                  </View>
+                  <View className="flex-1 px-6 pt-4 pb-8">
+                    <LocationSearch
+                      value={location}
+                      onLocationSelect={(selectedLocation) => {
+                        setLocation(selectedLocation);
+                        if (selectedLocation) {
+                          setShowLocationPicker(false);
+                        }
+                      }}
+                      placeholder="F.eks. Fælledparken, København"
+                      disabled={isSubmitting}
+                      showResultsInline={true}
+                    />
+                  </View>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
 
-          {/* Dato / Tid */}
+          {/* Date */}
           <FormFieldButton
-            label="Dato / Tid"
-            value={dateTime
-              ? `${dateTime.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${dateTime.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
+            label="Dato"
+            value={date
+              ? date.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' })
               : ''}
-            placeholder="Vælg dato og tid"
+            placeholder="Vælg dato"
             onPress={() => {
-              setTempDateTime(dateTime || new Date());
-              setShowDateTimePicker(true);
+              setTempDate(date || new Date());
+              setShowDatePicker(true);
             }}
             disabled={isSubmitting}
           />
 
-          {/* DateTime Picker */}
+          {/* Date Picker */}
           {Platform.OS === 'ios' ? (
             <Modal
-              visible={showDateTimePicker}
+              visible={showDatePicker}
               transparent={true}
               animationType="slide"
-              onRequestClose={() => setShowDateTimePicker(false)}
+              onRequestClose={() => setShowDatePicker(false)}
             >
               <View className="flex-1 bg-black/50 justify-end">
                 <Pressable 
                   className="flex-1" 
-                  onPress={() => setShowDateTimePicker(false)}
+                  onPress={() => setShowDatePicker(false)}
                 />
                 <View className="bg-[#171616] rounded-t-3xl pb-8">
                   <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
-                    <Pressable onPress={() => setShowDateTimePicker(false)}>
+                    <Pressable onPress={() => setShowDatePicker(false)}>
                       <Text className="text-white text-base">Annuller</Text>
                     </Pressable>
-                    <Text className="text-white text-lg font-bold">Vælg dato og tid</Text>
+                    <Text className="text-white text-lg font-bold">Vælg dato</Text>
                     <Pressable
                       onPress={() => {
-                        setDateTime(tempDateTime);
-                        setShowDateTimePicker(false);
+                        setDate(tempDate);
+                        setShowDatePicker(false);
                       }}
                     >
                       <Text className="text-white text-base font-medium">Færdig</Text>
@@ -302,12 +560,12 @@ export default function CreateChallengeScreen() {
                   </View>
                   <View className="py-4 w-full items-center" style={{ backgroundColor: '#171616' }}>
                     <DateTimePicker
-                      value={tempDateTime}
-                      mode="datetime"
+                      value={tempDate}
+                      mode="date"
                       display="spinner"
                       onChange={(event, selectedDate) => {
                         if (selectedDate) {
-                          setTempDateTime(selectedDate);
+                          setTempDate(selectedDate);
                         }
                       }}
                       minimumDate={new Date()}
@@ -320,18 +578,170 @@ export default function CreateChallengeScreen() {
               </View>
             </Modal>
           ) : (
-            showDateTimePicker && (
+            showDatePicker && (
               <DateTimePicker
-                value={dateTime || new Date()}
-                mode="datetime"
+                value={date || new Date()}
+                mode="date"
                 display="default"
                 onChange={(event, selectedDate) => {
-                  setShowDateTimePicker(false);
+                  setShowDatePicker(false);
                   if (event.type === 'set' && selectedDate) {
-                    setDateTime(selectedDate);
+                    setDate(selectedDate);
                   }
                 }}
                 minimumDate={new Date()}
+              />
+            )
+          )}
+
+          {/* Start Time */}
+          <FormFieldButton
+            label="Start tid"
+            value={startTime
+              ? startTime.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
+              : ''}
+            placeholder="Vælg start tid"
+            onPress={() => {
+              setTempStartTime(startTime || new Date());
+              setShowStartTimePicker(true);
+            }}
+            disabled={isSubmitting}
+          />
+
+          {/* Start Time Picker */}
+          {Platform.OS === 'ios' ? (
+            <Modal
+              visible={showStartTimePicker}
+              transparent={true}
+              animationType="slide"
+              onRequestClose={() => setShowStartTimePicker(false)}
+            >
+              <View className="flex-1 bg-black/50 justify-end">
+                <Pressable 
+                  className="flex-1" 
+                  onPress={() => setShowStartTimePicker(false)}
+                />
+                <View className="bg-[#171616] rounded-t-3xl pb-8">
+                  <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                    <Pressable onPress={() => setShowStartTimePicker(false)}>
+                      <Text className="text-white text-base">Annuller</Text>
+                    </Pressable>
+                    <Text className="text-white text-lg font-bold">Vælg start tid</Text>
+                    <Pressable
+                      onPress={() => {
+                        setStartTime(tempStartTime);
+                        setShowStartTimePicker(false);
+                      }}
+                    >
+                      <Text className="text-white text-base font-medium">Færdig</Text>
+                    </Pressable>
+                  </View>
+                  <View className="py-4 w-full items-center" style={{ backgroundColor: '#171616' }}>
+                    <DateTimePicker
+                      value={tempStartTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(event, selectedTime) => {
+                        if (selectedTime) {
+                          setTempStartTime(selectedTime);
+                        }
+                      }}
+                      textColor="#ffffff"
+                      themeVariant="dark"
+                      style={{ backgroundColor: '#171616' }}
+                    />
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          ) : (
+            showStartTimePicker && (
+              <DateTimePicker
+                value={startTime || new Date()}
+                mode="time"
+                display="default"
+                onChange={(event, selectedTime) => {
+                  setShowStartTimePicker(false);
+                  if (event.type === 'set' && selectedTime) {
+                    setStartTime(selectedTime);
+                  }
+                }}
+              />
+            )
+          )}
+
+          {/* End Time */}
+          <FormFieldButton
+            label="Slut tid"
+            value={endTime
+              ? endTime.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
+              : ''}
+            placeholder="Vælg slut tid"
+            onPress={() => {
+              setTempEndTime(endTime || new Date());
+              setShowEndTimePicker(true);
+            }}
+            disabled={isSubmitting}
+          />
+
+          {/* End Time Picker */}
+          {Platform.OS === 'ios' ? (
+            <Modal
+              visible={showEndTimePicker}
+              transparent={true}
+              animationType="slide"
+              onRequestClose={() => setShowEndTimePicker(false)}
+            >
+              <View className="flex-1 bg-black/50 justify-end">
+                <Pressable 
+                  className="flex-1" 
+                  onPress={() => setShowEndTimePicker(false)}
+                />
+                <View className="bg-[#171616] rounded-t-3xl pb-8">
+                  <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                    <Pressable onPress={() => setShowEndTimePicker(false)}>
+                      <Text className="text-white text-base">Annuller</Text>
+                    </Pressable>
+                    <Text className="text-white text-lg font-bold">Vælg slut tid</Text>
+                    <Pressable
+                      onPress={() => {
+                        setEndTime(tempEndTime);
+                        setShowEndTimePicker(false);
+                      }}
+                    >
+                      <Text className="text-white text-base font-medium">Færdig</Text>
+                    </Pressable>
+                  </View>
+                  <View className="py-4 w-full items-center" style={{ backgroundColor: '#171616' }}>
+                    <DateTimePicker
+                      value={tempEndTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(event, selectedTime) => {
+                        if (selectedTime) {
+                          setTempEndTime(selectedTime);
+                        }
+                      }}
+                      textColor="#ffffff"
+                      themeVariant="dark"
+                      style={{ backgroundColor: '#171616' }}
+                    />
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          ) : (
+            showEndTimePicker && (
+              <DateTimePicker
+                value={endTime || new Date()}
+                mode="time"
+                display="default"
+                onChange={(event, selectedTime) => {
+                  setShowEndTimePicker(false);
+                  if (event.type === 'set' && selectedTime) {
+                    setEndTime(selectedTime);
+                  }
+                }}
               />
             )
           )}
@@ -351,29 +761,53 @@ export default function CreateChallengeScreen() {
             label="Spil om"
             value={playFor}
             placeholder="..."
-            onPress={() => setShowPlayForPicker(!showPlayForPicker)}
+            onPress={() => setShowPlayForPicker(true)}
             disabled={isSubmitting}
           />
 
-          {/* Play For Input (shown when picker is open) */}
-          {showPlayForPicker && (
-            <View className="mb-4">
-              <TextInput
-                placeholder="Hvad spiller I om?"
-                placeholderTextColor="#9CA3AF"
-                value={playFor}
-                onChangeText={(text) => {
-                  setPlayFor(text);
-                  if (text.trim()) {
-                    setShowPlayForPicker(false);
-                  }
-                }}
-                className="bg-[#575757] text-white rounded-lg px-4 py-3"
-                style={{ color: '#ffffff' }}
-                autoFocus
+          {/* Play For Input Modal */}
+          <Modal
+            visible={showPlayForPicker}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowPlayForPicker(false)}
+          >
+            <View className="flex-1 bg-black/50 justify-end">
+              <Pressable 
+                className="flex-1" 
+                onPress={() => setShowPlayForPicker(false)}
               />
+              <View className="bg-[#171616] rounded-t-3xl pb-8">
+                <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                  <Pressable onPress={() => setShowPlayForPicker(false)}>
+                    <Text className="text-white text-base">Annuller</Text>
+                  </Pressable>
+                  <Text className="text-white text-lg font-bold">Hvad spiller I om?</Text>
+                  <Pressable
+                    onPress={() => setShowPlayForPicker(false)}
+                  >
+                    <Text className="text-white text-base font-medium">Færdig</Text>
+                  </Pressable>
+                </View>
+                <View className="px-6 pt-4">
+                  <TextInput
+                    placeholder="F.eks. Ære, en øl, eller bare for sjov"
+                    placeholderTextColor="#9CA3AF"
+                    value={playFor}
+                    onChangeText={setPlayFor}
+                    className="bg-[#272626] text-white rounded-lg px-4 py-3 border border-[#575757]"
+                    style={{ color: '#ffffff', fontSize: 16 }}
+                    autoFocus
+                    multiline={true}
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    returnKeyType="done"
+                    onSubmitEditing={() => setShowPlayForPicker(false)}
+                  />
+                </View>
+              </View>
             </View>
-          )}
+          </Modal>
 
           {/* Omkostninger */}
           <BooleanToggle
@@ -408,7 +842,7 @@ export default function CreateChallengeScreen() {
           label="Opret Challenge"
           loadingLabel="Opretter..."
           onPress={handleSubmit}
-          disabled={!sport || !location || !dateTime || isIndoor === null || hasCosts === null}
+          disabled={!sport || !location || !date || !startTime || !endTime || isIndoor === null || hasCosts === null || isSubmitting}
           isLoading={isSubmitting}
         />
       </ScrollView>

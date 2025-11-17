@@ -91,7 +91,7 @@ export default function RegisterScreen() {
         first_name: firstName,
         last_name: lastName || undefined,
         profile_picture: profileImage || undefined,
-        bio: bio || undefined,
+        bio: bio.trim() || undefined,
         favorite_sports: favoriteSports.length > 0 ? favoriteSports : undefined,
       } as CreateUser);
 
@@ -151,7 +151,12 @@ export default function RegisterScreen() {
                     contentFit="cover"
                   />
                 ) : (
-                  <Ionicons name="person-circle" size={180} color="#FFFFFF" />
+                  <View 
+                    className='w-48 h-48 rounded-full justify-center items-center'
+                    style={{ backgroundColor: '#FFFFFF' }}
+                  >
+                    <Ionicons name="person" size={120} color="#2c2c2c" />
+                  </View>
                 )}
               </Pressable>
             </View>

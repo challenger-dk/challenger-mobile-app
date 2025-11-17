@@ -45,7 +45,7 @@ export const register = async (data: CreateUser) => {
   }
 
   if (data.bio && data.bio.trim()) {
-    payload.bio = data.bio;
+    payload.bio = data.bio.trim();
   }
 
   if (data.favorite_sports && data.favorite_sports.length > 0) {
