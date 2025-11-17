@@ -13,6 +13,7 @@ export type User = {
   createdAt?: string
   updatedAt?: string
   friends?: Friend[]
+  age?: number
 }
 
 export type Friend = {
@@ -28,6 +29,7 @@ export type UpdateUser = {
   profile_picture?: string
   bio?: string
   favorite_sports?: string[]
+  age?: number
 }
 
 export type CreateUser = {
@@ -38,5 +40,6 @@ export type CreateUser = {
   profile_picture?: string
   bio?: string
   favorite_sports?: string[]
+  age?: number
 }
 

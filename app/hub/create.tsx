@@ -320,7 +320,13 @@ export default function CreateChallengeScreen() {
               className="flex-1" 
               onPress={() => setShowParticipantModal(false)}
             />
-            <View className="bg-[#171616] rounded-t-3xl pb-8 max-h-[80%]">
+            <View 
+              className="bg-[#171616] rounded-t-3xl"
+              style={{
+                maxHeight: Dimensions.get('window').height * 0.85,
+                minHeight: Dimensions.get('window').height * 0.5
+              }}
+            >
               <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
                 <Pressable onPress={() => setShowParticipantModal(false)}>
                   <Text className="text-white text-base">Annuller</Text>
@@ -346,7 +352,11 @@ export default function CreateChallengeScreen() {
               </View>
 
               {/* Content */}
-              <ScrollView className="flex-1 px-6 pt-4">
+              <View className="flex-1">
+                <ScrollView 
+                  className="px-6 pt-4 pb-8"
+                  contentContainerStyle={{ paddingBottom: 32 }}
+                >
                 {participantModalTab === 'teams' ? (
                   loadingTeams ? (
                     <View className="py-8 items-center">
@@ -422,6 +432,7 @@ export default function CreateChallengeScreen() {
                   </View>
                 )}
               </ScrollView>
+              </View>
             </View>
           </View>
         </Modal>

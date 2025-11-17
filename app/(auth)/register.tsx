@@ -28,6 +28,7 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [age, setAge] = useState<number | null>(null);
 
   const handleImageChange = async () => {
     // Request permissions
@@ -93,6 +94,7 @@ export default function RegisterScreen() {
         profile_picture: profileImage || undefined,
         bio: bio.trim() || undefined,
         favorite_sports: favoriteSports.length > 0 ? favoriteSports : undefined,
+        age: age !== null ? age : 1,
       } as CreateUser);
 
       if (registerResponse.error) {
@@ -117,7 +119,7 @@ export default function RegisterScreen() {
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1:
-        return firstName.trim() !== '' && lastName.trim() !== '';
+        return firstName.trim() !== '' && lastName.trim() !== '' && age !== null;
       case 2:
         return true;
       case 3:
@@ -175,6 +177,23 @@ export default function RegisterScreen() {
               placeholderTextColor="#9CA3AF"
               value={lastName}
               onChangeText={setLastName}
+              className="w-full max-w-sm bg-[#575757] text-white rounded-lg px-4 py-3 mb-4"
+              style={{ color: '#ffffff' }}
+            />
+
+            <TextInput
+              placeholder="Alder"
+              placeholderTextColor="#9CA3AF"
+              value={age !== null ? age.toString() : ''}
+              keyboardType="numeric"
+              onChangeText={(text) => {
+                if (!text || text.trim() === '') {
+                  setAge(null);
+                  return;
+                }
+                const parsed = parseInt(text, 10);
+                setAge(isNaN(parsed) ? null : parsed);
+              }}
               className="w-full max-w-sm bg-[#575757] text-white rounded-lg px-4 py-3 mb-4"
               style={{ color: '#ffffff' }}
             />

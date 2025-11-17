@@ -52,6 +52,10 @@ export const register = async (data: CreateUser) => {
     payload.favorite_sports = data.favorite_sports;
   }
 
+  if (data.age !== undefined) {
+    payload.age = data.age;
+  }
+
   const response = await fetch(getApiUrl('/auth/register'), {
     method: 'POST',
     headers: {
