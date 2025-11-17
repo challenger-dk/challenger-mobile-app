@@ -1,43 +1,71 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { getTeams, getTeamsByUser } from '../../api/teams';
-import { LoadingScreen } from '../../components/common';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
-import type { Team } from '../../types/team';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import { getInvitationsByUser } from '@/api/invitations';
+import { getTeams, getTeamsByUser } from '@/api/teams';
+import { LoadingScreen } from '@/components/common';
+import { InvitationCard } from '@/components/InvitationCard';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import type { Invitation } from '@/types/invitation';
+import type { Team } from '@/types/team';
 
 export default function TeamsScreen() {
   const router = useRouter();
   const { user } = useCurrentUser();
   const [myTeams, setMyTeams] = useState<Team[]>([]);
   const [otherTeams, setOtherTeams] = useState<Team[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const loadTeams = async () => {
-      if (!user) return;
+  // Encapsulate data loading in a useCallback
+  const loadData = useCallback(async () => {
+    if (!user) return;
 
-      try {
-        setLoading(true);
-        const allTeams = await getTeams();
-        const userTeams = await getTeamsByUser(String(user.id));
+    try {
+      const [allTeams, userTeams, userInvitations] = await Promise.all([
+        getTeams(),
+        getTeamsByUser(String(user.id)),
+        getInvitationsByUser(user.id),
+      ]);
 
-        const myIds = new Set(userTeams.map((t: Team) => t.id));
-        const others = allTeams.filter((t: Team) => !myIds.has(t.id));
+      // Team logic
+      const myIds = new Set(userTeams.map((t: Team) => t.id));
+      const others = allTeams.filter((t: Team) => !myIds.has(t.id));
+      setMyTeams(userTeams);
+      setOtherTeams(others);
 
-        setMyTeams(userTeams);
-        setOtherTeams(others);
-      } catch (err) {
-        console.error('Failed to load teams:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTeams();
+      // Invitation logic
+      const pendingTeamInvitations = userInvitations.filter(
+        (inv: Invitation) => inv.resource_type === 'team' && inv.status === 'pending'
+      );
+      setInvitations(pendingTeamInvitations);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      Alert.alert('Fejl', 'Kunne ikke hente data.');
+    }
   }, [user]);
+
+  // Initial load
+  useEffect(() => {
+    setLoading(true);
+    loadData().finally(() => setLoading(false));
+  }, [loadData]);
+
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
+
+  // This function will be passed to the card to reload all data
+  const handleInvitationHandled = () => {
+    // Re-load all data to update both invitations and team lists
+    loadData();
+  };
 
   const filterTeams = (teams: Team[]) =>
     teams.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()));
@@ -69,8 +97,10 @@ export default function TeamsScreen() {
 
   return (
     <View className="flex-1 bg-black">
-      <ScrollView className="flex-1 p-5">
-        {/* Header Tabs */}
+      <ScrollView
+        className="flex-1 p-5"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+      >
         <View className="flex-row justify-center gap-8 mb-5 border-b border-gray-700 pb-2">
           <Pressable>
             <Text className="text-gray-400">Venner</Text>
@@ -78,19 +108,33 @@ export default function TeamsScreen() {
           <View className="border-b-2 border-orange-500 pb-1">
             <Text className="text-white">Hold</Text>
           </View>
+          <Pressable onPress={() => router.push('/teams/createTeam')} className="mr-2">
+            <Ionicons name="add" size={28} color="#ffffff" />
+          </Pressable>
         </View>
 
-        {/* Search */}
         <TextInput
           value={search}
           onChangeText={setSearch}
           placeholder="Navn"
           placeholderTextColor="#9CA3AF"
-          className="w-full bg-[#2C2C2E] text-white p-3 rounded-lg mb-5"
+          className="w-full bg-[#2C2C1E] text-white p-3 rounded-lg mb-5"
           style={{ color: '#ffffff' }}
         />
 
-        {/* My Teams */}
+        {invitations.length > 0 && (
+          <View className="mb-6">
+            <Text className="text-gray-300 text-sm mb-3">Invitationer</Text>
+            {invitations.map((inv) => (
+              <InvitationCard
+                key={inv.id}
+                invitation={inv}
+                onInvitationHandled={handleInvitationHandled}
+              />
+            ))}
+          </View>
+        )}
+
         <View className="mb-6">
           <Text className="text-gray-300 text-sm mb-3">Mine hold</Text>
           {filterTeams(myTeams).map(renderTeamCard)}
@@ -99,7 +143,6 @@ export default function TeamsScreen() {
           )}
         </View>
 
-        {/* Other Teams */}
         <View className="mb-6">
           <Text className="text-gray-300 text-sm mb-3">Andre hold</Text>
           {filterTeams(otherTeams).map(renderTeamCard)}
@@ -111,4 +154,3 @@ export default function TeamsScreen() {
     </View>
   );
 }
-
