@@ -44,6 +44,9 @@ export default function ProfileScreen() {
     return <LoadingScreen />;
   }
 
+  // Get friends count
+  const friendsCount = user.friends?.length || 0;
+
   return (
     <ScrollView className="flex-1 bg-[#171616]">
       {/* Top actions bar */}
@@ -62,7 +65,7 @@ export default function ProfileScreen() {
                 contentFit="cover"
               />
             ) : (
-              <View 
+              <View
                 className='w-10 h-10 rounded-full justify-center items-center'
                 style={{ backgroundColor: '#FFFFFF' }}
               >
@@ -89,9 +92,12 @@ export default function ProfileScreen() {
         {/* First row: Venner, Teams, Favoritter */}
         <View className="flex-row gap-4 mb-4">
           {/* Venner button */}
-          <Pressable className="flex-1 bg-[#2c2c2c] rounded-lg p-4 items-center justify-center gap-2">
+          <Pressable
+            onPress={() => router.push('/friends' as any)}
+            className="flex-1 bg-[#2c2c2c] rounded-lg p-4 items-center justify-center gap-2">
             <Ionicons name="people" size={32} color="#273ba3" />
-            <Text className="text-white text-sm">Venner (0)</Text>
+            {/* Updated Text with friend count */}
+            <Text className="text-white text-sm">Venner ({friendsCount})</Text>
           </Pressable>
 
           {/* Teams button */}

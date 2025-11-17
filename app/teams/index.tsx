@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TeamsScreen() {
   const router = useRouter();
@@ -50,9 +51,11 @@ export default function TeamsScreen() {
 
   // Initial load
   useEffect(() => {
-    setLoading(true);
-    loadData().finally(() => setLoading(false));
-  }, [loadData]);
+    if (user) {
+      setLoading(true);
+      loadData().finally(() => setLoading(false));
+    }
+  }, [loadData, user]);
 
   // Handle pull-to-refresh
   const onRefresh = useCallback(async () => {
@@ -91,24 +94,38 @@ export default function TeamsScreen() {
     </Pressable>
   );
 
-  if (loading) {
+  if (loading || !user) {
     return <LoadingScreen />;
   }
 
   return (
-    <View className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-black" edges={['top']}>
       <ScrollView
         className="flex-1 p-5"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
       >
-        <View className="flex-row justify-center gap-8 mb-5 border-b border-gray-700 pb-2">
-          <Pressable>
-            <Text className="text-gray-400">Venner</Text>
+        {/* Updated Header */}
+        <View className="flex-row justify-between items-center mb-5 border-b border-gray-700 pb-2">
+          {/* Back Button */}
+          <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+            <Ionicons name="chevron-back" size={28} color="#ffffff" />
           </Pressable>
-          <View className="border-b-2 border-orange-500 pb-1">
-            <Text className="text-white">Hold</Text>
+
+          {/* Tabs */}
+          <View className="flex-row gap-8">
+            <Pressable onPress={() => router.replace('/friends' as any)}>
+              <Text className="text-gray-400 text-lg">Venner</Text>
+            </Pressable>
+            <View className="border-b-2 border-orange-500 pb-1">
+              <Text className="text-white text-lg">Hold</Text>
+            </View>
+            <Pressable onPress={() => router.push('/chat' as any)}>
+              <Text className="text-gray-400 text-lg">Chat</Text>
+            </Pressable>
           </View>
-          <Pressable onPress={() => router.push('/teams/createTeam')} className="mr-2">
+
+          {/* Add Button */}
+          <Pressable onPress={() => router.push('/teams/createTeam')} className="p-2 -mr-2">
             <Ionicons name="add" size={28} color="#ffffff" />
           </Pressable>
         </View>
@@ -151,6 +168,6 @@ export default function TeamsScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

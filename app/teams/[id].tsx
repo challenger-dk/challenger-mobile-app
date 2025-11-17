@@ -99,7 +99,10 @@ export default function TeamDetailScreen() {
 
       {/* Quick actions */}
       <View className="flex-row gap-3 mb-6">
-        <Pressable className="flex-1 bg-[#1C1C1E] p-4 rounded-xl items-center gap-2">
+        <Pressable
+          className="flex-1 bg-[#1C1C1E] p-4 rounded-xl items-center gap-2"
+          onPress={() => router.push(`/teams/members/${id}` as any)}
+        >
           <Ionicons name="people" size={24} color="#ffffff" />
           <Text className="text-sm text-gray-300">Medlemmer</Text>
         </Pressable>
