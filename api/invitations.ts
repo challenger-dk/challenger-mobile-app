@@ -3,7 +3,7 @@ import { CreateInvitation } from "@/types/invitation";
 
 const type: string = 'invitations';
 
-export const getInvitationsByUser = async (userId: number) => {
+export const getInvitationsByUser = async (userId: number |string) => {
   const response = await authenticatedFetch(getApiUrl(`/${type}/user/${userId}`));
   return response.json();
 };

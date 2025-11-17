@@ -1,11 +1,11 @@
 import type { User } from "./user"
 
 export type CreateInvitation = {
-  inviter_id: number
-  invitee_id: number
+  inviter_id: number | string
+  invitee_id: number | string
   note: string
   resource_type: InvitationType
-  resource_id: number
+  resource_id?: number
 }
 
 export type Invitation = {
@@ -17,5 +17,5 @@ export type Invitation = {
 }
 
 export type Status = 'pending' | 'accepted' | 'declined'
-export type InvitationType = 'team'
+export type InvitationType = 'team' | 'friend'
 

@@ -6,7 +6,9 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -18,13 +20,16 @@ import {
 // Api Imports
 import { SendInvitation } from '@/api/invitations';
 import { createTeam } from '@/api/teams';
-import { getUsers } from '@/api/users'; // Assuming you have this API function
+import { getUsers } from '@/api/users';
+// Common Components
+import { FormFieldButton, LocationSearch } from '@/components/common';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { CreateInvitation } from '@/types/invitation';
-import type { Team } from '@/types/team';
+import type { Location } from '@/types/location';
+import type { CreateTeam, Team } from '@/types/team'; // Import CreateTeam
 import type { User } from '@/types/user';
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4; // Updated from 3 to 4
 
 export default function CreateTeamScreen() {
   const router = useRouter();
@@ -34,6 +39,8 @@ export default function CreateTeamScreen() {
   const [currentStep, setCurrentStep] = useState(1);
   const [teamImage, setTeamImage] = useState<string | null>(null);
   const [teamName, setTeamName] = useState('');
+  const [location, setLocation] = useState<Location | null>(null); // Added location state
+  const [showLocationPicker, setShowLocationPicker] = useState(false); // Added modal state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State after team is created
@@ -45,17 +52,16 @@ export default function CreateTeamScreen() {
   const [invitedUsers, setInvitedUsers] = useState<User[]>([]);
   const [isInviting, setIsInviting] = useState<Record<number, boolean>>({});
 
-  // Fetch all users when step 3 is reached
+  // Fetch all users when step 4 (invites) is reached
   useEffect(() => {
-    if (currentStep === 3 && user) {
+    if (currentStep === 4 && user) {
       const loadUsers = async () => {
         setIsLoadingUsers(true);
         try {
-          // Assuming getUsers() fetches all users
           const users = await getUsers();
           const invitedIds = new Set(invitedUsers.map((u) => u.id));
           // Filter out current user and already invited users
-          setAllUsers(users.filter((u) => !invitedIds.has(u.id) && u.id !== user?.id));
+          setAllUsers(users.filter((u: { id: string | number; }) => !invitedIds.has(u.id) && u.id !== user?.id));
         } catch (err) {
           console.error('Failed to fetch users:', err);
           Alert.alert('Fejl', 'Kunne ikke hente brugerliste.');
@@ -88,20 +94,30 @@ export default function CreateTeamScreen() {
 
   const handleNext = async () => {
     if (currentStep < TOTAL_STEPS) {
-      // Special logic for step 2: Create team before proceeding
-      if (currentStep === 2) {
+      // Logic for step 3 (Sports step): Create team before proceeding
+      if (currentStep === 3) {
         if (!user) {
           Alert.alert('Fejl', 'Du skal være logget ind for at oprette et hold.');
           return;
         }
+
+        // Removed location check
+
         setIsSubmitting(true);
         try {
-          // Create team with just name and creator ID
-          const createdTeam = await createTeam({
+          // *** THIS IS THE FIX ***
+          // Conditionally build the payload to match Go's `omitempty`
+          const payload: CreateTeam = {
             name: teamName,
-            creator_id: user.id, // Using the logged-in user's ID
-            // image: teamImage, // You can add image upload logic here if API supports it
-          });
+          };
+
+          if (location) {
+            payload.location = location; // Only add the key if location is not null
+          }
+          // If location is null, the key will be omitted, and `omitempty` will work.
+          // *** END OF FIX ***
+
+          const createdTeam = await createTeam(payload);
 
           if (createdTeam) {
             setNewTeam(createdTeam);
@@ -131,19 +147,22 @@ export default function CreateTeamScreen() {
     if (newTeam) {
       router.replace(`/teams/${newTeam.id}` as any);
     } else {
-      router.replace('/(tabs)/teams' as any);
+      router.replace('/teams' as any); // Go to teams index
     }
   };
 
   const handleInvite = async (invitee: User) => {
     if (!newTeam || !user) return;
 
-    setIsInviting((prev) => ({ ...prev, [invitee.id]: true }));
+    const inviterId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+    const inviteeId = typeof invitee.id === 'string' ? parseInt(invitee.id, 10) : invitee.id;
+
+    setIsInviting((prev) => ({ ...prev, [inviteeId]: true }));
     try {
       const invitation: CreateInvitation = {
-        inviter_id: user.id,
-        invitee_id: invitee.id,
-        note: '', // Sending an empty note
+        inviter_id: inviterId,
+        invitee_id: inviteeId,
+        note: `${user.first_name} har inviteret dig til holdet ${teamName}`, // Added a note
         resource_type: 'team',
         resource_id: newTeam.id,
       };
@@ -154,7 +173,7 @@ export default function CreateTeamScreen() {
       console.error('Failed to send invitation:', err);
       Alert.alert('Fejl', `Kunne ikke invitere ${invitee.first_name}.`);
     } finally {
-      setIsInviting((prev) => ({ ...prev, [invitee.id]: false }));
+      setIsInviting((prev) => ({ ...prev, [inviteeId]: false }));
     }
   };
 
@@ -163,9 +182,11 @@ export default function CreateTeamScreen() {
       case 1:
         return teamName.trim() !== '';
       case 2:
-        return true; // Step 2 (sports) is now just a placeholder, always allow proceed
+        return true; // Location is optional, so always allow proceeding
       case 3:
-        return true; // Step 3 (invite) is now just a placeholder
+        return true; // Step 3 (sports) is a placeholder, always allow proceed
+      case 4:
+        return true; // Step 4 (invite)
       default:
         return false;
     }
@@ -205,7 +226,26 @@ export default function CreateTeamScreen() {
           </>
         );
 
-      case 2:
+      case 2: // New Location Step
+        return (
+          <>
+            <Text className="text-white text-xl font-bold mb-4">Holdets Lokation</Text>
+            <Text className="text-white text-center text-sm mb-8">
+              Hvor hører holdet til? (Valgfrit)
+            </Text>
+            <View className="w-full max-w-sm">
+              <FormFieldButton
+                label="Lokation"
+                value={location?.address || ''}
+                placeholder="Vælg lokation"
+                onPress={() => setShowLocationPicker(true)}
+                disabled={isSubmitting}
+              />
+            </View>
+          </>
+        );
+
+      case 3: // Old Step 2 (Sports)
         return (
           <>
             <Text className="text-white text-xl font-bold mb-4">Vælg Holdets Sportsgrene</Text>
@@ -219,7 +259,7 @@ export default function CreateTeamScreen() {
           </>
         );
 
-      case 3:
+      case 4: // Old Step 3 (Invites)
         return (
           <>
             <Text className="text-white text-xl font-bold mb-4">Inviter Medlemmer</Text>
@@ -241,10 +281,10 @@ export default function CreateTeamScreen() {
                     </Text>
                     <Pressable
                       onPress={() => handleInvite(user)}
-                      disabled={!!isInviting[user.id]}
+                      disabled={!!isInviting[typeof user.id === 'string' ? parseInt(user.id, 10) : user.id]}
                       className="bg-green-600 px-3 py-1 rounded-full"
                     >
-                      {isInviting[user.id] ? (
+                      {isInviting[typeof user.id === 'string' ? parseInt(user.id, 10) : user.id] ? (
                         <ActivityIndicator size="small" color="#fff" />
                       ) : (
                         <Text className="text-white text-sm font-medium">Inviter</Text>
@@ -256,7 +296,7 @@ export default function CreateTeamScreen() {
 
               {invitedUsers.length > 0 && (
                 <View className="mt-4">
-                  <Text className="text-gray-400 text-sm mb-2">Inviteteret</Text>
+                  <Text className="text-gray-400 text-sm mb-2">Inviteret</Text>
                   {invitedUsers.map((user) => (
                     <View
                       key={user.id}
@@ -313,7 +353,7 @@ export default function CreateTeamScreen() {
             <View
               key={index}
               className={`h-1 flex-1 rounded-full ${
-                index + 1 <= currentStep ? 'bg-white' : 'bg-[#575757]'
+                index + 1 <= currentStep ? 'bg-white' : 'bg-[#57575j]'
               }`}
             />
           ))}
@@ -344,7 +384,7 @@ export default function CreateTeamScreen() {
                   canProceedToNextStep() && !isSubmitting ? 'text-black' : 'text-gray-400'
                 }`}
               >
-                {currentStep === 2
+                {currentStep === 3 // Check if on new step 3 (Sports)
                   ? isSubmitting
                     ? 'Opretter...'
                     : 'Opret og fortsæt'
@@ -361,7 +401,7 @@ export default function CreateTeamScreen() {
           )}
         </View>
 
-        {currentStep === 3 && (
+        {currentStep === 4 && ( // Updated to step 4
           <Pressable
             onPress={handleFinish}
             className="w-full max-w-sm bg-transparent rounded-lg px-4 py-4 mt-2"
@@ -370,6 +410,59 @@ export default function CreateTeamScreen() {
           </Pressable>
         )}
       </ScrollView>
+
+      {/* Location Search Modal */}
+      <Modal
+        visible={showLocationPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowLocationPicker(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <Pressable
+              className="absolute inset-0"
+              onPress={() => setShowLocationPicker(false)}
+            />
+            <View
+              className="bg-[#171616] rounded-t-3xl"
+              style={{
+                maxHeight: Dimensions.get('window').height * 0.85,
+                minHeight: Dimensions.get('window').height * 0.5
+              }}
+            >
+              <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                <Pressable onPress={() => setShowLocationPicker(false)}>
+                  <Text className="text-white text-base">Annuller</Text>
+                </Pressable>
+                <Text className="text-white text-lg font-bold">Søg efter lokation</Text>
+                <Pressable
+                  onPress={() => setShowLocationPicker(false)}
+                >
+                  <Text className="text-white text-base font-medium">Færdig</Text>
+                </Pressable>
+              </View>
+              <View className="flex-1 px-6 pt-4 pb-8">
+                <LocationSearch
+                  value={location}
+                  onLocationSelect={(selectedLocation) => {
+                    setLocation(selectedLocation);
+                    if (selectedLocation) {
+                      setShowLocationPicker(false);
+                    }
+                  }}
+                  placeholder="F.eks. Fælledparken, København"
+                  disabled={isSubmitting}
+                  showResultsInline={true}
+                />
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }

@@ -12,6 +12,14 @@ export type User = {
   updated_at?: string
   createdAt?: string
   updatedAt?: string
+  friends?: Friend[]
+}
+
+export type Friend = {
+  id: string | number
+  email: string
+  first_name: string
+  last_name?: string
 }
 
 export type UpdateUser = {

@@ -44,4 +44,3 @@ export const createUser = async (user: CreateUser) => {
   });
   return response.json();
 };
-

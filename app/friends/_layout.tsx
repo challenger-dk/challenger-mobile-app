@@ -12,13 +12,8 @@ export default function TeamsLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        headerShown: false // Hiding default header to use custom ScreenHeader
+        //headerShown: false
       }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="[id]" />
-      <Stack.Screen name="createTeam" />
-      <Stack.Screen name="members/[id]" />
-    </Stack>
+    />
   );
 }

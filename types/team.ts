@@ -1,8 +1,9 @@
 import type { User } from "./user"
+import type { Location } from "./location"
 
 export type CreateTeam = {
   name: string
-  creator_id: number
+  location?: Location
 }
 
 export type UpdateTeam = {
@@ -14,5 +15,5 @@ export type Team = {
   name: string
   creator: User
   users: User[]
+  location?: Location
 }
-

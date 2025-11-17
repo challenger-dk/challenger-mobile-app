@@ -218,7 +218,7 @@ export default function CreateChallengeScreen() {
               disabled={isSubmitting}
             />
 
-            {/* Right Side - Person Icon and Add Friends Button */}
+            {/* Right Side - Person Icon and Add users Button */}
             <Pressable
               onPress={() => {
                 setParticipantModalTab('friends');
