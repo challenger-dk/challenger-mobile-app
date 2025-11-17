@@ -82,7 +82,7 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
             {/* Left: 2x2 Grid */}
             <View className="flex-1 pr-4 border-r border-black/40">
               {/* Row 1 of 2x2 grid */}
-              <View className="flex-row mb-2">
+              <View className="flex-row">
                 {/* Cell 1,1 - Icon, Sport Name and Creator */}
                 <View className="w-[62.5%] justify-center border-r border-black/40 pr-4">
                   <View className="flex-row items-center">
@@ -101,19 +101,19 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
                 {/* Cell 1,2 - StartTime, EndTime and Date */}
                 <View className="w-[32.5%] justify-center pl-4">
                   {formattedTimeRange && (
-                    <Text className="text-white text-lg">{formattedTimeRange}</Text>
+                    <Text className="text-white text-lg text-center">{formattedTimeRange}</Text>
                   )}
                   {formattedDate && (
-                    <Text className="text-white text-xs">{formattedDate}</Text>
+                    <Text className="text-white text-xs text-center">{formattedDate}</Text>
                   )}
                 </View>
               </View>
               
               {/* Black Separator Line */}
-              <View className="w-[110%] bg-[#171616] mx-2 absolute h-[1px] top-1/2 -translate-y-1/2 z-10 -left-5" />
+              <View className="w-[112%] bg-[#171616] absolute h-[1px] top-[62px] -translate-y-1/2 z-10 -left-5" />
 
               {/* Row 2 of 2x2 grid */}
-              <View className="flex-row">
+              <View className="flex-row mt-6">
                 {/* Cell 2,1 - Location */}
                 <View className="w-[55%] border-r border-black/40 pr-4">
                   <View className="flex-row items-center">
@@ -134,27 +134,29 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
             </View>
 
             {/* Right: 1x2 Grid - Vertical Score Display */}
-            <View className="w-[17.5%] relative">
+            <View className="w-[17.5%] relative self-stretch">
               {/* Score Column */}
-              <View className="items-center">
+              <View className="absolute -top-5 -bottom-3 left-0 right-0 flex-col">
                 {/* Row 1 of 1x2 grid - Top Score */}
-                <View className="mb-2">
-                  <View className="bg-[#272626] px-4 py-4 w-[115%] items-center -mr-3 -mt-4">
-                    <Text className="text-white font-bold text-2xl">
-                      {teamCount !== '?' 
-                        ? (challenge.teams?.[0]?.users?.length || 0)
-                        : challenge.team_size}
-                    </Text>
-                  </View>
+                <View className="flex-1 bg-[#272626] w-[115%] items-center justify-center -mr-3 rounded-tr-xl">
+                  <Text className="text-white font-bold text-2xl">
+                    {teamCount !== '?' 
+                      ? (challenge.teams?.[0]?.users?.length || 0)
+                      : challenge.team_size}
+                  </Text>
                 </View>
 
                 {/* VS Text */}
-                <Text className="text-white font-black text-sm my-2 tracking-wider z-10">
-                  VS
-                </Text>
+                <View className="w-[100%] items-center justify-center absolute top-1/2 left-0 -translate-y-1/2 z-10">
+                  {/* Black Separator Line */}
+                  <View className="w-[140%] bg-[#161617] absolute h-[1px] z-10 left-0" />
+                  <Text className="text-white font-black text-sm tracking-wider z-10 px-2 left-1">
+                    VS
+                  </Text>
+                </View>
 
                 {/* Row 2 of 1x2 grid - Bottom Score */}
-                <View className="bg-[#BD1A1A] px-4 py-4 w-[115%] items-center -mr-3 -mt-4">
+                <View className="flex-1 bg-[#BD1A1A] w-[115%] items-center justify-center -mr-3 rounded-br-xl">
                     <Text className="text-white font-bold text-2xl">
                       {teamCount !== '?' 
                         ? (challenge.teams?.[1]?.users?.length || challenge.teams?.[0]?.users?.length || 0)
@@ -164,8 +166,11 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
               </View>
 
               {/* Arrow Button - Positioned absolutely on the right, vertically centered */}
-              <View className="absolute right-[-15px] top-1/2 -translate-y-1/2">
-                <Ionicons name="arrow-forward-circle" size={36} color="#FFC033" />
+              <View className="absolute right-[-25px] top-[48%] -translate-y-1/2 z-20">
+              <View className="relative">
+                  <View className="absolute inset-0 bg-[#FFC033] rounded-full border-4 border-black" style={{ width: 32, height: 32, left: 2, top: 2 }} />
+                  <Ionicons name="arrow-forward-circle-outline" size={36} color="#171616" />
+                </View>
               </View>
             </View>
           </View>
