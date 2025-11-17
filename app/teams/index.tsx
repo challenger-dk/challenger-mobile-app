@@ -1,7 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { getInvitationsByUser } from '@/api/invitations';
 import { getTeams, getTeamsByUser } from '@/api/teams';
 import { LoadingScreen } from '@/components/common';
@@ -9,6 +5,10 @@ import { InvitationCard } from '@/components/InvitationCard';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { Invitation } from '@/types/invitation';
 import type { Team } from '@/types/team';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 
 export default function TeamsScreen() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function TeamsScreen() {
       const [allTeams, userTeams, userInvitations] = await Promise.all([
         getTeams(),
         getTeamsByUser(String(user.id)),
-        getInvitationsByUser(user.id),
+        getInvitationsByUser(Number(user.id)),
       ]);
 
       // Team logic
