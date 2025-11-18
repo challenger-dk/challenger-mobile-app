@@ -1,59 +1,50 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import MapView from 'react-native-maps';
-import { getChallenges } from '../../api/challenges';
 import { ErrorScreen, LoadingScreen, TopActionBar } from '../../components/common';
 import { ChallengeMarker } from '../../components/maps';
+import { useChallenges } from '../../hooks/queries';
 import type { Challenge } from '../../types/challenge';
 
 export default function MapsScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  
+  // React Query hook - automatically handles caching and refetching
+  const { data: challenges = [], isLoading: loading, error, refetch } = useChallenges();
 
-  useEffect(() => {
-    const fetchChallenges = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getChallenges();
-        setChallenges(data || []);
-      } catch (err) {
-        console.error('Error fetching challenges:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch challenges'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchChallenges();
-  }, []);
+  // Refetch challenges when screen comes into focus
+  // This ensures fresh data when navigating to this screen
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   // Filter for public challenges with valid coordinates
-  const publicChallenges = challenges.filter(
-    (challenge) =>
+  const publicChallenges = useMemo(() => challenges.filter(
+    (challenge: Challenge) =>
       challenge.is_public &&
       challenge.location &&
       typeof challenge.location.latitude === 'number' &&
       typeof challenge.location.longitude === 'number' &&
       !isNaN(challenge.location.latitude) &&
       !isNaN(challenge.location.longitude)
-  );
+  ), [challenges]);
 
   const handleMarkerPress = (challengeId: number) => {
     router.push(`/teams/${challengeId}` as any);
   };
 
   if (loading) {
-    return <LoadingScreen message="Loading challenges..." />;
+    return <LoadingScreen message="Loader challenges..." />;
   }
 
   if (error) {
-    return <ErrorScreen error={error} />;
+    return <ErrorScreen error={error instanceof Error ? error : new Error('Kunne ikke hente challenges')} />;
   }
 
   return (
@@ -80,7 +71,7 @@ export default function MapsScreen() {
         pitchEnabled={true}
         rotateEnabled={true}
       >
-        {publicChallenges.map((challenge) => (
+        {publicChallenges.map((challenge: Challenge) => (
           <ChallengeMarker
             key={challenge.id}
             challenge={challenge}

@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
-import { getChallenges } from '../../api/challenges';
 import { ChallengeCard } from '../../components/challenges';
 import { ErrorScreen } from '../../components/common/ErrorScreen';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { TabNavigation } from '../../components/common/TabNavigation';
+import { useChallenges } from '../../hooks/queries';
 import type { Challenge } from '../../types/challenge';
 
 type TabType = 'public' | 'friends';
@@ -14,35 +15,28 @@ type TabType = 'public' | 'friends';
 export default function HubScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('public');
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  
+  // React Query hook - automatically handles caching and refetching
+  const { data: challenges = [], isLoading: loading, error, refetch } = useChallenges();
 
-  useEffect(() => {
-    const fetchChallenges = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getChallenges();
-        setChallenges(data || []);
-      } catch (err) {
-        console.error('Error fetching challenges:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch challenges'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchChallenges();
-  }, []);
+  // Refetch challenges when screen comes into focus
+  // This ensures fresh data when navigating back from create screen
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const handleParticipate = (challengeId: number) => {
     // Navigate to challenge details or handle participation
     router.push(`/teams/${challengeId}` as any);
   };
 
-  const filteredChallenges = challenges.filter(challenge => 
-    activeTab === 'public' ? challenge.is_public : !challenge.is_public
+  const filteredChallenges = useMemo(() => 
+    challenges.filter((challenge: Challenge) => 
+      activeTab === 'public' ? challenge.is_public : !challenge.is_public
+    ),
+    [challenges, activeTab]
   );
 
   if (loading) {
@@ -50,7 +44,7 @@ export default function HubScreen() {
   }
 
   if (error) {
-    return <ErrorScreen error={error} />;
+    return <ErrorScreen error={error instanceof Error ? error : new Error('Failed to fetch challenges')} />;
   }
 
   return (

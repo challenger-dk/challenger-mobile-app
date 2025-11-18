@@ -1,12 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { createChallenge } from '../../api/challenges';
-import { getTeams } from '../../api/teams';
-import { getUsers } from '../../api/users';
 import { BooleanToggle, ErrorScreen, FormFieldButton, HorizontalPicker, LoadingScreen, LocationSearch, ScreenHeader, SubmitButton, TabNavigation, TeamSizeSelector } from '../../components/common';
+import { useCreateChallenge, useTeams, useUsers } from '../../hooks/queries';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { CreateChallenge } from '../../types/challenge';
 import type { Location } from '../../types/location';
@@ -25,8 +23,6 @@ export default function CreateChallengeScreen() {
   const [teamSize, setTeamSize] = useState<number | null>(null);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
   const [participantModalTab, setParticipantModalTab] = useState<'teams' | 'friends'>('teams');
-  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
-  const [loadingTeams, setLoadingTeams] = useState(false);
   const [showTeamSizePicker, setShowTeamSizePicker] = useState(false);
   const [sport, setSport] = useState<string>('');
   const [location, setLocation] = useState<Location | null>(null);
@@ -47,40 +43,17 @@ export default function CreateChallengeScreen() {
   const [showSportPicker, setShowSportPicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showPlayForPicker, setShowPlayForPicker] = useState(false);
-  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  const TEAM_SIZES = [1, 2,3, 4, 5, 7, 8, 10, 11];
 
-  const TEAM_SIZES = [3, 4, 5, 7, 8, 10, 11];
+  // React Query hooks for data fetching
+  const { data: availableUsersData = [] } = useUsers();
+  const { data: availableTeamsData = [], isLoading: teamsQueryLoading } = useTeams();
+  const createChallengeMutation = useCreateChallenge();
 
-  // Load users for friends selection
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const users = await getUsers();
-        setAvailableUsers(users);
-      } catch (err) {
-        console.error('Failed to load users:', err);
-      }
-    };
-    loadUsers();
-  }, []);
-
-  // Load teams when modal opens
-  useEffect(() => {
-    if (showParticipantModal && participantModalTab === 'teams') {
-      const loadTeams = async () => {
-        setLoadingTeams(true);
-        try {
-          const teams = await getTeams();
-          setAvailableTeams(teams);
-        } catch (err) {
-          console.error('Failed to load teams:', err);
-        } finally {
-          setLoadingTeams(false);
-        }
-      };
-      loadTeams();
-    }
-  }, [showParticipantModal, participantModalTab]);
+  // Use the data directly - React Query handles caching and updates
+  const availableUsers = availableUsersData;
+  const availableTeams = availableTeamsData;
+  const loadingTeams = teamsQueryLoading;
 
   const handleSubmit = async () => {
     if (!user) {
@@ -149,7 +122,7 @@ export default function CreateChallengeScreen() {
         team_size: teamSize || 0,
       };
 
-      await createChallenge(challengeData);
+      await createChallengeMutation.mutateAsync(challengeData);
       
       Alert.alert('Succes', 'Udfordringen er oprettet!');
       router.back();
@@ -368,7 +341,7 @@ export default function CreateChallengeScreen() {
                     </View>
                   ) : (
                     <View className="gap-2">
-                      {availableTeams.map((team) => {
+                      {availableTeams.map((team: Team) => {
                         const isSelected = selectedTeams.some(t => t.id === team.id);
                         return (
                           <Pressable
@@ -398,8 +371,8 @@ export default function CreateChallengeScreen() {
                 ) : (
                   <View className="gap-2">
                     {availableUsers
-                      .filter(u => u.id !== user?.id)
-                      .map((friend) => {
+                      .filter((u: User) => u.id !== user?.id)
+                      .map((friend: User) => {
                         const isSelected = participants.some(p => p.id === friend.id);
                         return (
                           <Pressable
@@ -424,7 +397,7 @@ export default function CreateChallengeScreen() {
                           </Pressable>
                         );
                       })}
-                    {availableUsers.filter(u => u.id !== user?.id).length === 0 && (
+                    {availableUsers.filter((u: User) => u.id !== user?.id).length === 0 && (
                       <View className="py-8 items-center">
                         <Text className="text-white text-center">Ingen venner tilgængelige</Text>
                       </View>

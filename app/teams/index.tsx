@@ -1,73 +1,74 @@
-import { getInvitationsByUser } from '@/api/invitations';
-import { getTeams, getTeamsByUser } from '@/api/teams';
 import { LoadingScreen } from '@/components/common';
 import { InvitationCard } from '@/components/InvitationCard';
+import { useInvitationsByUser, useTeams, useTeamsByUser } from '@/hooks/queries';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { Invitation } from '@/types/invitation';
 import type { Team } from '@/types/team';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TeamsScreen() {
   const router = useRouter();
   const { user } = useCurrentUser();
-  const [myTeams, setMyTeams] = useState<Team[]>([]);
-  const [otherTeams, setOtherTeams] = useState<Team[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+
+  // React Query hooks - automatically handle caching, loading, and error states
+  const {
+    data: allTeams = [],
+    isLoading: teamsLoading,
+    isRefetching: teamsRefetching,
+    refetch: refetchTeams,
+  } = useTeams();
+
+  const {
+    data: userTeams = [],
+    isLoading: userTeamsLoading,
+    isRefetching: userTeamsRefetching,
+    refetch: refetchUserTeams,
+  } = useTeamsByUser(user?.id ?? '');
+
+  const {
+    data: userInvitations = [],
+    isLoading: invitationsLoading,
+    isRefetching: invitationsRefetching,
+    refetch: refetchInvitations,
+  } = useInvitationsByUser(user?.id ?? 0);
+
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // Encapsulate data loading in a useCallback
-  const loadData = useCallback(async () => {
-    if (!user) return;
+  // Compute derived state from queries
+  const { myTeams, otherTeams, invitations } = useMemo(() => {
+    const myIds = new Set(userTeams.map((t: Team) => t.id));
+    const others = allTeams.filter((t: Team) => !myIds.has(t.id));
+    const pendingTeamInvitations = userInvitations.filter(
+      (inv: Invitation) => inv.resource_type === 'team' && inv.status === 'pending'
+    );
+    return {
+      myTeams: userTeams,
+      otherTeams: others,
+      invitations: pendingTeamInvitations,
+    };
+  }, [allTeams, userTeams, userInvitations]);
 
-    try {
-      const [allTeams, userTeams, userInvitations] = await Promise.all([
-        getTeams(),
-        getTeamsByUser(String(user.id)),
-        getInvitationsByUser(Number(user.id)),
-      ]);
+  // Combined loading state
+  const loading = teamsLoading || userTeamsLoading || invitationsLoading;
+  const refreshing = teamsRefetching || userTeamsRefetching || invitationsRefetching;
 
-      // Team logic
-      const myIds = new Set(userTeams.map((t: Team) => t.id));
-      const others = allTeams.filter((t: Team) => !myIds.has(t.id));
-      setMyTeams(userTeams);
-      setOtherTeams(others);
+  // Handle pull-to-refresh - React Query handles the refreshing state automatically
+  const onRefresh = async () => {
+    await Promise.all([refetchTeams(), refetchUserTeams(), refetchInvitations()]);
+  };
 
-      // Invitation logic
-      const pendingTeamInvitations = userInvitations.filter(
-        (inv: Invitation) => inv.resource_type === 'team' && inv.status === 'pending'
-      );
-      setInvitations(pendingTeamInvitations);
-    } catch (err) {
-      console.error('Failed to load data:', err);
-      Alert.alert('Fejl', 'Kunne ikke hente data.');
-    }
-  }, [user]);
-
-  // Initial load
-  useEffect(() => {
-    if (user) {
-      setLoading(true);
-      loadData().finally(() => setLoading(false));
-    }
-  }, [loadData, user]);
-
-  // Handle pull-to-refresh
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
-
-  // This function will be passed to the card to reload all data
+  // This function is called when an invitation is handled
+  // React Query will automatically refetch when mutations invalidate the cache
   const handleInvitationHandled = () => {
-    // Re-load all data to update both invitations and team lists
-    loadData();
+    // The cache invalidation in the mutation hooks will automatically trigger refetch
+    // But we can manually refetch if needed
+    refetchInvitations();
+    refetchUserTeams();
+    refetchTeams();
   };
 
   const filterTeams = (teams: Team[]) =>
@@ -142,7 +143,7 @@ export default function TeamsScreen() {
         {invitations.length > 0 && (
           <View className="mb-6">
             <Text className="text-gray-300 text-sm mb-3">Invitationer</Text>
-            {invitations.map((inv) => (
+            {invitations.map((inv: Invitation) => (
               <InvitationCard
                 key={inv.id}
                 invitation={inv}

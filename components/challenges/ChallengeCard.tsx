@@ -64,13 +64,13 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
             onPress={() => setActiveTab('info')}
             className="bg-[#272626] rounded-xl p-2"
           >
-          <Text className="text-white text-xs font-medium">Oplysninger</Text>
+          <Text className={`text-xs font-medium ${activeTab === 'info' ? 'text-white' : 'text-gray-500'}`}>Oplysninger</Text>
           </Pressable>
           <Pressable
             onPress={() => setActiveTab('teams')}
             className="bg-[#272626] rounded-xl p-2"
           >
-            <Text className="text-white text-xs font-medium">Deltagere</Text>
+            <Text className={`text-xs font-medium ${activeTab === 'teams' ? 'text-white' : 'text-gray-500'}`}>Teams</Text>
           </Pressable>
         </View>
       </View>
@@ -168,7 +168,7 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
               {/* Arrow Button - Positioned absolutely on the right, vertically centered */}
               <View className="absolute right-[-25px] top-[48%] -translate-y-1/2 z-20">
               <View className="relative">
-                  <View className="absolute inset-0 bg-[#FFC033] rounded-full border-4 border-black" style={{ width: 32, height: 32, left: 2, top: 2 }} />
+                  <View className="absolute inset-0 bg-[#FFC033] rounded-full border-2 border-[#171616]" style={{ width: 32, height: 32, left: 2, top: 2 }} />
                   <Ionicons name="arrow-forward-circle-outline" size={36} color="#171616" />
                 </View>
               </View>
@@ -177,54 +177,87 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
         </View>
       ) : (
         /* Teams View */
-        <View className="flex-row items-start">
-          {/* Team B */}
-          <View className="flex-1">
-            <Text className="text-white font-semibold mb-2">Team B</Text>
-            {challenge.teams?.[0]?.users?.map((user, index) => (
-              <Text key={index} className="text-white text-sm mb-1">
-                {user.first_name} {user.last_name || ''}
-              </Text>
-            ))}
-            {(!challenge.teams?.[0] || challenge.teams[0].users?.length === 0) && (
-              <Text className="text-[#575757] text-sm">?</Text>
-            )}
-          </View>
-
-          {/* VS and Score */}
-          <View className="px-4 items-center justify-center">
-            <Text className="text-white font-bold text-xl mb-4">VS</Text>
-            <View className="flex-row items-center gap-2 mb-2">
-              <View className="bg-white rounded px-4 py-2">
-                <Text className="text-[#171616] font-bold text-2xl">
-                  {challenge.teams?.[0]?.users?.length || 0}
-                </Text>
-              </View>
-              <Text className="text-white font-bold text-lg">VS</Text>
-              <View className="bg-[#943d40] rounded px-4 py-2">
-                <Text className="text-white font-bold text-2xl">
-                  {challenge.teams?.[1]?.users?.length || 0}
-                </Text>
+        <View className="bg-[#272626] rounded-xl p-3">
+          {/* 2x2 Grid (left) + 1x2 Grid (right) Layout */}
+          <View className="mt-2 flex-row">
+            {/* Left: 2x2 Grid */}
+            <View className="flex-1 pr-4 border-r border-black/40">
+              {/* Row 1 of 2x2 grid */}
+              <View className="flex-row">
+                {/* Cell 1,1 - Icon, Sport Name and Creator */}
+                <View className="w-[50%] justify-center border-r border-black/40 pr-4">
+                  <View className="flex-row items-center">
+                    {/* Team A */}
+                    <View className="flex-row items-center">
+                      <Text className="text-white text-base font-semibold">
+                        {challenge.teams?.[0]?.name ?? 'Team A'}
+                      </Text>
+                    </View>
+                    {/* User list */}
+                    <View className="flex-row items-center">
+                      <Text className="text-white text-sm">
+                        {challenge.teams?.[0]?.users?.map((user) => user.first_name).join(', ')}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                {/* Cell 1,2 - Team B */}
+                <View className="w-[50%] justify-center pl-4">
+                  <View className="flex-row items-center">
+                    <Text className="text-white text-base font-semibold">
+                      {challenge.teams?.[1]?.name ?? 'Team B'}
+                    </Text>
+                  </View>
+                  {/* User list */}
+                  <View className="flex-row items-center">
+                    <Text className="text-white text-sm">
+                      {challenge.teams?.[1]?.users?.map((user) => user.first_name).join(', ')}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
-            <Ionicons name="arrow-forward-circle" size={28} color="#fbb03c" />
-          </View>
 
-          {/* Team R */}
-          <View className="flex-1 items-end">
-            <Text className="text-white font-semibold mb-2">Team R</Text>
-            {challenge.teams?.[1]?.users?.map((user, index) => (
-              <Text key={index} className="text-white text-sm mb-1 text-right">
-                {user.first_name} {user.last_name || ''}
-              </Text>
-            ))}
-            {(!challenge.teams?.[1] || challenge.teams[1].users?.length === 0) && (
-              <>
-                {Array.from({ length: challenge.teams?.[0]?.users?.length || 0 }).map((_, index) => (
-                  <Text key={index} className="text-[#575757] text-sm mb-1 text-right">?</Text>
-                ))}
-              </>
-            )}
+            {/* Right: 1x2 Grid - Vertical Score Display */}
+            <View className="w-[17.5%] relative self-stretch">
+              {/* Score Column */}
+              <View className="absolute -top-5 -bottom-3 left-0 right-0 flex-col">
+                {/* Row 1 of 1x2 grid - Top Score */}
+                <View className="flex-1 bg-[#272626] w-[115%] items-center justify-center -mr-3 rounded-tr-xl">
+                  <Text className="text-white font-bold text-2xl">
+                    {teamCount !== '?' 
+                      ? (challenge.teams?.[0]?.users?.length || 0)
+                      : challenge.team_size}
+                  </Text>
+                </View>
+
+                {/* VS Text */}
+                <View className="w-[100%] items-center justify-center absolute top-1/2 left-0 -translate-y-1/2 z-10">
+                  {/* Black Separator Line */}
+                  <View className="w-[140%] bg-[#161617] absolute h-[1px] z-10 left-0" />
+                  <Text className="text-white font-black text-sm tracking-wider z-10 px-2 left-1">
+                    VS
+                  </Text>
+                </View>
+
+                {/* Row 2 of 1x2 grid - Bottom Score */}
+                <View className="flex-1 bg-[#BD1A1A] w-[115%] items-center justify-center -mr-3 rounded-br-xl">
+                    <Text className="text-white font-bold text-2xl">
+                      {teamCount !== '?' 
+                        ? (challenge.teams?.[1]?.users?.length || challenge.teams?.[0]?.users?.length || 0)
+                        : challenge.team_size}
+                    </Text>
+                </View>
+              </View>
+
+              {/* Arrow Button - Positioned absolutely on the right, vertically centered */}
+              <View className="absolute right-[-25px] top-[48%] -translate-y-1/2 z-20">
+              <View className="relative">
+                  <View className="absolute inset-0 bg-[#FFC033] rounded-full border-4 border-black" style={{ width: 32, height: 32, left: 2, top: 2 }} />
+                  <Ionicons name="arrow-forward-circle-outline" size={36} color="#171616" />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       )}

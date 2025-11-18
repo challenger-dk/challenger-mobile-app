@@ -1,0 +1,78 @@
+import {
+  acceptInvitation,
+  declineInvitation,
+  getInvitationsByUser,
+  SendInvitation,
+} from '@/api/invitations';
+import { queryKeys } from '@/lib/queryClient';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+/**
+ * Query hook to fetch invitations for a specific user
+ */
+export const useInvitationsByUser = (userId: string | number) => {
+  return useQuery({
+    queryKey: queryKeys.invitations.byUser(userId),
+    queryFn: () => getInvitationsByUser(userId),
+    enabled: !!userId, // Only fetch if userId is provided
+  });
+};
+
+/**
+ * Mutation hook to send an invitation
+ * Automatically invalidates invitations for the recipient user
+ */
+export const useSendInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: SendInvitation,
+    onSuccess: (_, variables) => {
+      // Invalidate invitations for the recipient user
+      if (variables.resource_type === 'team' && variables.resource_id) {
+        // If it's a team invitation, we might want to invalidate team-related queries too
+        queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
+      }
+      // Invalidate invitations for the recipient (if we have their ID)
+      // Note: You may need to adjust this based on your API response structure
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook to accept an invitation
+ * Automatically invalidates related queries
+ */
+export const useAcceptInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: acceptInvitation,
+    onSuccess: (_, invitationId) => {
+      // Invalidate all invitations queries to remove the accepted invitation
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
+      // Invalidate teams list in case accepting a team invitation adds the user to a team
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
+      // Invalidate current user to update their teams/friends
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
+    },
+  });
+};
+
+/**
+ * Mutation hook to decline an invitation
+ * Automatically invalidates invitations queries
+ */
+export const useDeclineInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: declineInvitation,
+    onSuccess: () => {
+      // Invalidate all invitations queries to remove the declined invitation
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
+    },
+  });
+};
+
