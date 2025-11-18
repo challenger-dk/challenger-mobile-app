@@ -1,13 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getTeam } from '@/api/teams';
-import { LoadingScreen, ScreenHeader} from '@/components/common';
-import { UserCard } from '@/components/users/UserCard'
+import { LoadingScreen, ScreenHeader } from '@/components/common';
+import { UserCard } from '@/components/users/UserCard';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { Team } from '@/types/team';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TeamMembersScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -58,6 +57,14 @@ export default function TeamMembersScreen() {
             <UserCard
               key={user.id}
               user={user}
+              onPress={() => {
+                // Redirect to own profile if clicking self, otherwise to user profile
+                if (user.id === currentUser.id) {
+                  router.push('/(tabs)/profile' as any);
+                } else {
+                  router.push(`/users/${user.id}` as any);
+                }
+              }}
               rightAction={
                 isCreator && user.id !== currentUser.id ? (
                   <Pressable className="bg-[#575757] rounded-full px-4 py-2">

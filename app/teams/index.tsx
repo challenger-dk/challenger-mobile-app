@@ -1,12 +1,15 @@
+import { getMyInvitations } from '@/api/invitations';
+import { getMyTeams } from '@/api/teams';
 import { LoadingScreen } from '@/components/common';
 import { InvitationCard } from '@/components/InvitationCard';
-import { useInvitationsByUser, useTeams, useTeamsByUser } from '@/hooks/queries';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { queryKeys } from '@/lib/queryClient';
 import type { Invitation } from '@/types/invitation';
 import type { Team } from '@/types/team';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,61 +17,76 @@ export default function TeamsScreen() {
   const router = useRouter();
   const { user } = useCurrentUser();
 
-  // React Query hooks - automatically handle caching, loading, and error states
-  const {
-    data: allTeams = [],
-    isLoading: teamsLoading,
-    isRefetching: teamsRefetching,
-    refetch: refetchTeams,
-  } = useTeams();
-
+  // Fetch current user's teams directly using useQuery
   const {
     data: userTeams = [],
     isLoading: userTeamsLoading,
     isRefetching: userTeamsRefetching,
     refetch: refetchUserTeams,
-  } = useTeamsByUser(user?.id ?? '');
+  } = useQuery({
+    queryKey: queryKeys.teams.byUser('me'),
+    queryFn: getMyTeams,
+    enabled: !!user,
+  });
 
+  // Fetch current user's invitations directly using useQuery
   const {
     data: userInvitations = [],
     isLoading: invitationsLoading,
     isRefetching: invitationsRefetching,
     refetch: refetchInvitations,
-  } = useInvitationsByUser(user?.id ?? 0);
+  } = useQuery({
+    queryKey: queryKeys.invitations.byUser('me'),
+    queryFn: getMyInvitations,
+    enabled: !!user,
+  });
 
   const [search, setSearch] = useState('');
 
   // Compute derived state from queries
   const { myTeams, otherTeams, invitations } = useMemo(() => {
-    const myIds = new Set(userTeams.map((t: Team) => t.id));
-    const others = allTeams.filter((t: Team) => !myIds.has(t.id));
+    if (!user) return { myTeams: [], otherTeams: [], invitations: [] };
+
+    // Helper to compare IDs safely (handle string vs number)
+    const isCurrentUser = (id: string | number) => String(id) === String(user.id);
+
+    // "Mine hold" -> Teams created by the user
+    // We check t.creator existence safely
+    const createdTeams = userTeams.filter((t: Team) =>
+      t.creator && isCurrentUser(t.creator.id)
+    );
+
+    // "Andre hold" -> Teams the user is a member of, but did not create
+    // Since getMyTeams only returns teams related to the user, we assume
+    // anything not created by the user is a team they are a member of.
+    const memberTeams = userTeams.filter((t: Team) =>
+      t.creator && !isCurrentUser(t.creator.id)
+    );
+
     const pendingTeamInvitations = userInvitations.filter(
       (inv: Invitation) => inv.resource_type === 'team' && inv.status === 'pending'
     );
+
     return {
-      myTeams: userTeams,
-      otherTeams: others,
+      myTeams: createdTeams,
+      otherTeams: memberTeams,
       invitations: pendingTeamInvitations,
     };
-  }, [allTeams, userTeams, userInvitations]);
+  }, [userTeams, userInvitations, user]);
 
   // Combined loading state
-  const loading = teamsLoading || userTeamsLoading || invitationsLoading;
-  const refreshing = teamsRefetching || userTeamsRefetching || invitationsRefetching;
+  const loading = userTeamsLoading || invitationsLoading;
+  const refreshing = userTeamsRefetching || invitationsRefetching;
 
-  // Handle pull-to-refresh - React Query handles the refreshing state automatically
-  const onRefresh = async () => {
-    await Promise.all([refetchTeams(), refetchUserTeams(), refetchInvitations()]);
-  };
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(async () => {
+    await Promise.all([refetchUserTeams(), refetchInvitations()]);
+  }, [refetchUserTeams, refetchInvitations]);
 
   // This function is called when an invitation is handled
-  // React Query will automatically refetch when mutations invalidate the cache
   const handleInvitationHandled = () => {
-    // The cache invalidation in the mutation hooks will automatically trigger refetch
-    // But we can manually refetch if needed
     refetchInvitations();
     refetchUserTeams();
-    refetchTeams();
   };
 
   const filterTeams = (teams: Team[]) =>
@@ -105,14 +123,12 @@ export default function TeamsScreen() {
         className="flex-1 p-5"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
       >
-        {/* Updated Header */}
+        {/* Header */}
         <View className="flex-row justify-between items-center mb-5 border-b border-gray-700 pb-2">
-          {/* Back Button */}
           <Pressable onPress={() => router.back()} className="p-2 -ml-2">
             <Ionicons name="chevron-back" size={28} color="#ffffff" />
           </Pressable>
 
-          {/* Tabs */}
           <View className="flex-row gap-8">
             <Pressable onPress={() => router.replace('/friends' as any)}>
               <Text className="text-gray-400 text-lg">Venner</Text>
@@ -125,7 +141,6 @@ export default function TeamsScreen() {
             </Pressable>
           </View>
 
-          {/* Add Button */}
           <Pressable onPress={() => router.push('/teams/createTeam')} className="p-2 -mr-2">
             <Ionicons name="add" size={28} color="#ffffff" />
           </Pressable>
@@ -143,7 +158,7 @@ export default function TeamsScreen() {
         {invitations.length > 0 && (
           <View className="mb-6">
             <Text className="text-gray-300 text-sm mb-3">Invitationer</Text>
-            {invitations.map((inv: Invitation) => (
+            {invitations.map((inv) => (
               <InvitationCard
                 key={inv.id}
                 invitation={inv}
@@ -157,7 +172,7 @@ export default function TeamsScreen() {
           <Text className="text-gray-300 text-sm mb-3">Mine hold</Text>
           {filterTeams(myTeams).map(renderTeamCard)}
           {filterTeams(myTeams).length === 0 && (
-            <Text className="text-gray-500 text-sm">Ingen hold endnu.</Text>
+            <Text className="text-gray-500 text-sm">Du har ikke oprettet nogen hold endnu.</Text>
           )}
         </View>
 
@@ -165,7 +180,7 @@ export default function TeamsScreen() {
           <Text className="text-gray-300 text-sm mb-3">Andre hold</Text>
           {filterTeams(otherTeams).map(renderTeamCard)}
           {filterTeams(otherTeams).length === 0 && (
-            <Text className="text-gray-500 text-sm">Ingen andre hold fundet.</Text>
+            <Text className="text-gray-500 text-sm">Du er ikke medlem af andre hold.</Text>
           )}
         </View>
       </ScrollView>

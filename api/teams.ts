@@ -19,6 +19,11 @@ export const getTeamsByUser = async (userId: string) => {
   return response.json();
 };
 
+export const getMyTeams = async () => {
+  const response = await authenticatedFetch(getApiUrl(`/${type}/me`));
+  return response.json();
+};
+
 // POST
 export const createTeam = async (team: CreateTeam) => {
   const response = await authenticatedFetch(getApiUrl(`/${type}`), {
@@ -42,4 +47,3 @@ export const updateTeam = async (teamId: string, team: UpdateTeam) => {
   });
   return response.json();
 };
-

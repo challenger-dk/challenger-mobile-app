@@ -2,6 +2,7 @@ import {
   acceptInvitation,
   declineInvitation,
   getInvitationsByUser,
+  getMyInvitations,
   SendInvitation,
 } from '@/api/invitations';
 import { queryKeys } from '@/lib/queryClient';
@@ -15,6 +16,16 @@ export const useInvitationsByUser = (userId: string | number) => {
     queryKey: queryKeys.invitations.byUser(userId),
     queryFn: () => getInvitationsByUser(userId),
     enabled: !!userId, // Only fetch if userId is provided
+  });
+};
+
+/**
+ * Query hook to fetch the current user's invitations
+ */
+export const useMyInvitations = () => {
+  return useQuery({
+    queryKey: queryKeys.invitations.byUser('me'),
+    queryFn: getMyInvitations,
   });
 };
 
@@ -34,7 +45,6 @@ export const useSendInvitation = () => {
         queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
       }
       // Invalidate invitations for the recipient (if we have their ID)
-      // Note: You may need to adjust this based on your API response structure
       queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
     },
   });
@@ -56,6 +66,8 @@ export const useAcceptInvitation = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
       // Invalidate current user to update their teams/friends
       queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
+      // Invalidate current user's teams
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
     },
   });
 };
@@ -75,4 +87,3 @@ export const useDeclineInvitation = () => {
     },
   });
 };
-

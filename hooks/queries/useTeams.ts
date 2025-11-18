@@ -1,4 +1,4 @@
-import { createTeam, getTeam, getTeams, getTeamsByUser, updateTeam } from '@/api/teams';
+import { createTeam, getMyTeams, getTeam, getTeams, getTeamsByUser, updateTeam } from '@/api/teams';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateTeam } from '@/types/team';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -36,6 +36,16 @@ export const useTeamsByUser = (userId: string | number) => {
 };
 
 /**
+ * Query hook to fetch the current user's teams
+ */
+export const useMyTeams = () => {
+  return useQuery({
+    queryKey: queryKeys.teams.byUser('me'),
+    queryFn: getMyTeams,
+  });
+};
+
+/**
  * Mutation hook to create a new team
  * Automatically invalidates teams list and user's teams
  */
@@ -47,6 +57,9 @@ export const useCreateTeam = () => {
     onSuccess: (data) => {
       // Invalidate teams list to include the new team
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
+      // Invalidate the current user's teams
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
+
       // If the team has users, invalidate their teams queries
       if (data?.users) {
         data.users.forEach((user: { id: string | number }) => {
@@ -72,6 +85,9 @@ export const useUpdateTeam = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.detail(variables.teamId) });
       // Invalidate teams list to reflect changes
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
+      // Invalidate the current user's teams
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
+
       // If the team has users, invalidate their teams queries
       if (data?.users) {
         data.users.forEach((user: { id: string | number }) => {
@@ -81,4 +97,3 @@ export const useUpdateTeam = () => {
     },
   });
 };
-
