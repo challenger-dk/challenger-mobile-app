@@ -3,12 +3,12 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SendInvitation } from '@/api/invitations';
-import { getUsers } from '@/api/users'; // Removed getUserById
-import { LoadingScreen, ScreenHeader } from '@/components/common'; // Import ScreenHeader
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import type { CreateInvitation } from '@/types/invitation'; // Import CreateInvitation
-import type { User } from '@/types/user';
+import { SendInvitation } from '../../api/invitations';
+import { getUsers } from '../../api/users'; // Removed getUserById
+import { LoadingScreen, ScreenHeader } from '../../components/common'; // Import ScreenHeader
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import type { CreateInvitation } from '../../types/invitation'; // Import CreateInvitation
+import type { User } from '../../types/user';
 
 export default function FriendsScreen() {
   const router = useRouter();
@@ -18,8 +18,6 @@ export default function FriendsScreen() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  console.log(user); // User's console log
 
   // Encapsulate data loading
   const loadData = useCallback(async () => {
@@ -96,7 +94,7 @@ export default function FriendsScreen() {
   const renderFriendCard = (friend: User) => (
     <Pressable
       key={friend.id}
-      onPress={() => {}} // TODO: Update to chat/profile
+      onPress={() => router.push(`/users/${friend.id}` as any)} // Correct navigation to user profile
       className="flex-row items-center justify-between bg-[#1C1C1E] rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center gap-3">
@@ -115,8 +113,10 @@ export default function FriendsScreen() {
 
   // Card for other users (with an "add" button)
   const renderOtherUserCard = (otherUser: User) => (
-    <View
+    // Changed View to Pressable to make the whole card clickable
+    <Pressable
       key={otherUser.id}
+      onPress={() => router.push(`/users/${otherUser.id}` as any)} // Navigate to user profile
       className="flex-row items-center justify-between bg-[#1C1C1E] rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center gap-3">
@@ -129,13 +129,17 @@ export default function FriendsScreen() {
           </Text>
         </View>
       </View>
+      {/* Add Friend Button - Use a separate Pressable to prevent bubbling if needed, or keep it simple */}
       <Pressable
-        onPress={() => handleAddFriend(otherUser.id)}
+        onPress={(e) => {
+          e.stopPropagation(); // Prevent navigating to profile when clicking add
+          handleAddFriend(otherUser.id);
+        }}
         className="bg-orange-500 rounded-full p-2"
       >
         <Ionicons name="add" size={20} color="#ffffff" />
       </Pressable>
-    </View>
+    </Pressable>
   );
 
   if (loading || userLoading) {

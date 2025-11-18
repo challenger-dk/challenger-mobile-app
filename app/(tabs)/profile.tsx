@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { ErrorScreen, LoadingScreen, TopActionBar } from '../../components/common';
-import { useAuth } from '../../contexts/AuthContext';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { ErrorScreen, LoadingScreen, TopActionBar } from '@/components/common';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function ProfileScreen() {
   const { user, loading, error } = useCurrentUser();

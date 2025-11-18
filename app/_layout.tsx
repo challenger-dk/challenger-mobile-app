@@ -1,8 +1,8 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { ErrorBoundary } from '../components/ErrorBoundary';
-import { AuthProvider } from '../contexts/AuthContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { AuthProvider } from '@/contexts/AuthContext';
 import '../global.css';
 
 export default function RootLayout() {
@@ -16,6 +16,8 @@ export default function RootLayout() {
             <Stack.Screen name="profile" />
             <Stack.Screen name="teams" />
             <Stack.Screen name="hub" />
+            <Stack.Screen name="friends" />
+            <Stack.Screen name="users" />
           </Stack>
           <StatusBar style="light" />
         </AuthProvider>

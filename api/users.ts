@@ -1,5 +1,5 @@
-import type { CreateUser, UpdateUser } from '../types/user';
-import { authenticatedFetch, getApiUrl } from '../utils/api';
+import type { CreateUser, UpdateUser } from '@/types/user';
+import { authenticatedFetch, getApiUrl } from '@/utils/api';
 
 export const getUsers = async () => {
   const response = await authenticatedFetch(getApiUrl('/users'));
@@ -8,6 +8,11 @@ export const getUsers = async () => {
 
 export const getCurrentUser = async () => {
   const response = await authenticatedFetch(getApiUrl('/users/me'));
+  return response.json();
+};
+
+export const getUserById = async (userId: string | number) => {
+  const response = await authenticatedFetch(getApiUrl(`/users/${userId}`));
   return response.json();
 };
 

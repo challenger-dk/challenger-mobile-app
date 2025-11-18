@@ -12,15 +12,19 @@ export type User = {
   updated_at?: string
   createdAt?: string
   updatedAt?: string
-  friends?: Friend[]
+  friends?: PublicUser[]
   age?: number
 }
 
-export type Friend = {
+export type PublicUser = {
   id: string | number
   email: string
   first_name: string
   last_name?: string
+  profile_picture?: string
+  bio?: string
+  favorite_sports?: Sport[]
+  age?: number
 }
 
 export type UpdateUser = {
