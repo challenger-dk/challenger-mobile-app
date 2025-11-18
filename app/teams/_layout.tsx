@@ -6,13 +6,13 @@ export default function TeamsLayout() {
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#000',
+          backgroundColor: '#171616',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        headerShown: false // Hiding default header to use custom ScreenHeader
+        headerShown: false
       }}
     >
       <Stack.Screen name="index" />

@@ -17,15 +17,12 @@ const SPORTS_TRANSLATION_DK_TO_EN: Record<string, string> = Object.fromEntries(
 
 // Normalize sport name to English
 const normalizeSportName = (name: string): string => {
-  // If it's already an English key, return it
   if (SPORTS_TRANSLATION_EN_TO_DK[name]) {
     return name;
   }
-  // If it's a Danish name, convert to English
   if (SPORTS_TRANSLATION_DK_TO_EN[name]) {
     return SPORTS_TRANSLATION_DK_TO_EN[name];
   }
-  // Otherwise return as-is
   return name;
 };
 
@@ -33,23 +30,20 @@ export default function ProfileInformationScreen() {
   const router = useRouter();
   const { user, loading, error } = useCurrentUser();
 
-  // Form state
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [bio, setBio] = useState('');
-  const [favoriteSports, setFavoriteSports] = useState<Sport[]>([]); // English values (for API)
+  const [favoriteSports, setFavoriteSports] = useState<Sport[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Initialize form with user data
   useEffect(() => {
     if (user) {
       setProfileImage(user.profile_picture || null);
       setFirstName(user.first_name || '');
       setLastName(user.last_name || '');
       setBio(user.bio || '');
-      // Normalize sport names to English and set favorite sports
       const normalizedSports = (user.favorite_sports || []).map(sport => ({
         ...sport,
         name: normalizeSportName(sport.name)
@@ -59,7 +53,6 @@ export default function ProfileInformationScreen() {
     }
   }, [user]);
 
-  // Track changes
   useEffect(() => {
     if (user) {
       const hasImageChanged = profileImage !== (user.profile_picture || null);
@@ -67,7 +60,6 @@ export default function ProfileInformationScreen() {
       const hasLastNameChanged = lastName !== (user.last_name || '');
       const hasBioChanged = bio !== (user.bio || '');
 
-      // Compare current favorite sports with user's favorite sports by name
       const userSportNames = (user.favorite_sports || []).map(s => s.name).sort();
       const currentSportNames = favoriteSports.map(s => s.name).sort();
       const hasSportsChanged = JSON.stringify(currentSportNames) !== JSON.stringify(userSportNames);
@@ -77,14 +69,12 @@ export default function ProfileInformationScreen() {
   }, [profileImage, firstName, lastName, bio, favoriteSports, user]);
 
   const handleImageChange = async () => {
-    // Request permissions
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Tilladelse påkrævet', 'Vi har brug for tilladelse til at tilgå dine billeder.');
       return;
     }
 
-    // Launch image picker
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -99,18 +89,14 @@ export default function ProfileInformationScreen() {
 
   const toggleSport = (sportName: string) => {
     setFavoriteSports(prev => {
-      // Check if sport already exists (case-insensitive to avoid duplicates)
       const existingIndex = prev.findIndex(s => s.name.toLowerCase() === sportName.toLowerCase());
       if (existingIndex >= 0) {
-        // Remove the sport
         return prev.filter((_, index) => index !== existingIndex);
       } else {
-        // Add the sport - try to find original sport from user data to preserve ID
         const originalSport = user?.favorite_sports?.find(s => s.name.toLowerCase() === sportName.toLowerCase());
         if (originalSport) {
           return [...prev, originalSport];
         } else {
-          // For new sports, create with id: 0 (backend will handle it)
           return [...prev, { id: 0, name: sportName }];
         }
       }
@@ -128,7 +114,6 @@ export default function ProfileInformationScreen() {
     setIsSubmitting(true);
 
     try {
-      // Normalize and deduplicate favorite_sports by name (case-insensitive), then extract just the names
       const normalizedAndUniqueSportNames = favoriteSports
         .map(sport => normalizeSportName(sport.name))
         .reduce((acc, sportName) => {
@@ -155,7 +140,6 @@ export default function ProfileInformationScreen() {
         return;
       }
 
-      // Navigate back to profile
       router.back();
     } catch (error) {
       console.error('Update error:', error);
@@ -182,10 +166,8 @@ export default function ProfileInformationScreen() {
         contentContainerClassName="flex-grow px-6 pb-6"
         keyboardShouldPersistTaps="handled"
       >
-        {/* Top bar with back button and header */}
         <ScreenHeader title="Rediger Profil" />
 
-        {/* Profile Picture Section */}
         <View className="mb-8 items-center">
           <Pressable
             onPress={handleImageChange}
@@ -199,8 +181,8 @@ export default function ProfileInformationScreen() {
                 contentFit="cover"
               />
             ) : (
-              <View 
-              className='w-48 h-48 rounded-full justify-center items-center'
+              <View
+                className='w-48 h-48 rounded-full justify-center items-center'
                 style={{ backgroundColor: '#FFFFFF' }}
               >
                 <Ionicons name="person" size={120} color="#2c2c2c" />
@@ -209,7 +191,7 @@ export default function ProfileInformationScreen() {
           </Pressable>
         </View>
 
-        {/* Name Fields */}
+        {/* Updated Inputs to match theme */}
         <View className="w-full max-w-sm mb-6">
           <Text className="text-white text-xl font-bold mb-4">Navn</Text>
           <TextInput
@@ -217,7 +199,7 @@ export default function ProfileInformationScreen() {
             placeholderTextColor="#9CA3AF"
             value={firstName}
             onChangeText={setFirstName}
-            className="w-full bg-[#575757] text-white rounded-lg px-4 py-3 mb-4"
+            className="w-full bg-[#2c2c2c] text-white rounded-lg px-4 py-3 mb-4 border border-[#575757]"
             style={{ color: '#ffffff' }}
           />
 
@@ -226,12 +208,11 @@ export default function ProfileInformationScreen() {
             placeholderTextColor="#9CA3AF"
             value={lastName}
             onChangeText={setLastName}
-            className="w-full bg-[#575757] text-white rounded-lg px-4 py-3"
+            className="w-full bg-[#2c2c2c] text-white rounded-lg px-4 py-3 border border-[#575757]"
             style={{ color: '#ffffff' }}
           />
         </View>
 
-        {/* Bio Section */}
         <View className="w-full max-w-sm mb-6">
           <Text className="text-white text-xl font-bold mb-4">Bio</Text>
 
@@ -243,12 +224,11 @@ export default function ProfileInformationScreen() {
             multiline
             numberOfLines={8}
             textAlignVertical="top"
-            className="w-full bg-[#575757] text-white rounded-lg px-4 py-3"
+            className="w-full bg-[#2c2c2c] text-white rounded-lg px-4 py-3 border border-[#575757]"
             style={{ color: '#ffffff', minHeight: 160 }}
           />
         </View>
 
-        {/* Favorite Sports Section */}
         <View className="w-full max-w-sm mb-8">
           <Text className="text-white text-xl font-bold mb-4">Favoritsportsgrene</Text>
 
@@ -262,7 +242,7 @@ export default function ProfileInformationScreen() {
                   <Pressable
                     key={sportName}
                     onPress={() => toggleSport(sportName)}
-                    className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-[#575757]'}`}
+                    className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-[#2c2c2c] border border-[#575757]'}`}
                   >
                     <Text className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-white'}`}>
                       {danishName}
@@ -274,7 +254,6 @@ export default function ProfileInformationScreen() {
           </ScrollView>
         </View>
 
-        {/* Save Button */}
         <SubmitButton
           label="Gem ændringer"
           loadingLabel="Gemmer..."
@@ -287,4 +266,3 @@ export default function ProfileInformationScreen() {
     </KeyboardAvoidingView>
   );
 }
-

@@ -1,6 +1,6 @@
 import { getMyInvitations } from '@/api/invitations';
 import { getMyTeams } from '@/api/teams';
-import { LoadingScreen } from '@/components/common';
+import { LoadingScreen, TabNavigation } from '@/components/common';
 import { InvitationCard } from '@/components/InvitationCard';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { queryKeys } from '@/lib/queryClient';
@@ -47,21 +47,19 @@ export default function TeamsScreen() {
   const { myTeams, otherTeams, invitations } = useMemo(() => {
     if (!user) return { myTeams: [], otherTeams: [], invitations: [] };
 
-    // Helper to compare IDs safely (handle string vs number)
+    // Helper to compare IDs safely
     const isCurrentUser = (id: string | number) => String(id) === String(user.id);
 
-    // "Mine hold" -> Teams created by the user
-    // We check t.creator existence safely
-    const createdTeams = userTeams.filter((t: Team) =>
-      t.creator && isCurrentUser(t.creator.id)
+    // Filter: Ensure the user is actually part of the team
+    const validUserTeams = userTeams.filter((t: Team) =>
+      (t.creator && isCurrentUser(t.creator.id)) || (t.users && t.users.some(u => isCurrentUser(u.id)))
     );
 
+    // "Mine hold" -> Teams created by the user
+    const createdTeams = validUserTeams.filter((t: Team) => t.creator && isCurrentUser(t.creator.id));
+
     // "Andre hold" -> Teams the user is a member of, but did not create
-    // Since getMyTeams only returns teams related to the user, we assume
-    // anything not created by the user is a team they are a member of.
-    const memberTeams = userTeams.filter((t: Team) =>
-      t.creator && !isCurrentUser(t.creator.id)
-    );
+    const memberTeams = validUserTeams.filter((t: Team) => t.creator && !isCurrentUser(t.creator.id));
 
     const pendingTeamInvitations = userInvitations.filter(
       (inv: Invitation) => inv.resource_type === 'team' && inv.status === 'pending'
@@ -74,16 +72,13 @@ export default function TeamsScreen() {
     };
   }, [userTeams, userInvitations, user]);
 
-  // Combined loading state
   const loading = userTeamsLoading || invitationsLoading;
   const refreshing = userTeamsRefetching || invitationsRefetching;
 
-  // Handle pull-to-refresh
   const onRefresh = useCallback(async () => {
     await Promise.all([refetchUserTeams(), refetchInvitations()]);
   }, [refetchUserTeams, refetchInvitations]);
 
-  // This function is called when an invitation is handled
   const handleInvitationHandled = () => {
     refetchInvitations();
     refetchUserTeams();
@@ -96,7 +91,7 @@ export default function TeamsScreen() {
     <Pressable
       key={team.id}
       onPress={() => router.push(`/teams/${team.id}` as any)}
-      className="flex-row items-center justify-between bg-[#1C1C1E] rounded-2xl p-4 mb-3"
+      className="flex-row items-center justify-between bg-[#2c2c2c] rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center gap-3">
         <View className="bg-green-600 rounded-xl p-3">
@@ -118,42 +113,49 @@ export default function TeamsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-black" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
+      {/* Header with Back Button */}
+      <View className="px-5 py-2 flex-row items-center">
+        <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+          <Ionicons name="chevron-back" size={28} color="#ffffff" />
+        </Pressable>
+      </View>
+
+      {/* Tabs - Using TabNavigation for consistency and fill */}
+      <TabNavigation
+        tabs={[
+          { key: 'friends', label: 'Venner' },
+          { key: 'teams', label: 'Hold' },
+        ]}
+        activeTab="teams"
+        onTabChange={(key) => {
+          if (key === 'friends') {
+            router.replace('/friends' as any);
+          }
+        }}
+      />
+
       <ScrollView
         className="flex-1 p-5"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
       >
-        {/* Header */}
-        <View className="flex-row justify-between items-center mb-5 border-b border-gray-700 pb-2">
-          <Pressable onPress={() => router.back()} className="p-2 -ml-2">
-            <Ionicons name="chevron-back" size={28} color="#ffffff" />
-          </Pressable>
-
-          <View className="flex-row gap-8">
-            <Pressable onPress={() => router.replace('/friends' as any)}>
-              <Text className="text-gray-400 text-lg">Venner</Text>
-            </Pressable>
-            <View className="border-b-2 border-orange-500 pb-1">
-              <Text className="text-white text-lg">Hold</Text>
-            </View>
-            <Pressable onPress={() => router.push('/chat' as any)}>
-              <Text className="text-gray-400 text-lg">Chat</Text>
-            </Pressable>
-          </View>
-
-          <Pressable onPress={() => router.push('/teams/createTeam')} className="p-2 -mr-2">
-            <Ionicons name="add" size={28} color="#ffffff" />
+        {/* Search Bar & Create Button Row */}
+        <View className="flex-row items-center gap-3 mb-5 mt-2">
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Navn"
+            placeholderTextColor="#9CA3AF"
+            className="flex-1 bg-[#2c2c2c] text-white p-3 rounded-lg border border-[#575757]"
+            style={{ color: '#ffffff' }}
+          />
+          <Pressable
+            onPress={() => router.push('/teams/createTeam')}
+            className="bg-[#2c2c2c] p-3 rounded-lg border border-[#575757] justify-center items-center"
+          >
+            <Ionicons name="add" size={24} color="#ffffff" />
           </Pressable>
         </View>
-
-        <TextInput
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Navn"
-          placeholderTextColor="#9CA3AF"
-          className="w-full bg-[#2C2C1E] text-white p-3 rounded-lg mb-5"
-          style={{ color: '#ffffff' }}
-        />
 
         {invitations.length > 0 && (
           <View className="mb-6">

@@ -96,7 +96,6 @@ export default function ProfileScreen() {
             onPress={() => router.push('/friends' as any)}
             className="flex-1 bg-[#2c2c2c] rounded-lg p-4 items-center justify-center gap-2">
             <Ionicons name="people" size={32} color="#273ba3" />
-            {/* Updated Text with friend count */}
             <Text className="text-white text-sm">Venner ({friendsCount})</Text>
           </Pressable>
 

@@ -1,18 +1,18 @@
 import { Stack } from 'expo-router';
 import React from 'react';
 
-export default function TeamsLayout() {
+export default function FriendsLayout() {
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#000',
+          backgroundColor: '#171616',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        //headerShown: false
+        headerShown: false // Un-commented to hide the default stack header
       }}
     />
   );

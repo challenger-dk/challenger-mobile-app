@@ -3,11 +3,12 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SendInvitation } from '../../api/invitations';
-import { getUsers } from '../../api/users'; // Removed getUserById
-import { LoadingScreen, ScreenHeader } from '../../components/common'; // Import ScreenHeader
+import { SendInvitation, getMyInvitations } from '../../api/invitations';
+import { getCurrentUser, getUsers } from '../../api/users';
+import { InvitationCard } from '../../components/InvitationCard';
+import { LoadingScreen, ScreenHeader, TabNavigation } from '../../components/common';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import type { CreateInvitation } from '../../types/invitation'; // Import CreateInvitation
+import type { CreateInvitation, Invitation } from '../../types/invitation';
 import type { User } from '../../types/user';
 
 export default function FriendsScreen() {
@@ -15,36 +16,45 @@ export default function FriendsScreen() {
   const { user, loading: userLoading, error: userError } = useCurrentUser();
   const [friends, setFriends] = useState<User[]>([]);
   const [otherUsers, setOtherUsers] = useState<User[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Encapsulate data loading
   const loadData = useCallback(async () => {
     if (!user) return;
 
     try {
-      // FIX: Removed Promise.all and getUserById.
-      // Get friends directly from the user object from the hook.
-      const myFriends: User[] = user.friends || [];
+      // Fetch fresh user data (for friends), all users, and invitations in parallel
+      const [freshUser, allUsers, myInvitations] = await Promise.all([
+        getCurrentUser(),
+        getUsers(),
+        getMyInvitations()
+      ]);
+
+      // Use the fresh user object to get the latest friends list
+      const myFriends: User[] = freshUser.friends || [];
       const myFriendIds = new Set(myFriends.map((f: User) => f.id));
-      myFriendIds.add(user.id); // Add self to filter
+      myFriendIds.add(user.id);
 
-      // Fetch all other users
-      const allUsers = await getUsers();
-
-      // Filter all users to find who is NOT a friend and NOT the user themselves
       const others = allUsers.filter((u: User) => !myFriendIds.has(u.id));
+
+      // Filter for pending friend invitations
+      const pendingInvitations = Array.isArray(myInvitations)
+        ? myInvitations.filter((inv: Invitation) =>
+          inv.resource_type === 'friend' && inv.status === 'pending'
+        )
+        : [];
 
       setFriends(myFriends);
       setOtherUsers(others);
+      setInvitations(pendingInvitations);
     } catch (err) {
       console.error('Failed to load data:', err);
-      Alert.alert('Fejl', 'Kunne ikke hente data.');
+      // Alert.alert('Fejl', 'Kunne ikke hente data.');
     }
   }, [user]);
 
-  // Initial load
   useEffect(() => {
     if (user) {
       setLoading(true);
@@ -52,14 +62,16 @@ export default function FriendsScreen() {
     }
   }, [loadData, user]);
 
-  // Handle pull-to-refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
   }, [loadData]);
 
-  // Handle sending a new friend request
+  const handleInvitationHandled = () => {
+    loadData();
+  };
+
   const handleAddFriend = async (inviteeId: number | string) => {
     if (!user) return;
 
@@ -70,14 +82,12 @@ export default function FriendsScreen() {
       const invitation: CreateInvitation = {
         inviter_id: numericInviterId,
         invitee_id: numericInviteeId,
-        note: `${user.first_name} har sendt der en venneanmodning`, // Added note
+        note: `${user.first_name} har sendt der en venneanmodning`,
         resource_type: 'friend'
-        // resource_id is omitted as it's optional
       };
 
       await SendInvitation(invitation);
       Alert.alert('Success', 'Venneanmodning sendt!');
-      // Reload data to move user from 'other users' list
       loadData();
     } catch (err) {
       console.error('Failed to send invitation:', err);
@@ -90,12 +100,11 @@ export default function FriendsScreen() {
       `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase())
     );
 
-  // Card for current friends
   const renderFriendCard = (friend: User) => (
     <Pressable
       key={friend.id}
-      onPress={() => router.push(`/users/${friend.id}` as any)} // Correct navigation to user profile
-      className="flex-row items-center justify-between bg-[#1C1C1E] rounded-2xl p-4 mb-3"
+      onPress={() => router.push(`/users/${friend.id}` as any)}
+      className="flex-row items-center justify-between bg-[#2c2c2c] rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center gap-3">
         <View className="bg-gray-700 rounded-full p-3">
@@ -111,13 +120,11 @@ export default function FriendsScreen() {
     </Pressable>
   );
 
-  // Card for other users (with an "add" button)
   const renderOtherUserCard = (otherUser: User) => (
-    // Changed View to Pressable to make the whole card clickable
     <Pressable
       key={otherUser.id}
-      onPress={() => router.push(`/users/${otherUser.id}` as any)} // Navigate to user profile
-      className="flex-row items-center justify-between bg-[#1C1C1E] rounded-2xl p-4 mb-3"
+      onPress={() => router.push(`/users/${otherUser.id}` as any)}
+      className="flex-row items-center justify-between bg-[#2c2c2c] rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center gap-3">
         <View className="bg-gray-700 rounded-full p-3">
@@ -129,10 +136,9 @@ export default function FriendsScreen() {
           </Text>
         </View>
       </View>
-      {/* Add Friend Button - Use a separate Pressable to prevent bubbling if needed, or keep it simple */}
       <Pressable
         onPress={(e) => {
-          e.stopPropagation(); // Prevent navigating to profile when clicking add
+          e.stopPropagation();
           handleAddFriend(otherUser.id);
         }}
         className="bg-orange-500 rounded-full p-2"
@@ -146,10 +152,9 @@ export default function FriendsScreen() {
     return <LoadingScreen />;
   }
 
-  // Handle user loading error
   if (userError) {
     return (
-      <SafeAreaView className="flex-1 bg-black">
+      <SafeAreaView className="flex-1 bg-[#171616]">
         <ScreenHeader title="Venner" />
         <View className="flex-1 justify-center items-center p-5">
           <Text className="text-red-500 text-center">{userError.message}</Text>
@@ -159,44 +164,55 @@ export default function FriendsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-black" edges={['top']}>
-      {/* Added ScreenHeader for layout consistency and back button */}
-      <ScreenHeader
-        title=""
-        rightAction={
-          <Pressable onPress={() => {}} className="p-2">
-            <Ionicons name="add" size={28} color="#ffffff" />
-          </Pressable>
-        }
+    <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
+      {/* Header with Back Button */}
+      <View className="px-5 py-2 flex-row items-center">
+        <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+          <Ionicons name="chevron-back" size={28} color="#ffffff" />
+        </Pressable>
+      </View>
+
+      {/* Tabs */}
+      <TabNavigation
+        tabs={[
+          { key: 'friends', label: 'Venner' },
+          { key: 'teams', label: 'Hold' },
+        ]}
+        activeTab="friends"
+        onTabChange={(key) => {
+          if (key === 'teams') {
+            router.replace('/teams' as any);
+          }
+        }}
       />
 
       <ScrollView
         className="flex-1 px-5"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
       >
-        {/* Header matching the image's tabs */}
-        <View className="flex-row justify-center items-center mb-5 border-b border-gray-700 pb-2">
-          <View className="flex-row gap-8">
-            <View className="border-b-2 border-orange-500 pb-1">
-              <Text className="text-white text-lg">Venner</Text>
-            </View>
-            <Pressable onPress={() => router.push('/chat' as any)}>
-              <Text className="text-gray-400 text-lg">Chat</Text>
-            </Pressable>
-            <Pressable onPress={() => router.push('/teams' as any)}>
-              <Text className="text-gray-400 text-lg">Hold</Text>
-            </Pressable>
-          </View>
+        <View className="mt-4 mb-5">
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Søg efter venner..."
+            placeholderTextColor="#9CA3AF"
+            className="w-full bg-[#2c2c2c] text-white p-3 rounded-lg border border-[#575757]"
+            style={{ color: '#ffffff' }}
+          />
         </View>
 
-        <TextInput
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Søg efter venner..."
-          placeholderTextColor="#9CA3AF"
-          className="w-full bg-[#1C1C1E] text-white p-3 rounded-lg mb-5 border border-[#2c2c2c]"
-          style={{ color: '#ffffff' }}
-        />
+        {invitations.length > 0 && (
+          <View className="mb-6">
+            <Text className="text-gray-300 text-sm mb-3">Invitationer</Text>
+            {invitations.map((inv) => (
+              <InvitationCard
+                key={inv.id}
+                invitation={inv}
+                onInvitationHandled={handleInvitationHandled}
+              />
+            ))}
+          </View>
+        )}
 
         <View className="mb-6">
           <Text className="text-gray-300 text-sm mb-3">Mine venner</Text>
