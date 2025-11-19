@@ -341,7 +341,7 @@ export default function CreateTeamScreen() {
         }}
       />
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pt-12 pb-12"
+        contentContainerClassName="flex-grow px-6 pb-12"
         keyboardShouldPersistTaps="handled"
       >
         <View className="w-full max-w-38 mb-12 mt-8 items-center">

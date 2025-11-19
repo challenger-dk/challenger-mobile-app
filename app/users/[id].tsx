@@ -1,13 +1,12 @@
+import { getUserById } from '@/api/users';
+import { ScreenHeader } from '@/components/common';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { PublicUser } from '@/types/user';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserById } from '@/api/users';
-import { ScreenHeader } from '@/components/common';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import {PublicUser} from '@/types/user';
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,7 +46,7 @@ export default function UserProfileScreen() {
     };
 
     loadUser();
-  }, [id, currentUser]);
+  }, [currentUser, id, router]);
 
   // Placeholder handlers
   const handleAddFriend = () => {
@@ -75,7 +74,7 @@ export default function UserProfileScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
+    <View className="flex-1 bg-[#171616]">
       <ScreenHeader
         title="Venner"
         rightAction={
@@ -164,6 +163,6 @@ export default function UserProfileScreen() {
         </View>
 
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

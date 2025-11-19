@@ -6,17 +6,29 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "${EXPO_PUBLIC_API_BASE_URL:-http://localhost:3000}",
+        "EXPO_PUBLIC_TOMTOM_API_KEY": "${EXPO_PUBLIC_TOMTOM_API_KEY}"
+      }
     },
     "preview": {
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "${EXPO_PUBLIC_API_BASE_URL}",
+        "EXPO_PUBLIC_TOMTOM_API_KEY": "${EXPO_PUBLIC_TOMTOM_API_KEY}"
       }
     },
     "production": {
       "ios": {
         "autoIncrement": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "${EXPO_PUBLIC_API_BASE_URL}",
+        "EXPO_PUBLIC_TOMTOM_API_KEY": "${EXPO_PUBLIC_TOMTOM_API_KEY}"
       }
     }
   },

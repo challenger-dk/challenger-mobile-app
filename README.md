@@ -201,7 +201,7 @@ challenger-mobile/
 ├── types/                  # TypeScript type definitions
 ├── utils/                  # Utility functions
 ├── assets/                 # Images, fonts, and other assets
-├── app.json               # Expo configuration
+├── app.config.js          # Expo configuration (supports environment variables)
 └── eas.json               # EAS Build configuration
 ```
 
@@ -245,3 +245,80 @@ This project uses [Expo Router](https://docs.expo.dev/router/introduction/) for 
 - Ensure `.env` file exists in the root directory
 - Restart the Expo development server after changing `.env`
 - Environment variables must be prefixed with `EXPO_PUBLIC_` to be accessible in the app
+
+## Environment Variables for Production Builds
+
+When building for production with EAS Build, environment variables from your local `.env` file are **not automatically included**. You need to configure them using one of the following methods:
+
+### Method 1: EAS Secrets (Required for Production)
+
+EAS Secrets is the recommended way to store sensitive environment variables for production builds. Secrets are encrypted and stored securely, and **will not be exposed in your repository**.
+
+#### Setting Up EAS Secrets
+
+You need to create secrets for both your production API URL and TomTom API key:
+
+1. Create a secret for your production API URL:
+
+```bash
+eas secret:create --scope project --name EXPO_PUBLIC_API_BASE_URL --value "https://raspberrypi.tailfe8bc0.ts.net" --type string
+```
+
+2. Create a secret for your TomTom API key:
+
+```bash
+eas secret:create --scope project --name EXPO_PUBLIC_TOMTOM_API_KEY --value "your_tomtom_api_key" --type string
+```
+
+3. List your secrets to verify:
+
+```bash
+eas secret:list
+```
+
+The `eas.json` file is already configured to use these secrets for production builds. They will be automatically injected during the build process.
+
+### Method 2: Local Environment Variables (For Development)
+
+For local development, create a `.env` file in the root directory:
+
+1. Create a `.env` file:
+
+```bash
+# For local development, use localhost
+EXPO_PUBLIC_API_BASE_URL=http://localhost:3000
+EXPO_PUBLIC_TOMTOM_API_KEY=your_tomtom_api_key
+```
+
+**Note**:
+
+- For iOS Simulator: Use `http://localhost:3000`
+- For Android Emulator: Use `http://10.0.2.2:3000` (10.0.2.2 maps to host machine's localhost)
+- For Physical Devices: Use `http://YOUR_COMPUTER_IP:3000`
+
+2. The `app.config.js` file will automatically load these variables using `dotenv`.
+
+3. Restart the Expo development server after creating or modifying the `.env` file.
+
+### Important Notes
+
+- **For Production Builds**: Always use EAS Secrets to keep sensitive information secure and out of your repository
+- **For Development**: Use `.env` file for local development (already in `.gitignore`)
+- **Variable Names**: All environment variables must be prefixed with `EXPO_PUBLIC_` to be accessible in the app
+- **After Changes**: Restart the Expo development server after changing `.env` files
+- **Build Time**: Environment variables are embedded at build time, not runtime
+- **Security**: Never commit production URLs or API keys to your repository - always use EAS Secrets
+
+### Required Environment Variables
+
+- `EXPO_PUBLIC_API_BASE_URL`: Your backend API base URL
+  - Development: `http://localhost:3000` (iOS) or `http://10.0.2.2:3000` (Android)
+  - Production: Set via EAS Secrets (e.g., `https://raspberrypi.tailfe8bc0.ts.net`)
+  
+- `EXPO_PUBLIC_TOMTOM_API_KEY`: Your TomTom API key for location services
+  - Get your key from: <https://developer.tomtom.com/>
+  - Set via EAS Secrets for production builds
+
+### Verifying Environment Variables
+
+After building, you can verify that environment variables are set correctly by checking the app's configuration. The variables are available in your code via `process.env.EXPO_PUBLIC_*`.
