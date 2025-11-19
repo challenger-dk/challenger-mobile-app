@@ -104,7 +104,9 @@ export default function TeamDetailScreen() {
           <Ionicons name="people" size={24} color="#ffffff" />
           <Text className="text-sm text-gray-300">Medlemmer</Text>
         </Pressable>
-        <Pressable className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2">
+        <Pressable className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2"
+         onPress={() => router.push(`/chat/${team.id}` as any)}
+        >
           <Ionicons name="chatbubble" size={24} color="#ffffff" />
           <Text className="text-sm text-gray-300">Chat</Text>
         </Pressable>
