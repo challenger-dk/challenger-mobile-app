@@ -10,6 +10,7 @@ import { ErrorScreen, LoadingScreen, ScreenHeader, SubmitButton } from '../../co
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { SPORTS_TRANSLATION_EN_TO_DK, type Sport } from '../../types/sports';
 import type { UpdateUser } from '../../types/user';
+import { showErrorToast } from '../../utils/toast';
 
 // Create reverse mapping: Danish -> English
 const SPORTS_TRANSLATION_DK_TO_EN: Record<string, string> = Object.fromEntries(
@@ -109,7 +110,7 @@ export default function ProfileInformationScreen() {
     if (!user) return;
 
     if (firstName.trim() === '') {
-      Alert.alert('Fejl', 'Fornavn er påkrævet');
+      showErrorToast('Fornavn er påkrævet');
       return;
     }
 
@@ -137,7 +138,7 @@ export default function ProfileInformationScreen() {
       const response = await updateUser(String(user.id), updateData);
 
       if (response.error) {
-        Alert.alert('Fejl', response.error || 'Der opstod en fejl ved opdatering af profil');
+        showErrorToast(response.error || 'Der opstod en fejl ved opdatering af profil');
         setIsSubmitting(false);
         return;
       }
@@ -145,7 +146,7 @@ export default function ProfileInformationScreen() {
       router.back();
     } catch (error) {
       console.error('Update error:', error);
-      Alert.alert('Fejl', 'Der opstod en fejl ved opdatering af profil');
+      showErrorToast('Der opstod en fejl ved opdatering af profil');
     } finally {
       setIsSubmitting(false);
     }

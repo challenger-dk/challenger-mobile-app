@@ -1,6 +1,7 @@
 import { createUser, getCurrentUser, getUserById, getUsers, updateUser, updateUserSettings } from '@/api/users';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateUser } from '@/types/user';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -52,6 +53,10 @@ export const useUpdateUser = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
       // Invalidate users list to reflect changes
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      showSuccessToast('Profilen er opdateret!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved opdatering af profilen');
     },
   });
 };
@@ -68,6 +73,10 @@ export const useUpdateUserSettings = () => {
     onSuccess: () => {
       // Invalidate current user to reflect new settings
       queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
+      showSuccessToast('Indstillingerne er opdateret!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved opdatering af indstillingerne');
     },
   });
 };
@@ -84,6 +93,10 @@ export const useCreateUser = () => {
     onSuccess: () => {
       // Invalidate users list to include the new user
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      showSuccessToast('Brugeren er oprettet!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved oprettelse af brugeren');
     },
   });
 };

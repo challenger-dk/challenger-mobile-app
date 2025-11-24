@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BooleanToggle, ErrorScreen, FormFieldButton, HorizontalPicker, LoadingScreen, LocationSearch, ScreenHeader, SubmitButton, TabNavigation, TeamSizeSelector } from '../../components/common';
 import { useCreateChallenge, useTeams, useUsers } from '../../hooks/queries';
@@ -12,6 +12,7 @@ import type { Location } from '../../types/location';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '../../types/sports';
 import type { Team } from '../../types/team';
 import type { User } from '../../types/user';
+import { showErrorToast } from '../../utils/toast';
 
 const AVAILABLE_SPORTS = Object.keys(SPORTS_TRANSLATION_EN_TO_DK);
 
@@ -61,12 +62,12 @@ export default function CreateChallengeScreen() {
 
   const handleSubmit = async () => {
     if (!user) {
-      Alert.alert('Fejl', 'Du skal være logget ind for at oprette en udfordring');
+      showErrorToast('Du skal være logget ind for at oprette en udfordring');
       return;
     }
 
     if (!sport || !location || !date || !startTime || !endTime || isIndoor === null || hasCosts === null) {
-      Alert.alert('Fejl', 'Udfyld venligst alle påkrævede felter');
+      showErrorToast('Udfyld venligst alle påkrævede felter');
       return;
     }
 
@@ -112,7 +113,6 @@ export default function CreateChallengeScreen() {
         description: comment.trim() || '',
         sport: sport,
         location: location,
-        creator_id: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
         is_public: challengeType === 'public',
         is_indoor: isIndoor,
         play_for: playFor.trim(),
@@ -127,12 +127,10 @@ export default function CreateChallengeScreen() {
       };
 
       await createChallengeMutation.mutateAsync(challengeData);
-      
-      Alert.alert('Succes', 'Udfordringen er oprettet!');
       router.back();
     } catch (error) {
       console.error('Error creating challenge:', error);
-      Alert.alert('Fejl', 'Der opstod en fejl ved oprettelse af udfordringen');
+      // Error toast is handled by the mutation hook
     } finally {
       setIsSubmitting(false);
     }

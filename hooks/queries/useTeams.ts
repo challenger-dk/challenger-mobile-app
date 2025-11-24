@@ -1,6 +1,7 @@
 import { createTeam, getMyTeams, getTeam, getTeams, getTeamsByUser, updateTeam } from '@/api/teams';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateTeam } from '@/types/team';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -66,6 +67,10 @@ export const useCreateTeam = () => {
           queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(user.id) });
         });
       }
+      showSuccessToast('Holdet er oprettet!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved oprettelse af holdet');
     },
   });
 };
@@ -94,6 +99,10 @@ export const useUpdateTeam = () => {
           queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(user.id) });
         });
       }
+      showSuccessToast('Holdet er opdateret!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved opdatering af holdet');
     },
   });
 };

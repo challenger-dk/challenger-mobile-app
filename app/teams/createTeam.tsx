@@ -29,6 +29,7 @@ import type { CreateInvitation } from '@/types/invitation';
 import type { Location } from '@/types/location';
 import type { CreateTeam, Team } from '@/types/team'; // Import CreateTeam
 import type { User } from '@/types/user';
+import { showErrorToast } from '@/utils/toast';
 
 const TOTAL_STEPS = 4; // Updated from 3 to 4
 
@@ -66,7 +67,7 @@ export default function CreateTeamScreen() {
           setAllUsers(users.filter((u: { id: string | number; }) => !invitedIds.has(u.id) && u.id !== user?.id));
         } catch (err) {
           console.error('Failed to fetch users:', err);
-          Alert.alert('Fejl', 'Kunne ikke hente brugerliste.');
+          showErrorToast('Kunne ikke hente brugerliste.');
         } finally {
           setIsLoadingUsers(false);
         }
@@ -99,7 +100,7 @@ export default function CreateTeamScreen() {
       // Logic for step 3 (Sports step): Create team before proceeding
       if (currentStep === 3) {
         if (!user) {
-          Alert.alert('Fejl', 'Du skal være logget ind for at oprette et hold.');
+          showErrorToast('Du skal være logget ind for at oprette et hold.');
           return;
         }
 
@@ -125,11 +126,11 @@ export default function CreateTeamScreen() {
             setNewTeam(createdTeam);
             setCurrentStep(currentStep + 1);
           } else {
-            Alert.alert('Fejl', 'Kunne ikke oprette holdet. Prøv igen.');
+            showErrorToast('Kunne ikke oprette holdet. Prøv igen.');
           }
         } catch (error) {
           console.error('Create team error:', error);
-          Alert.alert('Fejl', 'Der opstod en uventet fejl.');
+          showErrorToast('Der opstod en uventet fejl.');
         } finally {
           setIsSubmitting(false);
         }
@@ -173,7 +174,7 @@ export default function CreateTeamScreen() {
       setAllUsers((prev) => prev.filter((u) => u.id !== invitee.id));
     } catch (err) {
       console.error('Failed to send invitation:', err);
-      Alert.alert('Fejl', `Kunne ikke invitere ${invitee.first_name}.`);
+      showErrorToast(`Kunne ikke invitere ${invitee.first_name}.`);
     } finally {
       setIsInviting((prev) => ({ ...prev, [inviteeId]: false }));
     }

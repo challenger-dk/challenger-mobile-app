@@ -7,7 +7,6 @@ export type CreateChallenge = {
   description: string
   sport: string
   location: Location
-  creator_id: number
   is_public: boolean
   is_indoor: boolean
   play_for: string

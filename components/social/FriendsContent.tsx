@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SendInvitation, getMyInvitations } from '../../api/invitations';
 import { getCurrentUser, getUsers } from '../../api/users';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { CreateInvitation, Invitation } from '../../types/invitation';
 import type { User } from '../../types/user';
+import { showErrorToast, showSuccessToast } from '../../utils/toast';
 import { InvitationCard } from '../InvitationCard';
 import { LoadingScreen } from '../common';
 
@@ -85,11 +86,11 @@ export function FriendsContent() {
       };
 
       await SendInvitation(invitation);
-      Alert.alert('Success', 'Venneanmodning sendt!');
+      showSuccessToast('Venneanmodning sendt!');
       loadData();
     } catch (err) {
       console.error('Failed to send invitation:', err);
-      Alert.alert('Fejl', 'Kunne ikke sende venneanmodning.');
+      showErrorToast('Kunne ikke sende venneanmodning.');
     }
   };
 

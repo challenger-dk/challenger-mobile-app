@@ -1,9 +1,10 @@
+import { acceptInvitation, declineInvitation } from '@/api/invitations';
+import type { Invitation } from '@/types/invitation';
+import { showErrorToast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
-import { acceptInvitation, declineInvitation } from '@/api/invitations';
-import type { Invitation } from '@/types/invitation';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 interface InvitationCardProps {
   invitation: Invitation;
@@ -20,7 +21,7 @@ export function InvitationCard({ invitation, onInvitationHandled }: InvitationCa
       onInvitationHandled(); // Tell TeamsScreen to reload data
     } catch (err) {
       console.error('Failed to accept invitation:', err);
-      Alert.alert('Fejl', 'Kunne ikke acceptere invitationen.');
+      showErrorToast('Kunne ikke acceptere invitationen.');
       setIsProcessing(false); // Only reset on error
     }
   };
@@ -32,7 +33,7 @@ export function InvitationCard({ invitation, onInvitationHandled }: InvitationCa
       onInvitationHandled(); // Tell TeamsScreen to reload data
     } catch (err) {
       console.error('Failed to decline invitation:', err);
-      Alert.alert('Fejl', 'Kunne ikke afvise invitationen.');
+      showErrorToast('Kunne ikke afvise invitationen.');
       setIsProcessing(false); // Only reset on error
     }
   };
@@ -60,7 +61,7 @@ export function InvitationCard({ invitation, onInvitationHandled }: InvitationCa
       </View>
 
       {invitation.note && (
-        <Text className="text-gray-300 text-sm mb-4 ml-13">"{invitation.note}"</Text>
+        <Text className="text-gray-300 text-sm mb-4 ml-13">&quot;{invitation.note}&quot;</Text>
       )}
 
       <View className="flex-row gap-3">

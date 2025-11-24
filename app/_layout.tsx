@@ -1,4 +1,5 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { toastConfig } from '@/components/common/ToastConfig';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WebSocketProvider } from '@/contexts/WebSocketContext'; // <--- Import this
 import { queryClient } from '@/lib/queryClient';
@@ -6,6 +7,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 import '../global.css';
 
 export default function RootLayout() {
@@ -32,6 +34,7 @@ export default function RootLayout() {
           </AuthProvider>
         </View>
       </QueryClientProvider>
+      <Toast config={toastConfig} />
     </ErrorBoundary>
   );
 }

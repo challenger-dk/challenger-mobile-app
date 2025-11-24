@@ -1,8 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Alert, Pressable, ActivityIndicator } from 'react-native';
 import { SendInvitation } from '@/api/invitations';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { ActivityIndicator, Pressable } from 'react-native';
 
 interface AddFriendButtonProps {
   inviteeId: number | string;
@@ -15,7 +16,7 @@ export function AddFriendButton({ inviteeId, onInvitationSent }: AddFriendButton
 
   const handleAddFriend = async () => {
     if (!user) {
-      Alert.alert('Fejl', 'Du skal være logget ind for at tilføje venner.');
+      showErrorToast('Du skal være logget ind for at tilføje venner.');
       return;
     }
 
@@ -26,7 +27,7 @@ export function AddFriendButton({ inviteeId, onInvitationSent }: AddFriendButton
     const numericInviteeId = typeof inviteeId === 'string' ? parseInt(inviteeId, 10) : inviteeId;
 
     if (isNaN(inviterId) || isNaN(numericInviteeId)) {
-      Alert.alert('Fejl', 'Bruger ID er ugyldigt.');
+      showErrorToast('Bruger ID er ugyldigt.');
       setLoading(false);
       return;
     }
@@ -41,11 +42,11 @@ export function AddFriendButton({ inviteeId, onInvitationSent }: AddFriendButton
         note: note,
       });
 
-      Alert.alert('Success', 'Venneanmodning sendt!');
+      showSuccessToast('Venneanmodning sendt!');
       onInvitationSent(); // Trigger the reload
     } catch (err) {
       console.error('Failed to send invitation:', err);
-      Alert.alert('Fejl', 'Kunne ikke sende venneanmodning.');
+      showErrorToast('Kunne ikke sende venneanmodning.');
     } finally {
       setLoading(false);
     }

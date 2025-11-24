@@ -6,6 +6,7 @@ import {
   SendInvitation,
 } from '@/api/invitations';
 import { queryKeys } from '@/lib/queryClient';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -46,6 +47,10 @@ export const useSendInvitation = () => {
       }
       // Invalidate invitations for the recipient (if we have their ID)
       queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
+      showSuccessToast('Invitationen er sendt!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved afsendelse af invitationen');
     },
   });
 };
@@ -68,6 +73,10 @@ export const useAcceptInvitation = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
       // Invalidate current user's teams
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
+      showSuccessToast('Invitationen er accepteret!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved accept af invitationen');
     },
   });
 };
@@ -84,6 +93,10 @@ export const useDeclineInvitation = () => {
     onSuccess: () => {
       // Invalidate all invitations queries to remove the declined invitation
       queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
+      showSuccessToast('Invitationen er afvist');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved afvisning af invitationen');
     },
   });
 };

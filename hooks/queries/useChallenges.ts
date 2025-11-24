@@ -1,5 +1,6 @@
-import { createChallenge, getChallenge, getChallenges } from '@/api/challenges';
+import { createChallenge, getChallenge, getChallenges, joinChallenge, leaveChallenge } from '@/api/challenges';
 import { queryKeys } from '@/lib/queryClient';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -40,6 +41,40 @@ export const useCreateChallenge = () => {
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.challenges.lists(),
       });
+      showSuccessToast('Udfordringen er oprettet!');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved oprettelse af udfordringen');
+    },
+  });
+};
+
+/**
+ * Mutation hook to join a challenge
+ */
+export const useJoinChallenge = () => {
+  return useMutation({
+    mutationFn: joinChallenge,
+    onSuccess: () => {
+      showSuccessToast('Du har deltaget i udfordringen');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved deltagelse i udfordringen');
+    },
+  });
+};
+
+/**
+ * Mutation hook to leave a challenge
+ */
+export const useLeaveChallenge = () => {
+  return useMutation({
+    mutationFn: leaveChallenge,
+    onSuccess: () => {
+      showSuccessToast('Du har forladt udfordringen');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved forladelse af udfordringen');
     },
   });
 };

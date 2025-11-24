@@ -1,8 +1,11 @@
 import { getChallenge } from '@/api/challenges';
 import { LoadingScreen, ScreenHeader } from '@/components/common';
 import { ErrorScreen } from '@/components/common/ErrorScreen';
+import { useJoinChallenge, useLeaveChallenge } from '@/hooks/queries/useChallenges';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { Challenge } from '@/types/challenge';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '@/types/sports';
+import { showErrorToast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -11,9 +14,13 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 export default function ChallengeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { user: currentUser } = useCurrentUser();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
+  const useLeaveChallengeMutation = useLeaveChallenge();
+  const useJoinChallengeMutation = useJoinChallenge();
 
   useEffect(() => {
     const loadChallenge = async () => {
@@ -115,6 +122,43 @@ export default function ChallengeDetailScreen() {
     challenge.location.city,
     challenge.location.postal_code
   ].filter(Boolean);
+
+  // Check if current user is part of the challenge
+  const isUserParticipating = currentUser && challenge.users.some(user => user.id === currentUser.id);
+
+  // Handle join/leave challenge
+  const handleJoinLeave = async () => {
+    if (!id || !currentUser) {
+      showErrorToast('Du skal være logget ind for at deltage i udfordringer');
+      return;
+    }
+
+    if (challenge.is_completed) {
+      showErrorToast('Du kan ikke deltage i en afsluttet udfordring');
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+      
+      if (isUserParticipating) {
+        await useLeaveChallengeMutation.mutateAsync(id);
+      } else {
+        await useJoinChallengeMutation.mutateAsync(id);
+      }
+
+      // Refresh challenge data
+      const updatedChallenge = await getChallenge(id);
+      setChallenge(updatedChallenge);
+    } catch (err) {
+      console.error('Failed to join/leave challenge:', err);
+      showErrorToast(
+        err instanceof Error ? err.message : 'Kunne ikke opdatere deltagelse'
+      );
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   return (
     <ScrollView className="flex-1 bg-[#171616]">
@@ -360,15 +404,23 @@ export default function ChallengeDetailScreen() {
 
         {/* Action Buttons */}
         <View className="gap-3">
-          <Pressable
-            className="bg-[#FFC033] rounded-xl p-4 items-center"
-            onPress={() => {
-              // Handle participation
-              router.back();
-            }}
-          >
-            <Text className="text-[#171616] text-lg font-bold">Deltag i udfordring</Text>
-          </Pressable>
+          {!challenge.is_completed && (
+            <Pressable
+              className={`rounded-xl p-4 items-center ${isUserParticipating ? 'bg-[#272626] border border-red-500/50' : 'bg-[#FFC033]'} ${!currentUser ? 'opacity-50' : ''}`}
+              onPress={handleJoinLeave}
+              disabled={isJoining || !currentUser}
+            >
+              <Text className={`text-lg font-bold ${isUserParticipating ? 'text-red-400' : 'text-[#171616]'}`}>
+                {isJoining 
+                  ? 'Opdaterer...' 
+                  : !currentUser
+                  ? 'Log ind for at deltage'
+                  : isUserParticipating 
+                  ? 'Forlad udfordringen' 
+                  : 'Deltag i udfordring'}
+              </Text>
+            </Pressable>
+          )}
 
           {hasTwoTeams && (
             <Pressable

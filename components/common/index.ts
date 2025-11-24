@@ -8,5 +8,6 @@ export { ScreenHeader } from './ScreenHeader';
 export { SubmitButton } from './SubmitButton';
 export { TabNavigation } from './TabNavigation';
 export { TeamSizeSelector } from './TeamSizeSelector';
+export { toastConfig } from './ToastConfig';
 export { TopActionBar } from './TopActionBar';
 
