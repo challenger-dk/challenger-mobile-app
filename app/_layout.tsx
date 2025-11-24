@@ -25,6 +25,7 @@ export default function RootLayout() {
                 <Stack.Screen name="friends" />
                 <Stack.Screen name="users" />
                 <Stack.Screen name="chat/[id]" />
+                <Stack.Screen name="user-settings" />
               </Stack>
               <StatusBar style="light" />
             </WebSocketProvider>

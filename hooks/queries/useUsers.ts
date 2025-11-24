@@ -1,4 +1,4 @@
-import { createUser, getCurrentUser, getUserById, getUsers, updateUser } from '@/api/users';
+import { createUser, getCurrentUser, getUserById, getUsers, updateUser, updateUserSettings } from '@/api/users';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateUser } from '@/types/user';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -57,6 +57,22 @@ export const useUpdateUser = () => {
 };
 
 /**
+ * Mutation hook to update user settings
+ * Automatically invalidates current user query
+ */
+export const useUpdateUserSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateUserSettings,
+    onSuccess: () => {
+      // Invalidate current user to reflect new settings
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
+    },
+  });
+};
+
+/**
  * Mutation hook to create a new user
  * Automatically invalidates users list
  */
@@ -71,4 +87,3 @@ export const useCreateUser = () => {
     },
   });
 };
-

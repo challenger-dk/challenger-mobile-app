@@ -1,4 +1,5 @@
 import type { Sport } from "./sports"
+import {UserSettings} from "@/types/settings";
 
 export type User = {
   id: string | number
@@ -14,6 +15,7 @@ export type User = {
   updatedAt?: string
   friends?: PublicUser[]
   age?: number
+  settings: UserSettings
 }
 
 export type PublicUser = {
