@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import MapView from 'react-native-maps';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { ErrorScreen, LoadingScreen, TopActionBar } from '../../components/common';
 import { ChallengeMarker } from '../../components/maps';
 import { useChallenges } from '../../hooks/queries';
@@ -12,6 +13,11 @@ import type { Challenge } from '../../types/challenge';
 export default function MapsScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<TextInput>(null);
+  
+  // Animation values for search bar
+  const opacity = useSharedValue(0.3);
+  const scale = useSharedValue(0.95);
   
   // React Query hook - automatically handles caching and refetching
   const { data: challenges = [], isLoading: loading, error, refetch } = useChallenges();
@@ -38,6 +44,28 @@ export default function MapsScreen() {
   const handleMarkerPress = (challengeId: number) => {
     router.push(`/teams/${challengeId}` as any);
   };
+
+  const handleMapPress = () => {
+    // Blur the search input when map is tapped
+    searchInputRef.current?.blur();
+  };
+
+  const handleSearchFocus = () => {
+    opacity.value = withSpring(1);
+    scale.value = withSpring(1);
+  };
+
+  const handleSearchBlur = () => {
+    opacity.value = withSpring(0.3);
+    scale.value = withSpring(0.95);
+  };
+
+  const animatedSearchStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ scale: scale.value }],
+    };
+  });
 
   if (loading) {
     return <LoadingScreen message="Loader challenges..." />;
@@ -70,6 +98,7 @@ export default function MapsScreen() {
         scrollEnabled={true}
         pitchEnabled={true}
         rotateEnabled={true}
+        onPress={handleMapPress}
       >
         {publicChallenges.map((challenge: Challenge) => (
           <ChallengeMarker
@@ -80,17 +109,23 @@ export default function MapsScreen() {
         ))}
       </MapView>
 
-      {/* Semi-transparent Search Bar */}
-      <View className="absolute top-[60px] left-0 right-0 px-4 z-10">
+      {/* Semi-transparent Search Bar - positioned to avoid compass */}
+      <Animated.View 
+        className="absolute top-[60px] left-4 right-[60px] z-10"
+        style={animatedSearchStyle}
+      >
         <View className="flex-row items-center bg-[#272626]/90 rounded-xl px-3 py-2.5 border border-[#575757]/50">
           <View className="mr-2">
             <Ionicons name="search" size={20} color="#9CA3AF" />
           </View>
           <TextInput
+            ref={searchInputRef}
             placeholder="Søg efter lokation..."
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
             className="flex-1 text-white text-base p-0"
           />
           {searchQuery.length > 0 && (
@@ -99,7 +134,7 @@ export default function MapsScreen() {
             </Pressable>
           )}
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }

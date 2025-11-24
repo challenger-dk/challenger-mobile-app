@@ -1,19 +1,20 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState, useMemo } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { MessageBubble } from '@/components/chat';
 import { LoadingScreen } from '@/components/common';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { ConversationType } from '@/types/message';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ChatRoomScreen() {
   const router = useRouter();
   const { id, type, name } = useLocalSearchParams<{ id: string; type: string; name: string }>();
   const { user } = useCurrentUser();
   const { messages, status, sendMessage, loadHistory } = useWebSocket();
+  const insets = useSafeAreaInsets();
 
   const [inputText, setInputText] = useState('');
   const conversationId = parseInt(id, 10);
@@ -83,9 +84,12 @@ export default function ChatRoomScreen() {
       {/* Input */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom : 0}
       >
-        <View className="p-4 bg-[#171616] border-t border-[#2c2c2c] flex-row items-center gap-3">
+        <View 
+          className="p-4 bg-[#171616] border-t border-[#2c2c2c] flex-row items-center gap-3"
+          style={{ paddingBottom: 16 + insets.bottom }}
+        >
           <TextInput
             value={inputText}
             onChangeText={setInputText}

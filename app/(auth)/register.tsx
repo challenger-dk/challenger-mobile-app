@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { register } from '../../api/auth';
 import { useAuth } from '../../contexts/AuthContext';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '../../types/sports';
@@ -14,6 +15,7 @@ const TOTAL_STEPS = 4;
 export default function RegisterScreen() {
   const router = useRouter();
   const { setToken } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // Form state
   const [currentStep, setCurrentStep] = useState(1);
@@ -337,11 +339,13 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       className="flex-1 bg-[#171616]"
     >
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pt-18 pb-12"
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 72, paddingBottom: 48 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         {/* Cancel button */}
         <View className="w-full max-w-sm flex-row justify-start mb-4 absolute top-4 left-4 z-10">

@@ -17,5 +17,5 @@ export type Invitation = {
 }
 
 export type Status = 'pending' | 'accepted' | 'declined'
-export type InvitationType = 'team' | 'friend'
+export type InvitationType = 'team' | 'friend' | 'challenge'
 

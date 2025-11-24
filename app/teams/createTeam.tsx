@@ -16,6 +16,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Api Imports
 import { SendInvitation } from '@/api/invitations';
@@ -34,6 +35,7 @@ const TOTAL_STEPS = 4; // Updated from 3 to 4
 export default function CreateTeamScreen() {
   const router = useRouter();
   const { user } = useCurrentUser();
+  const insets = useSafeAreaInsets();
 
   // Form state
   const [currentStep, setCurrentStep] = useState(1);
@@ -163,7 +165,7 @@ export default function CreateTeamScreen() {
         inviter_id: inviterId,
         invitee_id: inviteeId,
         note: `${user.first_name} har inviteret dig til holdet ${teamName}`, // Added a note
-        resource_type: 'team',
+        resource_type: 'challenge',
         resource_id: newTeam.id,
       };
       await SendInvitation(invitation);
@@ -268,6 +270,17 @@ export default function CreateTeamScreen() {
             </Text>
 
             <ScrollView className="w-full max-w-sm" style={{ maxHeight: 300 }}>
+              {/* Show creator as already part of the team */}
+              {user && (
+                <View className="mb-4">
+                  <Text className="text-gray-400 text-sm mb-2">Medlemmer</Text>
+                  <View className="flex-row items-center justify-between bg-[#1C1C1E] p-3 rounded-lg mb-2">
+                    <Text className="text-white">Dig</Text>
+                    <Ionicons name="checkmark-circle" size={20} color="#4ADE80" />
+                  </View>
+                </View>
+              )}
+
               {isLoadingUsers ? (
                 <ActivityIndicator size="large" color="#fff" />
               ) : (
@@ -297,13 +310,13 @@ export default function CreateTeamScreen() {
               {invitedUsers.length > 0 && (
                 <View className="mt-4">
                   <Text className="text-gray-400 text-sm mb-2">Inviteret</Text>
-                  {invitedUsers.map((user) => (
+                  {invitedUsers.map((invitedUser) => (
                     <View
-                      key={user.id}
+                      key={invitedUser.id}
                       className="flex-row items-center justify-between bg-[#1C1C1E] p-3 rounded-lg mb-2"
                     >
                       <Text className="text-white">
-                        {user.first_name} {user.last_name}
+                        {invitedUser.first_name} {invitedUser.last_name}
                       </Text>
                       <Ionicons name="checkmark-circle" size={20} color="#4ADE80" />
                     </View>
@@ -322,6 +335,7 @@ export default function CreateTeamScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       className="flex-1 bg-[#171616]"
     >
       <Stack.Screen
@@ -341,8 +355,12 @@ export default function CreateTeamScreen() {
         }}
       />
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pb-12"
+        contentContainerStyle={{ 
+          paddingHorizontal: 24, 
+          paddingBottom: 48 + insets.bottom 
+        }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <View className="w-full max-w-38 mb-12 mt-8 items-center">
           <Text className="text-white text-2xl font-bold">Challenger</Text>
@@ -418,20 +436,21 @@ export default function CreateTeamScreen() {
         animationType="slide"
         onRequestClose={() => setShowLocationPicker(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
-        >
-          <View className="flex-1 bg-black/50 justify-end">
-            <Pressable
-              className="absolute inset-0"
-              onPress={() => setShowLocationPicker(false)}
-            />
+        <View className="flex-1 bg-black/50 justify-end">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setShowLocationPicker(false)}
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+            keyboardVerticalOffset={0}
+          >
             <View
               className="bg-[#171616] rounded-t-3xl"
               style={{
                 maxHeight: Dimensions.get('window').height * 0.85,
-                minHeight: Dimensions.get('window').height * 0.5
+                minHeight: Dimensions.get('window').height * 0.5,
+                paddingBottom: insets.bottom
               }}
             >
               <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
@@ -460,8 +479,8 @@ export default function CreateTeamScreen() {
                 />
               </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
     </KeyboardAvoidingView>
   );

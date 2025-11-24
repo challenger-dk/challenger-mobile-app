@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { updateUser } from '../../api/users';
 import { ErrorScreen, LoadingScreen, ScreenHeader, SubmitButton } from '../../components/common';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -29,6 +30,7 @@ const normalizeSportName = (name: string): string => {
 export default function ProfileInformationScreen() {
   const router = useRouter();
   const { user, loading, error } = useCurrentUser();
+  const insets = useSafeAreaInsets();
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -160,11 +162,16 @@ export default function ProfileInformationScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       className="flex-1 bg-[#171616]"
     >
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pb-6"
+        contentContainerStyle={{ 
+          paddingHorizontal: 24, 
+          paddingBottom: 24 + insets.bottom 
+        }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <ScreenHeader title="Rediger Profil" />
 

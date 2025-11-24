@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BooleanToggle, ErrorScreen, FormFieldButton, HorizontalPicker, LoadingScreen, LocationSearch, ScreenHeader, SubmitButton, TabNavigation, TeamSizeSelector } from '../../components/common';
 import { useCreateChallenge, useTeams, useUsers } from '../../hooks/queries';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -17,6 +18,9 @@ const AVAILABLE_SPORTS = Object.keys(SPORTS_TRANSLATION_EN_TO_DK);
 export default function CreateChallengeScreen() {
   const router = useRouter();
   const { user, loading, error } = useCurrentUser();
+  const insets = useSafeAreaInsets();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const commentInputRef = useRef<TextInput>(null);
   const [challengeType, setChallengeType] = useState<'public' | 'friends'>('public');
   const [participants, setParticipants] = useState<User[]>([]);
   const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
@@ -147,11 +151,17 @@ export default function CreateChallengeScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       className="flex-1 bg-[#171616]"
     >
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pb-6"
+        ref={scrollViewRef}
+        contentContainerStyle={{ 
+          paddingHorizontal: 24, 
+          paddingBottom: 24 + insets.bottom 
+        }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         {/* Top bar with back button and header */}
         <ScreenHeader title="Opret Challenge" />
@@ -454,20 +464,21 @@ export default function CreateChallengeScreen() {
             animationType="slide"
             onRequestClose={() => setShowLocationPicker(false)}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              className="flex-1"
-            >
-              <View className="flex-1 bg-black/50 justify-end">
-                <Pressable 
-                  className="absolute inset-0" 
-                  onPress={() => setShowLocationPicker(false)}
-                />
+            <View className="flex-1 bg-black/50 justify-end">
+              <Pressable 
+                className="absolute inset-0" 
+                onPress={() => setShowLocationPicker(false)}
+              />
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+                keyboardVerticalOffset={0}
+              >
                 <View 
                   className="bg-[#171616] rounded-t-3xl"
                   style={{ 
                     maxHeight: Dimensions.get('window').height * 0.85,
-                    minHeight: Dimensions.get('window').height * 0.5 
+                    minHeight: Dimensions.get('window').height * 0.5,
+                    paddingBottom: insets.bottom
                   }}
                 >
                   <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
@@ -496,8 +507,8 @@ export default function CreateChallengeScreen() {
                     />
                   </View>
                 </View>
-              </View>
-            </KeyboardAvoidingView>
+              </KeyboardAvoidingView>
+            </View>
           </Modal>
 
           {/* Date */}
@@ -761,35 +772,40 @@ export default function CreateChallengeScreen() {
                 className="flex-1" 
                 onPress={() => setShowPlayForPicker(false)}
               />
-              <View className="bg-[#171616] rounded-t-3xl pb-8">
-                <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
-                  <Pressable onPress={() => setShowPlayForPicker(false)}>
-                    <Text className="text-white text-base">Annuller</Text>
-                  </Pressable>
-                  <Text className="text-white text-lg font-bold">Hvad spiller I om?</Text>
-                  <Pressable
-                    onPress={() => setShowPlayForPicker(false)}
-                  >
-                    <Text className="text-white text-base font-medium">Færdig</Text>
-                  </Pressable>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+                keyboardVerticalOffset={0}
+              >
+                <View className="bg-[#171616] rounded-t-3xl" style={{ paddingBottom: 8 + insets.bottom }}>
+                  <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                    <Pressable onPress={() => setShowPlayForPicker(false)}>
+                      <Text className="text-white text-base">Annuller</Text>
+                    </Pressable>
+                    <Text className="text-white text-lg font-bold">Hvad spiller I om?</Text>
+                    <Pressable
+                      onPress={() => setShowPlayForPicker(false)}
+                    >
+                      <Text className="text-white text-base font-medium">Færdig</Text>
+                    </Pressable>
+                  </View>
+                  <View className="px-6 pt-4">
+                    <TextInput
+                      placeholder="F.eks. Ære, en øl, eller bare for sjov"
+                      placeholderTextColor="#9CA3AF"
+                      value={playFor}
+                      onChangeText={setPlayFor}
+                      className="bg-[#272626] text-white rounded-lg px-4 py-3 border border-[#575757]"
+                      style={{ color: '#ffffff', fontSize: 16 }}
+                      autoFocus
+                      multiline={true}
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                      returnKeyType="done"
+                      onSubmitEditing={() => setShowPlayForPicker(false)}
+                    />
+                  </View>
                 </View>
-                <View className="px-6 pt-4">
-                  <TextInput
-                    placeholder="F.eks. Ære, en øl, eller bare for sjov"
-                    placeholderTextColor="#9CA3AF"
-                    value={playFor}
-                    onChangeText={setPlayFor}
-                    className="bg-[#272626] text-white rounded-lg px-4 py-3 border border-[#575757]"
-                    style={{ color: '#ffffff', fontSize: 16 }}
-                    autoFocus
-                    multiline={true}
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    returnKeyType="done"
-                    onSubmitEditing={() => setShowPlayForPicker(false)}
-                  />
-                </View>
-              </View>
+              </KeyboardAvoidingView>
             </View>
           </Modal>
 
@@ -808,6 +824,7 @@ export default function CreateChallengeScreen() {
         <View className="w-full mb-8">
           <Text className="text-white text-base mb-4">Kommentar</Text>
           <TextInput
+            ref={commentInputRef}
             placeholder="Husk at medbring en volleyball."
             placeholderTextColor="#9CA3AF"
             value={comment}
@@ -818,6 +835,12 @@ export default function CreateChallengeScreen() {
             className="bg-[#575757] text-white rounded-lg px-4 py-3"
             style={{ color: '#ffffff', minHeight: 100 }}
             editable={!isSubmitting}
+            onFocus={() => {
+              // Scroll to show the comment input above keyboard
+              setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }, 100);
+            }}
           />
         </View>
 

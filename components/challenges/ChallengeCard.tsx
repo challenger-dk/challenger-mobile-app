@@ -7,9 +7,10 @@ import { SPORTS_TRANSLATION_EN_TO_DK } from '../../types/sports';
 export interface ChallengeCardProps {
   challenge: Challenge;
   onParticipate: (challengeId: number) => void;
+  onPress?: (challengeId: number) => void;
 }
 
-export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) => {
+export const ChallengeCard = ({ challenge, onParticipate, onPress }: ChallengeCardProps) => {
   const [activeTab, setActiveTab] = useState<'info' | 'teams'>('info');
   const sportName = SPORTS_TRANSLATION_EN_TO_DK[challenge.sport] || challenge.sport;
   const teamCount = challenge.teams?.length || '?';
@@ -76,7 +77,10 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
       </View>
 
       {activeTab === 'info' ? (
-        <View className="bg-[#272626] rounded-xl p-3">
+        <Pressable 
+          onPress={() => onPress?.(challenge.id)}
+          className="bg-[#272626] rounded-xl p-3"
+        >
           {/* 2x2 Grid (left) + 1x2 Grid (right) Layout */}
           <View className="mt-2 flex-row">
             {/* Left: 2x2 Grid */}
@@ -87,14 +91,14 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
                 <View className="w-[62.5%] justify-center border-r border-black/40 pr-4">
                   <View className="flex-row items-center">
                     <Ionicons name={getSportIcon(challenge.sport) as any} size={48} color="#ffffff" />
-                    <View className="ml-2">
+                    <View className="ml-2 flex-1">
                       <View className="flex-row items-center">
-                        <Text className="text-white text-base font-semibold">
+                        <Text className="text-white text-base font-semibold flex-1" numberOfLines={1} ellipsizeMode="tail">
                           {sportName}
                         </Text>
                         <Text className="text-white text-xs ml-2 italic">{challenge.is_indoor ? 'INT' : 'EXT'}</Text>
                       </View>
-                      <Text className="text-[#dfdfdf] text-sm">{creatorName}</Text>
+                      <Text className="text-[#dfdfdf] text-sm" numberOfLines={1} ellipsizeMode="tail">{creatorName}</Text>
                     </View>
                   </View>
                 </View>
@@ -118,7 +122,7 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
                 <View className="w-[55%] border-r border-black/40 pr-4">
                   <View className="flex-row items-center">
                     <Ionicons name="location-outline" size={16} color="#ffffff" />
-                    <Text className="text-white text-sm ml-2 flex-1">{challenge.location.address}</Text>
+                    <Text className="text-white text-sm ml-2 flex-1" numberOfLines={2} ellipsizeMode="tail">{challenge.location.address}</Text>
                   </View>
                 </View>
                 {/* Cell 2,2 - Comment */}
@@ -126,7 +130,7 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
                   {challenge.comment && (
                     <View className="flex-row items-start">
                       <Ionicons name="chatbubble-outline" size={16} color="#ffffff" />
-                      <Text className="text-white text-sm ml-2 flex-1">{challenge.comment}</Text>
+                      <Text className="text-white text-sm ml-2 flex-1" numberOfLines={2} ellipsizeMode="tail">{challenge.comment}</Text>
                     </View>
                   )}
                 </View>
@@ -174,10 +178,13 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
               </View>
             </View>
           </View>
-        </View>
+        </Pressable>
       ) : (
         /* Teams View */
-        <View className="bg-[#272626] rounded-xl p-3">
+        <Pressable 
+          onPress={() => onPress?.(challenge.id)}
+          className="bg-[#272626] rounded-xl p-3"
+        >
           {/* 2x2 Grid (left) + 1x2 Grid (right) Layout */}
           <View className="mt-2 flex-row">
             {/* Left: 2x2 Grid */}
@@ -186,16 +193,16 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
               <View className="flex-row">
                 {/* Cell 1,1 - Icon, Sport Name and Creator */}
                 <View className="w-[50%] justify-center border-r border-black/40 pr-4">
-                  <View className="flex-row items-center">
+                  <View className="flex-col">
                     {/* Team A */}
                     <View className="flex-row items-center">
-                      <Text className="text-white text-base font-semibold">
+                      <Text className="text-white text-base font-semibold flex-1" numberOfLines={1} ellipsizeMode="tail">
                         {challenge.teams?.[0]?.name ?? 'Team A'}
                       </Text>
                     </View>
                     {/* User list */}
                     <View className="flex-row items-center">
-                      <Text className="text-white text-sm">
+                      <Text className="text-white text-sm flex-1" numberOfLines={1} ellipsizeMode="tail">
                         {challenge.teams?.[0]?.users?.map((user) => user.first_name).join(', ')}
                       </Text>
                     </View>
@@ -203,16 +210,18 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
                 </View>
                 {/* Cell 1,2 - Team B */}
                 <View className="w-[50%] justify-center pl-4">
-                  <View className="flex-row items-center">
-                    <Text className="text-white text-base font-semibold">
-                      {challenge.teams?.[1]?.name ?? 'Team B'}
-                    </Text>
-                  </View>
-                  {/* User list */}
-                  <View className="flex-row items-center">
-                    <Text className="text-white text-sm">
-                      {challenge.teams?.[1]?.users?.map((user) => user.first_name).join(', ')}
-                    </Text>
+                  <View className="flex-col">
+                    <View className="flex-row items-center">
+                      <Text className="text-white text-base font-semibold flex-1" numberOfLines={1} ellipsizeMode="tail">
+                        {challenge.teams?.[1]?.name ?? 'Team B'}
+                      </Text>
+                    </View>
+                    {/* User list */}
+                    <View className="flex-row items-center">
+                      <Text className="text-white text-sm flex-1" numberOfLines={1} ellipsizeMode="tail">
+                        {challenge.teams?.[1]?.users?.map((user) => user.first_name).join(', ')}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -259,7 +268,7 @@ export const ChallengeCard = ({ challenge, onParticipate }: ChallengeCardProps) 
               </View>
             </View>
           </View>
-        </View>
+        </Pressable>
       )}
     </View>
   );

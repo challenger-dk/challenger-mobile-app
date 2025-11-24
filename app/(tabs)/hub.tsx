@@ -32,6 +32,10 @@ export default function HubScreen() {
     router.push(`/teams/${challengeId}` as any);
   };
 
+  const handleChallengePress = (challengeId: number) => {
+    router.push(`/hub/${challengeId}` as any);
+  };
+
   const filteredChallenges = useMemo(() => 
     challenges.filter((challenge: Challenge) => 
       activeTab === 'public' ? challenge.is_public : !challenge.is_public
@@ -70,7 +74,11 @@ export default function HubScreen() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View className="px-6">
-            <ChallengeCard challenge={item} onParticipate={handleParticipate} />
+            <ChallengeCard 
+              challenge={item} 
+              onParticipate={handleParticipate}
+              onPress={handleChallengePress}
+            />
           </View>
         )}
         contentContainerClassName="py-4"

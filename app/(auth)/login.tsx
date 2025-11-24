@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { login } from '../../api/auth';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -13,6 +14,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { setToken } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -42,11 +44,20 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       className="flex-1 bg-[#171616]"
     >
       <ScrollView
-        contentContainerClassName="flex-grow items-center justify-center px-6 py-12"
+        contentContainerStyle={{ 
+          flexGrow: 1, 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          paddingHorizontal: 24, 
+          paddingVertical: 48,
+          paddingBottom: 48 + insets.bottom
+        }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         {/* Logo */}
         <View className="w-full max-w-sm mb-12 items-center">

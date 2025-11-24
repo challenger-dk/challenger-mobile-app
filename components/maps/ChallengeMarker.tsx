@@ -52,6 +52,15 @@ const getSportIcon = (sport: string): string => {
 
 export const ChallengeMarker = ({ challenge, onPress }: ChallengeMarkerProps) => {
   const iconName = getSportIcon(challenge.sport);
+  
+  // Calculate marker dimensions:
+  // Circle: 40px (w-10 h-10)
+  // Triangle height: 26px
+  // Overlap: -7px
+  // Total height: ~59px
+  // To align bottom with coordinate, offset center up by half height
+  const markerHeight = 59; // 40 (circle) + 26 (triangle) - 7 (overlap)
+  const centerOffsetY = -markerHeight / 2;
 
   return (
     <Marker
@@ -59,11 +68,12 @@ export const ChallengeMarker = ({ challenge, onPress }: ChallengeMarkerProps) =>
         latitude: challenge.location.latitude,
         longitude: challenge.location.longitude,
       }}
+      centerOffset={{ x: 0, y: centerOffsetY }}
       title={challenge.name}
       description={challenge.description}
       onPress={() => onPress(challenge.id)}
     >
-      <View className="items-center justify-center">
+      <View className="items-center">
         <View className="w-10 h-10 rounded-full bg-[#262626] items-center justify-center shadow-lg">
           <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
         </View>
