@@ -165,7 +165,7 @@ export default function CreateTeamScreen() {
         inviter_id: inviterId,
         invitee_id: inviteeId,
         note: `${user.first_name} har inviteret dig til holdet ${teamName}`, // Added a note
-        resource_type: 'challenge',
+        resource_type: 'team',
         resource_id: newTeam.id,
       };
       await SendInvitation(invitation);
