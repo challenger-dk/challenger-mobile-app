@@ -39,10 +39,6 @@ export const TopActionBar = ({
     <View className="flex-row items-center px-6 py-3">
       {leftAction ? (
         <View className="flex-1 items-start">{leftAction}</View>
-      ) : title ? (
-        <View className="flex-1 items-start">
-          <Text className="text-white text-lg font-medium">{title}</Text>
-        </View>
       ) : (
         <View className="flex-1" />
       )}

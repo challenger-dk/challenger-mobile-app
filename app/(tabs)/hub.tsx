@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { ChallengeCard } from '../../components/challenges';
-import { ErrorScreen } from '../../components/common/ErrorScreen';
+import { ErrorScreen, TopActionBar } from '../../components/common';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { useChallenges } from '../../hooks/queries';
@@ -49,29 +49,11 @@ export default function HubScreen() {
 
   return (
     <View className="flex-1 bg-[#171616]">
-      {/* Header Section */}
-      <View className="px-6 pt-4 pb-2">
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-white text-xl font-bold">Hub</Text>
-          <View className="flex-row items-center gap-4">
-            <Pressable className="relative">
-              <Ionicons name="notifications-outline" size={24} color="#ffffff" />
-              <View className="absolute -top-1 -right-1 w-3 h-3 bg-[#943d40] rounded-full" />
-            </Pressable>
-            <Pressable>
-              <Ionicons name="calendar-outline" size={24} color="#ffffff" />
-            </Pressable>
-            <Pressable
-              onPress={() => router.push('/hub/create' as any)}
-              className="bg-white rounded-full p-2"
-              aria-label="Create Challenge"
-            >
-              <Ionicons name="add" size={24} color="#171616" />
-            </Pressable>
-          </View>
-        </View>
+      {/* Top Action Bar */}
+      <TopActionBar title="Hub" leftAction={<Pressable onPress={() => router.push('' as any)}><Ionicons name="apps" size={24} color="#ffffff" /></Pressable>} />
 
-        {/* Tabs */}
+      {/* Tabs */}
+      <View className="px-6 pt-2 pb-2">
         <TabNavigation
           tabs={[
             { key: 'public', label: 'Offentligt' },
@@ -100,6 +82,22 @@ export default function HubScreen() {
           </View>
         }
       />
+
+      {/* Floating Action Button - Fixed to Bottom Right */}
+      <Pressable
+        onPress={() => router.push('/hub/create' as any)}
+        className="absolute bottom-8 right-6 bg-white rounded-full p-4 shadow-lg"
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}
+        aria-label="Create Challenge"
+      >
+        <Ionicons name="add" size={28} color="#171616" />
+      </Pressable>
     </View>
   );
 }
