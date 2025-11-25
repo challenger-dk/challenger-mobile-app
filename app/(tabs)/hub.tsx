@@ -15,7 +15,7 @@ type TabType = 'public' | 'friends';
 export default function HubScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('public');
-  
+
   // React Query hook - automatically handles caching and refetching
   const { data: challenges = [], isLoading: loading, error, refetch } = useChallenges();
 
@@ -36,10 +36,10 @@ export default function HubScreen() {
     router.push(`/hub/${challengeId}` as any);
   };
 
-  const filteredChallenges = useMemo(() => 
-    challenges.filter((challenge: Challenge) => 
-      activeTab === 'public' ? challenge.is_public : !challenge.is_public
-    ),
+  const filteredChallenges = useMemo(() =>
+      challenges.filter((challenge: Challenge) =>
+        activeTab === 'public' ? challenge.is_public : !challenge.is_public
+      ),
     [challenges, activeTab]
   );
 
@@ -54,7 +54,11 @@ export default function HubScreen() {
   return (
     <View className="flex-1 bg-[#171616]">
       {/* Top Action Bar */}
-      <TopActionBar title="Hub" leftAction={<Pressable onPress={() => router.push('' as any)}><Ionicons name="apps" size={24} color="#ffffff" /></Pressable>} />
+      <TopActionBar
+        title="Hub"
+        leftAction={<Pressable onPress={() => router.push('/(tabs)' as any)}><Ionicons name="apps" size={24} color="#ffffff" /></Pressable>}
+        settingsRoute="/profile/settings"
+      />
 
       {/* Tabs */}
       <View className="px-6 pt-2 pb-2">
@@ -74,8 +78,8 @@ export default function HubScreen() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View className="px-6">
-            <ChallengeCard 
-              challenge={item} 
+            <ChallengeCard
+              challenge={item}
               onParticipate={handleParticipate}
               onPress={handleChallengePress}
             />
@@ -109,4 +113,3 @@ export default function HubScreen() {
     </View>
   );
 }
-

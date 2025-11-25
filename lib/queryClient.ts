@@ -2,8 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 
 /**
  * QueryClient configuration for React Query
- * 
- * Default options:
+ * * Default options:
  * - staleTime: 5 minutes - data is considered fresh for 5 minutes
  * - gcTime: 10 minutes - unused cache is garbage collected after 10 minutes
  * - retry: 1 - retry failed requests once
@@ -60,5 +59,8 @@ export const queryKeys = {
     details: () => [...queryKeys.invitations.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.invitations.details(), id] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+    unread: () => [...queryKeys.notifications.all, 'unread'] as const,
+  },
 };
-

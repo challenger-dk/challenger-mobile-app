@@ -1,5 +1,5 @@
 import type { UserSettings } from "@/types/settings";
-import type { CreateUser, UpdateUser } from '@/types/user';
+import type {CommonStats, CreateUser, UpdateUser} from '@/types/user';
 import { authenticatedFetch, getApiUrl } from '@/utils/api';
 
 export const getUsers = async () => {
@@ -15,6 +15,19 @@ export const getCurrentUser = async () => {
 export const getUserById = async (userId: string | number) => {
   const response = await authenticatedFetch(getApiUrl(`/users/${userId}`));
   return response.json();
+};
+
+export const getUserCommonStats = async (targetUserId: string | number) => {
+  const response = await authenticatedFetch(getApiUrl(`/users/${targetUserId}/in-common`));
+  if (!response.ok) {
+    // Fallback if endpoint fails
+    return {
+      common_friends_count: 0,
+      common_teams_count: 0,
+      common_sports: []
+    };
+  }
+  return response.json() as Promise<CommonStats>;
 };
 
 export const updateUser = async (userId: string, user: UpdateUser) => {
@@ -40,15 +53,13 @@ export const updateUser = async (userId: string, user: UpdateUser) => {
   return responseData;
 };
 
-// Updated to accept Partial<UserSettings>
+// Updated to safely handle empty responses
 export const updateUserSettings = async (settings: Partial<UserSettings>) => {
   const response = await authenticatedFetch(getApiUrl(`/users/settings`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    // JSON.stringify will ignore undefined fields,
-    // or if you send { notifyFriendReq: true }, only that key is sent.
     body: JSON.stringify(settings),
   });
 
@@ -56,13 +67,30 @@ export const updateUserSettings = async (settings: Partial<UserSettings>) => {
     return { success: true };
   }
 
-  const responseData = await response.json();
+  // Read as text first to check for empty body
+  const text = await response.text();
 
-  if (!response.ok) {
-    return { error: responseData.message || responseData.error || 'Failed to update user settings' };
+  if (!text) {
+    // If response is OK but empty, treat as success
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Failed to update user settings' };
   }
 
-  return responseData;
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to update user settings' };
+    }
+    return responseData;
+  } catch (e) {
+    // If response is OK but not valid JSON (and not empty), treat as success or handle accordingly
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
 }
 
 export const createUser = async (user: CreateUser) => {

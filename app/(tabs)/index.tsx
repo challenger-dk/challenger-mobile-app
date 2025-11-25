@@ -10,7 +10,10 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-[#171616]">
       {/* Header Section */}
-      <TopActionBar title="Home" />
+      <TopActionBar
+        title="Home"
+        settingsRoute="/profile/settings"
+      />
 
       {/* Navigation Tab Bar */}
       <TabNavigation

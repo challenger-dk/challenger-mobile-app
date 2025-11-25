@@ -1,16 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View, ActivityIndicator } from 'react-native';
 import { getTeam } from '@/api/teams';
 import { LoadingScreen } from '@/components/common';
 import type { Team } from '@/types/team';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useDeleteTeam, useLeaveTeam } from '@/hooks/queries/useTeams';
 
 export default function TeamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { user: currentUser } = useCurrentUser();
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const leaveTeamMutation = useLeaveTeam();
+  const deleteTeamMutation = useDeleteTeam();
 
   useEffect(() => {
     const loadTeam = async () => {
@@ -29,6 +35,56 @@ export default function TeamDetailScreen() {
     loadTeam();
   }, [id]);
 
+  const handleLeaveOrDelete = () => {
+    if (!team || !currentUser || !id) return;
+
+    const isCreator = String(team.creator.id) === String(currentUser.id);
+
+    if (isCreator) {
+      // Handle Delete
+      Alert.alert(
+        'Slet hold',
+        'Er du sikker på, at du vil slette dette hold? Dette kan ikke fortrydes.',
+        [
+          { text: 'Annuller', style: 'cancel' },
+          {
+            text: 'Slet',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deleteTeamMutation.mutateAsync(id);
+                router.replace('/teams' as any);
+              } catch (error) {
+                // Error handled in hook
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      // Handle Leave
+      Alert.alert(
+        'Forlad hold',
+        'Er du sikker på, at du vil forlade dette hold?',
+        [
+          { text: 'Annuller', style: 'cancel' },
+          {
+            text: 'Forlad',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await leaveTeamMutation.mutateAsync(id);
+                router.replace('/teams' as any);
+              } catch (error) {
+                // Error handled in hook
+              }
+            },
+          },
+        ]
+      );
+    }
+  };
+
   if (loading) {
     return <LoadingScreen message="Indlæser hold..." />;
   }
@@ -41,6 +97,9 @@ export default function TeamDetailScreen() {
     );
   }
 
+  const isCreator = currentUser && String(team.creator.id) === String(currentUser.id);
+  const isProcessing = leaveTeamMutation.isPending || deleteTeamMutation.isPending;
+
   return (
     <ScrollView className="flex-1 bg-[#171616] p-5 pb-20">
       {/* Header */}
@@ -52,8 +111,20 @@ export default function TeamDetailScreen() {
           <Text className="text-gray-400 text-lg">←</Text>
         </Pressable>
         <Text className="text-lg font-semibold text-white">Hold</Text>
-        <Pressable className="bg-red-600 px-3 py-1 rounded-lg">
-          <Text className="text-white text-sm">Forlad hold</Text>
+
+        {/* Leave / Delete Button */}
+        <Pressable
+          onPress={handleLeaveOrDelete}
+          disabled={isProcessing}
+          className={`bg-red-600 px-3 py-1 rounded-lg ${isProcessing ? 'opacity-50' : ''}`}
+        >
+          {isProcessing ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <Text className="text-white text-sm">
+              {isCreator ? 'Slet hold' : 'Forlad hold'}
+            </Text>
+          )}
         </Pressable>
       </View>
 
@@ -105,7 +176,7 @@ export default function TeamDetailScreen() {
           <Text className="text-sm text-gray-300">Medlemmer</Text>
         </Pressable>
         <Pressable className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2"
-         onPress={() => router.push(`/chat/${team.id}` as any)}
+                   onPress={() => router.push(`/chat/${team.id}?type=team&name=${team.name}` as any)}
         >
           <Ionicons name="chatbubble" size={24} color="#ffffff" />
           <Text className="text-sm text-gray-300">Chat</Text>

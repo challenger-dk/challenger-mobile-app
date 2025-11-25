@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
+import { useUnreadNotifications } from '@/hooks/queries';
 
 interface TopActionBarProps {
   title?: string;
@@ -15,23 +16,35 @@ interface TopActionBarProps {
 }
 
 export const TopActionBar = ({
-  title,
-  leftAction,
-  showNotifications = true,
-  showCalendar = true,
-  showSettings = true,
-  onNotificationsPress,
-  onCalendarPress,
-  onSettingsPress,
-  settingsRoute,
-}: TopActionBarProps) => {
+                               title,
+                               leftAction,
+                               showNotifications = true,
+                               showCalendar = true,
+                               showSettings = true,
+                               onNotificationsPress,
+                               onCalendarPress,
+                               onSettingsPress,
+                               settingsRoute,
+                             }: TopActionBarProps) => {
   const router = useRouter();
+
+  // Fetch unread count
+  const { data: unreadNotifications = [] } = useUnreadNotifications();
+  const unreadCount = unreadNotifications.length;
 
   const handleSettingsPress = () => {
     if (onSettingsPress) {
       onSettingsPress();
     } else if (settingsRoute) {
       router.push(settingsRoute as any);
+    }
+  };
+
+  const handleNotificationsPress = () => {
+    if (onNotificationsPress) {
+      onNotificationsPress();
+    } else {
+      router.push('/notifications' as any);
     }
   };
 
@@ -51,8 +64,19 @@ export const TopActionBar = ({
 
       <View className="flex-1 flex-row items-center justify-end gap-2">
         {showNotifications && (
-          <Pressable onPress={onNotificationsPress} aria-label="Notifications">
+          <Pressable
+            onPress={handleNotificationsPress}
+            aria-label="Notifications"
+            className="relative"
+          >
             <Ionicons name="notifications" size={28} color="#ffffff" />
+            {unreadCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-red-600 rounded-full min-w-[16px] h-[16px] items-center justify-center px-[2px] border border-[#171616]">
+                <Text className="text-white text-[10px] font-bold leading-3">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
           </Pressable>
         )}
         {showCalendar && (
@@ -69,4 +93,3 @@ export const TopActionBar = ({
     </View>
   );
 };
-

@@ -1,4 +1,4 @@
-import { createTeam, getMyTeams, getTeam, getTeams, getTeamsByUser, updateTeam } from '@/api/teams';
+import { createTeam, deleteTeam, getMyTeams, getTeam, getTeams, getTeamsByUser, leaveTeam, removeUserFromTeam, updateTeam } from '@/api/teams';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateTeam } from '@/types/team';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -48,7 +48,6 @@ export const useMyTeams = () => {
 
 /**
  * Mutation hook to create a new team
- * Automatically invalidates teams list and user's teams
  */
 export const useCreateTeam = () => {
   const queryClient = useQueryClient();
@@ -56,12 +55,8 @@ export const useCreateTeam = () => {
   return useMutation({
     mutationFn: createTeam,
     onSuccess: (data) => {
-      // Invalidate teams list to include the new team
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
-      // Invalidate the current user's teams
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
-
-      // If the team has users, invalidate their teams queries
       if (data?.users) {
         data.users.forEach((user: { id: string | number }) => {
           queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(user.id) });
@@ -77,7 +72,6 @@ export const useCreateTeam = () => {
 
 /**
  * Mutation hook to update a team
- * Automatically invalidates and refetches related queries
  */
 export const useUpdateTeam = () => {
   const queryClient = useQueryClient();
@@ -86,14 +80,9 @@ export const useUpdateTeam = () => {
     mutationFn: ({ teamId, team }: { teamId: string; team: UpdateTeam }) =>
       updateTeam(teamId, team),
     onSuccess: (data, variables) => {
-      // Invalidate the specific team's cache
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.detail(variables.teamId) });
-      // Invalidate teams list to reflect changes
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
-      // Invalidate the current user's teams
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
-
-      // If the team has users, invalidate their teams queries
       if (data?.users) {
         data.users.forEach((user: { id: string | number }) => {
           queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(user.id) });
@@ -103,6 +92,66 @@ export const useUpdateTeam = () => {
     },
     onError: (error: Error) => {
       showErrorToast(error.message || 'Der opstod en fejl ved opdatering af holdet');
+    },
+  });
+};
+
+/**
+ * Mutation hook to remove a user from a team
+ */
+export const useRemoveUserFromTeam = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) =>
+      removeUserFromTeam(teamId, userId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.detail(variables.teamId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(variables.userId) });
+      showSuccessToast('Bruger fjernet fra holdet');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Kunne ikke fjerne bruger fra holdet');
+    },
+  });
+};
+
+/**
+ * Mutation hook to leave a team
+ */
+export const useLeaveTeam = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: leaveTeam,
+    onSuccess: (_, teamId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
+      // Invalidate the team detail as well since the user is no longer part of it
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.detail(teamId) });
+      showSuccessToast('Du har forladt holdet');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Kunne ikke forlade holdet');
+    },
+  });
+};
+
+/**
+ * Mutation hook to delete a team
+ */
+export const useDeleteTeam = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteTeam,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
+      showSuccessToast('Holdet er slettet');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Kunne ikke slette holdet');
     },
   });
 };

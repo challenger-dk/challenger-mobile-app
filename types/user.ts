@@ -49,3 +49,8 @@ export type CreateUser = {
   age?: number
 }
 
+export interface CommonStats {
+  common_friends_count: number;
+  common_teams_count: number;
+  common_sports: Sport[];
+}

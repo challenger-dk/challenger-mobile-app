@@ -47,3 +47,37 @@ export const updateTeam = async (teamId: string, team: UpdateTeam) => {
   });
   return response.json();
 };
+
+// DELETE
+export const deleteTeam = async (teamId: string) => {
+  const response = await authenticatedFetch(getApiUrl(`/${type}/${teamId}`), {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+}
+
+export const leaveTeam = async (teamId: string) => {
+  const response = await authenticatedFetch(getApiUrl(`/${type}/${teamId}/leave`), {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+}
+
+export const removeUserFromTeam = async (teamId: string, rmvUserId: string) => {
+  const response = await authenticatedFetch(getApiUrl(`/${type}/${teamId}/user/${rmvUserId}`), {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};
