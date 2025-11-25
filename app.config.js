@@ -4,9 +4,9 @@ export default {
   expo: {
     name: 'challenger-mobile',
     slug: 'challenger-mobile',
-    version: '1.0.0',
+    version: '1.0.5',
     orientation: 'portrait',
-    icon: './assets/images/icon.png',
+    icon: './assets/App_Logo.png',
     scheme: 'challengermobile',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
