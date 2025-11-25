@@ -261,7 +261,7 @@ You need to create secrets for both your production API URL and TomTom API key:
 1. Create a secret for your production API URL:
 
 ```bash
-eas secret:create --scope project --name EXPO_PUBLIC_API_BASE_URL --value "https://raspberrypi.tailfe8bc0.ts.net" --type string
+eas secret:create --scope project --name EXPO_PUBLIC_API_BASE_URL --value "public_api" --type string
 ```
 
 2. Create a secret for your TomTom API key:
@@ -313,7 +313,7 @@ EXPO_PUBLIC_TOMTOM_API_KEY=your_tomtom_api_key
 
 - `EXPO_PUBLIC_API_BASE_URL`: Your backend API base URL
   - Development: `http://localhost:3000` (iOS) or `http://10.0.2.2:3000` (Android)
-  - Production: Set via EAS Secrets (e.g., `https://raspberrypi.tailfe8bc0.ts.net`)
+  - Production: Set via EAS Secrets
   
 - `EXPO_PUBLIC_TOMTOM_API_KEY`: Your TomTom API key for location services
   - Get your key from: <https://developer.tomtom.com/>
