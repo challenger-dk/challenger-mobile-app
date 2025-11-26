@@ -1,8 +1,11 @@
-import { getUserById, getUserCommonStats } from '@/api/users'; // Imported new function
+import { getUserById, getUserCommonStats, removeFriend } from '@/api/users'; // Imported new function
 import { ScreenHeader } from '@/components/common';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { queryKeys } from '@/lib/queryClient';
 import { PublicUser, CommonStats } from '@/types/user'; // Imported type
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -22,6 +25,7 @@ export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
 
   const [user, setUser] = useState<PublicUser | null>(null);
   const [commonStats, setCommonStats] = useState<CommonStats | null>(null); // New State
@@ -69,7 +73,36 @@ export default function UserProfileScreen() {
   };
 
   const handleUnfriend = () => {
-    Alert.alert('Unfriend', `Removed ${user?.first_name} from friends`);
+    if (!user) return;
+
+    Alert.alert(
+      'Fjern ven',
+      `Er du sikker på, at du vil fjerne ${user.first_name} fra dine venner?`,
+      [
+        {
+          text: 'Annuller',
+          style: 'cancel',
+        },
+        {
+          text: 'Fjern',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeFriend(String(user.id));
+              setIsFriend(false);
+              showSuccessToast(`${user.first_name} er blevet fjernet som ven.`);
+
+              // Invalidate queries to refresh data everywhere
+              queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
+              queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(user.id) });
+            } catch (err) {
+              console.error('Failed to remove friend:', err);
+              showErrorToast('Kunne ikke fjerne ven.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -110,7 +143,7 @@ export default function UserProfileScreen() {
         <View className="flex-row items-center mb-8">
           {user.profile_picture ? (
             <Image
-              // source={{ uri: user.profile_picture }}
+              source={{ uri: user.profile_picture }}
               className="w-20 h-20 rounded-full mr-4 bg-[#575757]"
               contentFit="cover"
             />

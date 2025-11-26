@@ -56,7 +56,6 @@ export function InvitationCard({ invitation, onInvitationHandled }: InvitationCa
           <Text className="text-white text-base font-semibold">
             {invitation.inviter.first_name} {invitation.inviter.last_name}
           </Text>
-          <Text className="text-gray-400 text-sm">Har inviteret dig til et hold</Text>
         </View>
       </View>
 

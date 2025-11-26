@@ -103,3 +103,40 @@ export const createUser = async (user: CreateUser) => {
   });
   return response.json();
 };
+
+export const removeFriend = async (userId: string) => {
+  const response = await authenticatedFetch(getApiUrl(`/users/${userId}/remove`), {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  if (response.status === 204) {
+    return { success: true };
+  }
+
+  // Read as text first to check for empty body
+  const text = await response.text();
+
+  if (!text) {
+    // If response is OK but empty, treat as success
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Failed to remove friend' };
+  }
+
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to remove friend' };
+    }
+    return responseData;
+  } catch (e) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
+};
