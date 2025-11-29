@@ -1,24 +1,22 @@
-import { getUserById, getUserCommonStats, removeFriend } from '@/api/users'; // Imported new function
-import { ScreenHeader } from '@/components/common';
+import { getUserById, getUserCommonStats, removeFriend } from '@/api/users';
+import { Avatar, ScreenContainer, ScreenHeader } from '@/components/common';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { queryKeys } from '@/lib/queryClient';
-import { PublicUser, CommonStats } from '@/types/user'; // Imported type
+import { CommonStats, PublicUser } from '@/types/user';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
-// Helper to map sport names to Ionicons (basic mapping)
 const getSportIcon = (sportName: string) => {
   const name = sportName.toLowerCase();
   if (name.includes('fodbold') || name.includes('soccer')) return 'football';
   if (name.includes('basket')) return 'basketball';
   if (name.includes('tennis')) return 'tennisball';
   if (name.includes('base')) return 'baseball';
-  return 'trophy'; // Default
+  return 'trophy';
 };
 
 export default function UserProfileScreen() {
@@ -28,7 +26,7 @@ export default function UserProfileScreen() {
   const queryClient = useQueryClient();
 
   const [user, setUser] = useState<PublicUser | null>(null);
-  const [commonStats, setCommonStats] = useState<CommonStats | null>(null); // New State
+  const [commonStats, setCommonStats] = useState<CommonStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
 
@@ -38,8 +36,6 @@ export default function UserProfileScreen() {
 
       try {
         setLoading(true);
-
-        // Parallel fetching for performance
         const [fetchedUser, fetchedStats] = await Promise.all([
           getUserById(id),
           getUserCommonStats(id)
@@ -48,7 +44,6 @@ export default function UserProfileScreen() {
         setUser(fetchedUser);
         setCommonStats(fetchedStats);
 
-        // Check friend status
         if (currentUser && currentUser.friends) {
           const isFriendCheck = currentUser.friends.some(
             (friend) => String(friend.id) === String(fetchedUser.id)
@@ -79,10 +74,7 @@ export default function UserProfileScreen() {
       'Fjern ven',
       `Er du sikker på, at du vil fjerne ${user.first_name} fra dine venner?`,
       [
-        {
-          text: 'Annuller',
-          style: 'cancel',
-        },
+        { text: 'Annuller', style: 'cancel' },
         {
           text: 'Fjern',
           style: 'destructive',
@@ -91,8 +83,6 @@ export default function UserProfileScreen() {
               await removeFriend(String(user.id));
               setIsFriend(false);
               showSuccessToast(`${user.first_name} er blevet fjernet som ven.`);
-
-              // Invalidate queries to refresh data everywhere
               queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
               queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(user.id) });
             } catch (err) {
@@ -107,22 +97,22 @@ export default function UserProfileScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-[#171616] justify-center items-center">
+      <ScreenContainer className="justify-center items-center">
         <ActivityIndicator size="large" color="#ffffff" />
-      </View>
+      </ScreenContainer>
     );
   }
 
   if (!user) {
     return (
-      <View className="flex-1 bg-[#171616] justify-center items-center">
-        <Text className="text-white">Bruger ikke fundet</Text>
-      </View>
+      <ScreenContainer className="justify-center items-center">
+        <Text className="text-text">Bruger ikke fundet</Text>
+      </ScreenContainer>
     )
   }
 
   return (
-    <View className="flex-1 bg-[#171616]">
+    <ScreenContainer>
       <ScreenHeader
         title="Profil"
         rightAction={
@@ -139,24 +129,18 @@ export default function UserProfileScreen() {
       />
 
       <ScrollView className="flex-1 px-6">
-        {/* Profile Header */}
         <View className="flex-row items-center mb-8">
-          {user.profile_picture ? (
-            <Image
-              source={{ uri: user.profile_picture }}
-              className="w-20 h-20 rounded-full mr-4 bg-[#575757]"
-              contentFit="cover"
-            />
-          ) : (
-            <View className="w-20 h-20 rounded-full bg-[#575757] items-center justify-center mr-4">
-              <Ionicons name="person" size={40} color="#ffffff" />
-            </View>
-          )}
+          <Avatar
+            uri={user.profile_picture}
+            size={80}
+            placeholderIcon="person"
+            className="mr-4"
+          />
           <View className="flex-1">
-            <Text className="text-white text-xl font-bold">
+            <Text className="text-text text-xl font-bold">
               {user.first_name} {user.last_name || ''}
             </Text>
-            <Text className="text-gray-400 text-base">
+            <Text className="text-text-muted text-base">
               {(user as any).age ? `${(user as any).age} år` : ''}
             </Text>
           </View>
@@ -165,41 +149,35 @@ export default function UserProfileScreen() {
           </View>
         </View>
 
-        {/* Last Time Together Box (Static for now, hard to calculate without heavy tracking) */}
-        <View className="bg-[#2c2c2c] p-4 rounded-lg mb-6 h-32 justify-center">
-          <Text className="text-gray-400 text-sm">Sidst i var sammen..</Text>
+        <View className="bg-surface p-4 rounded-lg mb-6 h-32 justify-center">
+          <Text className="text-text-muted text-sm">Sidst i var sammen..</Text>
         </View>
 
-        {/* --- DYNAMIC STATS SECTIONS --- */}
-
-        {/* Common Friends */}
-        <View className="flex-row items-center justify-between bg-[#2c2c2c] p-4 rounded-lg mb-2">
-          <Text className="text-white text-base font-medium">Fællesvenner</Text>
+        <View className="flex-row items-center justify-between bg-surface p-4 rounded-lg mb-2">
+          <Text className="text-text text-base font-medium">Fællesvenner</Text>
           <View className="flex-row items-center gap-2">
-            <Text className="text-white text-base font-bold">
+            <Text className="text-text text-base font-bold">
               {commonStats?.common_friends_count ?? 0}
             </Text>
             <Ionicons name="people" size={20} color="#3b82f6" />
           </View>
         </View>
 
-        {/* Common Teams */}
-        <View className="flex-row items-center justify-between bg-[#2c2c2c] p-4 rounded-lg mb-2">
-          <Text className="text-white text-base font-medium">Fælleshold</Text>
+        <View className="flex-row items-center justify-between bg-surface p-4 rounded-lg mb-2">
+          <Text className="text-text text-base font-medium">Fælleshold</Text>
           <View className="flex-row items-center gap-2">
-            <Text className="text-white text-base font-bold">
+            <Text className="text-text text-base font-bold">
               {commonStats?.common_teams_count ?? 0}
             </Text>
             <Ionicons name="shield" size={20} color="#22c55e" />
           </View>
         </View>
 
-        {/* Common Favorites / Sports */}
-        <View className="bg-[#2c2c2c] p-4 rounded-lg mb-2">
+        <View className="bg-surface p-4 rounded-lg mb-2">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-white text-base font-medium">Fællesfavoritter</Text>
+            <Text className="text-text text-base font-medium">Fællesfavoritter</Text>
             <View className="flex-row items-center gap-2">
-              <Text className="text-white text-base font-bold">
+              <Text className="text-text text-base font-bold">
                 {commonStats?.common_sports?.length ?? 0}
               </Text>
               <Ionicons name="star" size={20} color="#f59e0b" />
@@ -217,12 +195,11 @@ export default function UserProfileScreen() {
                 />
               ))
             ) : (
-              <Text className="text-[#575757] text-xs">Ingen fælles sport</Text>
+              <Text className="text-text-muted text-xs">Ingen fælles sport</Text>
             )}
           </View>
         </View>
-
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }

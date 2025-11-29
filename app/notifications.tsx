@@ -4,16 +4,13 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getNotifications, markAllRead, markRead } from '@/api/notifications';
-import { acceptInvitation, declineInvitation } from '@/api/invitations';
-import { LoadingScreen, ScreenHeader } from '@/components/common';
 import { InvitationCard } from '@/components/InvitationCard';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
-import type { Notification } from '@/types/notification';
-import type { Invitation } from '@/types/invitation';
+import { EmptyState, LoadingScreen, ScreenContainer, ScreenHeader } from '@/components/common';
 import { queryKeys } from '@/lib/queryClient';
+import type { Invitation } from '@/types/invitation';
+import type { Notification } from '@/types/notification';
 
 const PAGE_SIZE = 20;
 
@@ -21,7 +18,6 @@ export default function NotificationsScreen() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  // Infinite Scroll Query
   const {
     data,
     fetchNextPage,
@@ -34,30 +30,24 @@ export default function NotificationsScreen() {
     queryKey: queryKeys.notifications.all,
     queryFn: async ({ pageParam = 0 }) => {
       const offset = pageParam * PAGE_SIZE;
-      // Fetch notifications (read AND unread)
       return getNotifications({ limit: PAGE_SIZE, offset });
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length === PAGE_SIZE ? allPages.length : undefined;
     },
-    // Disabled automatic polling as requested
-    // refetchInterval: 10000,
-    staleTime: 0, // Ensure data is considered stale immediately so refetch works
+    staleTime: 0,
   });
 
-  // Fetch notifications automatically when the screen comes into focus (is redirected to)
   useFocusEffect(
     useCallback(() => {
       refetch();
     }, [refetch])
   );
 
-  // Mutations
   const markReadMutation = useMutation({
     mutationFn: markRead,
     onSuccess: () => {
-      // Refresh the list and badge count
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unread() });
     },
@@ -82,10 +72,7 @@ export default function NotificationsScreen() {
   };
 
   const handleInvitationHandled = () => {
-    // Reload the list when an invitation is accepted/declined
-    // This will remove the notification if it's no longer "relevant"
     refetch();
-    // Also refresh the badge count
     queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unread() });
   };
 
@@ -103,14 +90,12 @@ export default function NotificationsScreen() {
   const renderNotificationItem = ({ item }: { item: Notification }) => {
     const isUnread = !item.is_read;
 
-    // Check if this is an actionable invitation (friend or team invite)
     const isActionable = item.invitation_id && (
       item.type === 'friend_request' ||
       item.type === 'team_invite' ||
       item.type === 'challenge_request'
     );
 
-    // 1. ACTIONABLE NOTIFICATION (Shows InvitationCard)
     if (isActionable && item.invitation_id && item.actor) {
       const invitationData: Invitation = {
         id: item.invitation_id,
@@ -130,14 +115,11 @@ export default function NotificationsScreen() {
       );
     }
 
-    // 2. NOTICE NOTIFICATION (Standard View)
     return (
       <Pressable
-        className={`bg-[#2c2c2c] mb-3 p-4 rounded-xl relative overflow-hidden ${isUnread ? 'border-l-4 border-[#0A84FF]' : ''}`}
+        className={`bg-surface mb-3 p-4 rounded-xl relative overflow-hidden ${isUnread ? 'border-l-4 border-primary' : ''}`}
         onPress={() => {
           if (isUnread) markReadMutation.mutate(item.id);
-
-          // Navigation logic
           if (item.type.includes('friend')) {
             router.push('/friends' as any);
           } else if (item.type.includes('team')) {
@@ -146,15 +128,15 @@ export default function NotificationsScreen() {
         }}
       >
         <View className="flex-row justify-between items-start mb-1">
-          <Text className="text-white font-bold text-base flex-1 mr-2">{item.title}</Text>
+          <Text className="text-text font-bold text-base flex-1 mr-2">{item.title}</Text>
           {isUnread && (
-            <View className="w-2 h-2 rounded-full bg-[#0A84FF] mt-2" />
+            <View className="w-2 h-2 rounded-full bg-primary mt-2" />
           )}
         </View>
 
-        <Text className="text-[#dfdfdf] text-sm mb-2 leading-5">{item.content}</Text>
+        <Text className="text-text-disabled text-sm mb-2 leading-5">{item.content}</Text>
 
-        <Text className="text-[#575757] text-xs">
+        <Text className="text-text-muted text-xs">
           {new Date(item.created_at).toLocaleDateString()} • {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </Pressable>
@@ -166,7 +148,7 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
+    <ScreenContainer safeArea edges={['top']}>
       <View className="px-6 flex-1">
         <ScreenHeader
           title="Notifikationer"
@@ -202,17 +184,13 @@ export default function NotificationsScreen() {
             />
           }
           ListEmptyComponent={
-            <View className="py-12 items-center">
-              <View className="w-16 h-16 rounded-full bg-[#2c2c2c] items-center justify-center mb-4">
-                <Ionicons name="notifications-off-outline" size={32} color="#575757" />
-              </View>
-              <Text className="text-[#575757] text-base text-center">
-                Du har ingen notifikationer
-              </Text>
-            </View>
+            <EmptyState
+              title="Du har ingen notifikationer"
+              icon="notifications-off-outline"
+            />
           }
         />
       </View>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }

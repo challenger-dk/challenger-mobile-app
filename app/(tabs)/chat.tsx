@@ -1,11 +1,10 @@
+import { Avatar, EmptyState, LoadingScreen, ScreenContainer, TabNavigation } from '@/components/common';
+import { useMyTeams } from '@/hooks/queries/useTeams';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Pressable, Text, View, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LoadingScreen, TabNavigation } from '../../components/common';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { useMyTeams } from '../../hooks/queries/useTeams';
+import { FlatList, Pressable, Text, View } from 'react-native';
 
 export default function ChatListScreen() {
   const router = useRouter();
@@ -16,38 +15,35 @@ export default function ChatListScreen() {
 
   if (!user || teamsLoading) return <LoadingScreen />;
 
-  // Filter friends/teams lists
   const data = activeTab === 'teams' ? myTeams : (user.friends || []);
 
   const renderItem = ({ item }: { item: any }) => {
-    // Determine name and image based on type (Team or User)
     const isTeam = activeTab === 'teams';
     const name = isTeam ? item.name : `${item.first_name} ${item.last_name || ''}`;
-    const image = item.profile_picture || null; // Teams usually don't have images in your model yet, but users do.
+    const image = item.profile_picture || null;
     const id = item.id;
 
     return (
       <Pressable
         onPress={() => {
-          // Navigate to the specific chat room
-          // We pass the ID and the TYPE (user or team) params
           router.push({
             pathname: '/chat/[id]',
             params: { id: id, type: isTeam ? 'team' : 'user', name: name }
           } as any);
         }}
-        className="flex-row items-center p-4 border-b border-[#2c2c2c]"
+        className="flex-row items-center p-4 border-b border-surface"
       >
-        <View className="w-12 h-12 rounded-full bg-[#2c2c2c] items-center justify-center mr-4 overflow-hidden">
-          {image ? (
-            <Image source={{ uri: image }} className="w-full h-full" />
-          ) : (
-            <Ionicons name={isTeam ? "shield" : "person"} size={24} color="#ffffff" />
-          )}
+        <View className="mr-4">
+          <Avatar
+            uri={image}
+            size={48}
+            placeholderIcon={isTeam ? "shield" : "person"}
+            className="bg-surface"
+          />
         </View>
         <View className="flex-1">
-          <Text className="text-white text-base font-medium">{name}</Text>
-          <Text className="text-gray-500 text-sm">Tryk for at chatte</Text>
+          <Text className="text-text text-base font-medium">{name}</Text>
+          <Text className="text-text-disabled text-sm">Tryk for at chatte</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#575757" />
       </Pressable>
@@ -55,9 +51,9 @@ export default function ChatListScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
+    <ScreenContainer safeArea edges={['top']}>
       <View className="px-5 pb-2">
-        <Text className="text-white text-xl font-bold mb-4">Beskeder</Text>
+        <Text className="text-text text-xl font-bold mb-4">Beskeder</Text>
         <TabNavigation
           tabs={[
             { key: 'teams', label: 'Hold' },
@@ -73,15 +69,13 @@ export default function ChatListScreen() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         ListEmptyComponent={
-          <View className="p-8 items-center">
-            <Text className="text-gray-500 text-center">
-              {activeTab === 'teams'
-                ? "Du er ikke medlem af nogen hold endnu."
-                : "Du har ingen venner endnu."}
-            </Text>
-          </View>
+          <EmptyState
+            title={activeTab === 'teams' ? "Ingen hold" : "Ingen venner"}
+            description={activeTab === 'teams' ? "Du er ikke medlem af nogen hold endnu." : "Du har ingen venner endnu."}
+            icon="chatbubble-ellipses-outline"
+          />
         }
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }

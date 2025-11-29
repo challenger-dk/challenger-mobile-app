@@ -2,11 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { FlatList, Pressable, View } from 'react-native';
 import { ChallengeCard } from '../../components/challenges';
-import { ErrorScreen, TopActionBar } from '../../components/common';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
-import { TabNavigation } from '../../components/common/TabNavigation';
+import { EmptyState, ErrorScreen, LoadingScreen, ScreenContainer, TabNavigation, TopActionBar } from '../../components/common';
 import { useChallenges } from '../../hooks/queries';
 import type { Challenge } from '../../types/challenge';
 
@@ -16,11 +14,8 @@ export default function HubScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('public');
 
-  // React Query hook - automatically handles caching and refetching
   const { data: challenges = [], isLoading: loading, error, refetch } = useChallenges();
 
-  // Refetch challenges when screen comes into focus
-  // This ensures fresh data when navigating back from create screen
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -28,7 +23,6 @@ export default function HubScreen() {
   );
 
   const handleParticipate = (challengeId: number) => {
-    // Navigate to challenge details or handle participation
     router.push(`/teams/${challengeId}` as any);
   };
 
@@ -52,15 +46,13 @@ export default function HubScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#171616]">
-      {/* Top Action Bar */}
+    <ScreenContainer>
       <TopActionBar
         title="Hub"
         leftAction={<Pressable onPress={() => router.push('/(tabs)' as any)}><Ionicons name="apps" size={24} color="#ffffff" /></Pressable>}
         settingsRoute="/profile/settings"
       />
 
-      {/* Tabs */}
       <View className="px-6 pt-2 pb-2">
         <TabNavigation
           tabs={[
@@ -72,7 +64,6 @@ export default function HubScreen() {
         />
       </View>
 
-      {/* Challenges List */}
       <FlatList
         data={filteredChallenges}
         keyExtractor={(item) => item.id.toString()}
@@ -87,15 +78,14 @@ export default function HubScreen() {
         )}
         contentContainerClassName="py-4"
         ListEmptyComponent={
-          <View className="px-6 py-8 items-center">
-            <Text className="text-[#575757] text-center">
-              Ingen udfordringer fundet
-            </Text>
-          </View>
+          <EmptyState
+            title="Ingen udfordringer"
+            description="Der er ingen aktive udfordringer i øjeblikket."
+            icon="trophy-outline"
+          />
         }
       />
 
-      {/* Floating Action Button - Fixed to Bottom Right */}
       <Pressable
         onPress={() => router.push('/hub/create' as any)}
         className="absolute bottom-8 right-6 bg-white rounded-full p-4 shadow-lg"
@@ -110,6 +100,6 @@ export default function HubScreen() {
       >
         <Ionicons name="add" size={28} color="#171616" />
       </Pressable>
-    </View>
+    </ScreenContainer>
   );
 }
