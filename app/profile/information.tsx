@@ -1,10 +1,13 @@
 import { updateUser } from '@/api/users';
-import { Avatar, ErrorScreen, LoadingScreen, ScreenContainer, ScreenHeader, SubmitButton } from '@/components/common';
+import { Avatar, ErrorScreen, LoadingScreen, ScreenHeader, SubmitButton } from '@/components/common';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useImagePicker } from '@/hooks/useImagePicker';
+import { queryKeys } from '@/lib/queryClient';
 import { SPORTS_TRANSLATION_EN_TO_DK, type Sport } from '@/types/sports';
 import type { UpdateUser } from '@/types/user';
-import { showErrorToast } from '@/utils/toast';
+import { deleteFile, uploadProfilePicture } from '@/utils/storage';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -22,6 +25,7 @@ export default function ProfileInformationScreen() {
   const { user, loading, error } = useCurrentUser();
   const insets = useSafeAreaInsets();
   const { imageUri, setImageUri, pickImage } = useImagePicker();
+  const queryClient = useQueryClient();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -78,6 +82,25 @@ export default function ProfileInformationScreen() {
 
     setIsSubmitting(true);
     try {
+      let finalProfilePictureUrl = user.profile_picture;
+
+      // 1. Upload new image if changed
+      if (imageUri && imageUri !== user.profile_picture) {
+        try {
+          finalProfilePictureUrl = await uploadProfilePicture(imageUri, user.id);
+
+          // 2. Delete old image if it existed
+          if (user.profile_picture) {
+            await deleteFile(user.profile_picture);
+          }
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          showErrorToast('Kunne ikke uploade billede');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const sportNames = favoriteSports
         .map(sport => normalizeSportName(sport.name))
         .reduce((acc, sportName) => {
@@ -88,16 +111,23 @@ export default function ProfileInformationScreen() {
       const updateData: UpdateUser = {
         first_name: firstName.trim(),
         last_name: lastName.trim() || undefined,
-        profile_picture: imageUri || user.profile_picture || undefined,
+        profile_picture: finalProfilePictureUrl || undefined,
         bio: bio.trim() || undefined,
         favorite_sports: sportNames.length > 0 ? sportNames : undefined,
       };
 
-      const response = await updateUser(String(user.id), updateData);
+      const response = await updateUser(updateData);
+
       if (response.error) {
         showErrorToast(response.error);
         return;
       }
+
+      // 3. Invalidate React Query Cache so the app refreshes the user data
+      await queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+
+      showSuccessToast('Profil opdateret');
       router.back();
     } catch (error) {
       console.error('Update error:', error);
