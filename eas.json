@@ -32,6 +32,9 @@
       "ios": {
         "autoIncrement": true
       },
+      "android": {
+        "autoIncrement": true
+      },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "${EXPO_PUBLIC_API_BASE_URL}",
         "EXPO_PUBLIC_TOMTOM_API_KEY": "${EXPO_PUBLIC_TOMTOM_API_KEY}",
@@ -42,6 +45,11 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      }
+    }
   }
 }

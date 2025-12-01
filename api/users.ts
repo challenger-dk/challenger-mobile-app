@@ -1,5 +1,5 @@
 import type { UserSettings } from "@/types/settings";
-import type {CommonStats, CreateUser, UpdateUser} from '@/types/user';
+import type { CommonStats, CreateUser, UpdateUser } from '@/types/user';
 import { authenticatedFetch, getApiUrl } from '@/utils/api';
 
 export const getUsers = async () => {
@@ -9,6 +9,9 @@ export const getUsers = async () => {
 
 export const getCurrentUser = async () => {
   const response = await authenticatedFetch(getApiUrl('/users/me'));
+  if (!response.ok) {
+    return { error: 'Failed to get current user' };
+  }
   return response.json();
 };
 

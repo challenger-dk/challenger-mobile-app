@@ -28,6 +28,7 @@ export default {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: 'com.daniellorenzen.challenger',
+      versionCode: 1,
     },
     web: {
       output: 'static',

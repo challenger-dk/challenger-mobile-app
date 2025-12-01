@@ -1,9 +1,10 @@
+import { formatDate, formatTimeRange } from '@/utils/date';
+import { SportIcon } from '@/utils/sportIcons';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { Challenge } from '../../types/challenge';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '../../types/sports';
-import { formatDate, formatTimeRange } from '@/utils/date';
 
 export interface ChallengeCardProps {
   challenge: Challenge;
@@ -15,14 +16,6 @@ export const ChallengeCard = ({ challenge, onParticipate, onPress }: ChallengeCa
   const [activeTab, setActiveTab] = useState<'info' | 'teams'>('info');
   const sportName = SPORTS_TRANSLATION_EN_TO_DK[challenge.sport] || challenge.sport;
   const teamCount = challenge.teams?.length || '?';
-
-  const getSportIcon = (sport: string) => {
-    const iconMap: Record<string, string> = {
-      'Football': 'football', 'Soccer': 'football', 'PadelTennis': 'tennisball',
-      'Tennis': 'tennisball', 'Basketball': 'basketball', 'Volleyball': 'volleyball',
-    };
-    return iconMap[sport] || 'ellipse';
-  };
 
   const creatorName = challenge.creator
     ? challenge.creator.last_name
@@ -53,7 +46,7 @@ export const ChallengeCard = ({ challenge, onParticipate, onPress }: ChallengeCa
               <View className="w-[62.5%] justify-center border-r border-black/40 pr-4">
                 {activeTab === 'info' ? (
                   <View className="flex-row items-center">
-                    <Ionicons name={getSportIcon(challenge.sport) as any} size={48} color="#ffffff" />
+                    <SportIcon sport={challenge.sport} size={48} color="#ffffff" />
                     <View className="ml-2 flex-1">
                       <View className="flex-row items-center">
                         <Text className="text-text text-base font-semibold flex-1" numberOfLines={1}>{sportName}</Text>

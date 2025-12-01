@@ -30,6 +30,12 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Google Play service account
+google-play-service-account.json
+
+# Firebase
+firebase.ts
+
 # local env files
 .env
 .env.local
