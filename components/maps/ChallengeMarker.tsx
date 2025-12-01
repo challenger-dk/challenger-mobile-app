@@ -72,8 +72,9 @@ export const ChallengeMarker = ({ challenge, onPress }: ChallengeMarkerProps) =>
       title={challenge.name}
       description={challenge.description}
       onPress={() => onPress(challenge.id)}
+      zIndex={1000}
     >
-      <View className="items-center">
+      <View className="items-center z-20">
         <View className="w-10 h-10 rounded-full bg-[#262626] items-center justify-center shadow-lg">
           <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
         </View>
