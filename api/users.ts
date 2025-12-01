@@ -33,8 +33,8 @@ export const getUserCommonStats = async (targetUserId: string | number) => {
   return response.json() as Promise<CommonStats>;
 };
 
-export const updateUser = async (userId: string, user: UpdateUser) => {
-  const response = await authenticatedFetch(getApiUrl(`/users/${userId}`), {
+export const updateUser = async (user: UpdateUser) => {
+  const response = await authenticatedFetch(getApiUrl(`/users`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -47,16 +47,27 @@ export const updateUser = async (userId: string, user: UpdateUser) => {
     return { success: true };
   }
 
-  const responseData = await response.json();
-
-  if (!response.ok) {
-    return { error: responseData.message || responseData.error || 'Failed to update user' };
+  // Safely handle empty 200 OK responses
+  const text = await response.text();
+  if (!text) {
+    return { success: true };
   }
 
-  return responseData;
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to update user' };
+    }
+    return responseData;
+  } catch (e) {
+    // If response is OK but not JSON (and not empty), treat as success
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
 };
 
-// Updated to safely handle empty responses
 export const updateUserSettings = async (settings: Partial<UserSettings>) => {
   const response = await authenticatedFetch(getApiUrl(`/users/settings`), {
     method: 'PUT',
@@ -70,11 +81,9 @@ export const updateUserSettings = async (settings: Partial<UserSettings>) => {
     return { success: true };
   }
 
-  // Read as text first to check for empty body
   const text = await response.text();
 
   if (!text) {
-    // If response is OK but empty, treat as success
     if (response.ok) {
       return { success: true };
     }
@@ -88,7 +97,6 @@ export const updateUserSettings = async (settings: Partial<UserSettings>) => {
     }
     return responseData;
   } catch (e) {
-    // If response is OK but not valid JSON (and not empty), treat as success or handle accordingly
     if (response.ok) {
       return { success: true };
     }
@@ -119,11 +127,9 @@ export const removeFriend = async (userId: string) => {
     return { success: true };
   }
 
-  // Read as text first to check for empty body
   const text = await response.text();
 
   if (!text) {
-    // If response is OK but empty, treat as success
     if (response.ok) {
       return { success: true };
     }

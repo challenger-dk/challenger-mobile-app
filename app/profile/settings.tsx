@@ -71,7 +71,7 @@ export default function SettingsScreen() {
 
           <SettingItem
             label="Privatpolitik"
-            onPress={() => {}}
+            onPress={() => router.push('/privacy-policy' as any)}
           />
         </ScrollView>
       </View>
