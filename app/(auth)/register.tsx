@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '@/types/sports';
 import type { CreateUser } from '@/types/user';
+import { uploadProfilePicture } from '@/utils/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -58,12 +59,46 @@ export default function RegisterScreen() {
     setIsSubmitting(true);
 
     try {
+      let finalProfilePictureUrl = undefined;
+
+      // Upload image to Firebase if one exists
+      if (imageUri) {
+        try {
+          finalProfilePictureUrl = await uploadProfilePicture(imageUri);
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          Alert.alert(
+            'Fejl ved billede',
+            'Kunne ikke uploade profilbillede. Vil du fortsætte uden?',
+            [
+              { text: 'Nej', style: 'cancel', onPress: () => setIsSubmitting(false) },
+              {
+                text: 'Ja',
+                onPress: async () => await proceedWithRegistration(undefined)
+              }
+            ]
+          );
+          return;
+        }
+      }
+
+      await proceedWithRegistration(finalProfilePictureUrl);
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      Alert.alert('Fejl', 'Der opstod en fejl ved registrering');
+      setIsSubmitting(false);
+    }
+  };
+
+  const proceedWithRegistration = async (profilePictureUrl: string | undefined) => {
+    try {
       const registerResponse = await register({
         email,
         password,
         first_name: firstName,
         last_name: lastName || undefined,
-        profile_picture: imageUri || undefined,
+        profile_picture: profilePictureUrl,
         bio: bio.trim() || undefined,
         favorite_sports: favoriteSports.length > 0 ? favoriteSports : undefined,
         age: age !== null ? age : 1,
@@ -80,9 +115,8 @@ export default function RegisterScreen() {
         router.replace('/(tabs)' as any);
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      Alert.alert('Fejl', 'Der opstod en fejl ved registrering');
-    } finally {
+      console.error('Registration API error:', error);
+      Alert.alert('Fejl', 'Kunne ikke oprette bruger');
       setIsSubmitting(false);
     }
   };
