@@ -283,6 +283,20 @@ export default function RegisterScreen() {
             </Pressable>
           )}
         </View>
+
+        {currentStep === 4 && (
+          <View className="mt-4 flex-row justify-center flex-wrap">
+            <Text className="text-[#9CA3AF] text-xs text-center">
+              Ved at oprette en bruger accepterer du vores{' '}
+            </Text>
+            <Pressable onPress={() => router.push('/privacy-policy' as any)}>
+              <Text className="text-primary text-xs font-medium underline">
+                privatlivspolitik
+              </Text>
+            </Pressable>
+            <Text className="text-[#9CA3AF] text-xs">.</Text>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
