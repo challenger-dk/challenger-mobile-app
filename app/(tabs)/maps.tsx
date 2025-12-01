@@ -124,7 +124,7 @@ export default function MapsScreen() {
   }, [facilities, mapRegion]);
 
   const handleMarkerPress = (challengeId: number) => {
-    router.push(`/teams/${challengeId}` as any);
+    router.push(`/hub/${challengeId}` as any);
   };
 
   const handleFacilityPress = (facilityId: string) => {

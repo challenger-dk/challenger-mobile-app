@@ -1,58 +1,29 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import type { Challenge } from '../../types/challenge';
+import { getSportIcon } from '../../utils/sportIcons';
 
 interface ChallengeMarkerProps {
   challenge: Challenge;
   onPress: (challengeId: number) => void;
 }
 
-// Map sport names to Ionicons icon names
-const getSportIcon = (sport: string): string => {
-  const sportLower = sport.toLowerCase();
-  
-  const sportIconMap: Record<string, string> = {
-    'football': 'football',
-    'fodbold': 'football',
-    'basketball': 'basketball',
-    'tennis': 'tennisball',
-    'padeltennis': 'tennisball',
-    'padel tennis': 'tennisball',
-    'tabletennis': 'tennisball',
-    'bordtennis': 'tennisball',
-    'golf': 'golf',
-    'volleyball': 'ellipse',
-    'badminton': 'tennisball',
-    'boxing': 'fitness',
-    'boxning': 'fitness',
-    'squash': 'tennisball',
-    'petanque': 'radio-button-on',
-    'hockey': 'ellipse',
-    'handball': 'hand-left',
-    'håndbold': 'hand-left',
-    'running': 'walk',
-    'løb': 'walk',
-    'biking': 'bicycle',
-    'cykling': 'bicycle',
-    'minigolf': 'golf',
-    'climbing': 'fitness',
-    'klatring': 'fitness',
-    'skateboarding': 'bicycle',
-    'surfing': 'water',
-    'hiking': 'walk',
-    'vandring': 'walk',
-    'ultimatefrisbee': 'radio-button-on',
-    'ultimate frisbee': 'radio-button-on',
-    'floorball': 'ellipse',
+export const ChallengeMarker = ({ challenge, onPress }: ChallengeMarkerProps) => {
+  const iconConfig = getSportIcon(challenge.sport);
+
+  const renderIcon = () => {
+    switch (iconConfig.library) {
+      case 'material':
+        return <MaterialIcons name={iconConfig.name as any} size={20} color="#FFFFFF" />;
+      case 'material-community':
+        return <MaterialCommunityIcons name={iconConfig.name as any} size={20} color="#FFFFFF" />;
+      case 'ionicons':
+      default:
+        return <Ionicons name={iconConfig.name as any} size={20} color="#FFFFFF" />;
+    }
   };
 
-  return sportIconMap[sportLower] || 'football';
-};
-
-export const ChallengeMarker = ({ challenge, onPress }: ChallengeMarkerProps) => {
-  const iconName = getSportIcon(challenge.sport);
-  
   // Calculate marker dimensions:
   // Circle: 40px (w-10 h-10)
   // Triangle height: 26px
@@ -76,7 +47,7 @@ export const ChallengeMarker = ({ challenge, onPress }: ChallengeMarkerProps) =>
     >
       <View className="items-center z-20">
         <View className="w-10 h-10 rounded-full bg-[#262626] items-center justify-center shadow-lg">
-          <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
+          {renderIcon()}
         </View>
         <View
           style={{
