@@ -1,5 +1,7 @@
 import { getChallenge } from '@/api/challenges';
 import { LoadingScreen, ScreenHeader, ErrorScreen, ScreenContainer } from '@/components/common';
+import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
+import { ReportModal } from '@/components/common/ReportModal';
 import { useJoinChallenge, useLeaveChallenge } from '@/hooks/queries/useChallenges';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { Challenge } from '@/types/challenge';
@@ -19,6 +21,8 @@ export default function ChallengeDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+
   const useLeaveChallengeMutation = useLeaveChallenge();
   const useJoinChallengeMutation = useJoinChallenge();
 
@@ -83,11 +87,29 @@ export default function ChallengeDetailScreen() {
     }
   };
 
+  const menuActions: MenuAction[] = [
+    {
+      label: 'Rapporter',
+      icon: 'flag-outline',
+      onPress: () => setReportModalVisible(true),
+      variant: 'destructive',
+    }
+  ];
+
   return (
     <ScreenContainer>
+      <ReportModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        targetId={Number(id)}
+        targetType="CHALLENGE"
+      />
       <ScrollView className="flex-1">
         <View className="px-6 pb-8">
-          <ScreenHeader title="Udfordring" />
+          <ScreenHeader
+            title="Udfordring"
+            rightAction={<ActionMenu actions={menuActions} />}
+          />
           <View className="bg-[#A0522D] rounded-lg flex-row items-center justify-center py-5 mb-6 relative">
             <View className="flex-1 items-center justify-center"><Text className="text-text font-bold text-6xl">{team1Count || teamSize || '?'}</Text></View>
             <View><Text className="text-text text-4xl font-medium italic z-10">vs</Text></View>

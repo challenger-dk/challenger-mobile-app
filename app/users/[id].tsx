@@ -1,8 +1,10 @@
 import { getUserById, getUserCommonStats, removeFriend } from '@/api/users';
 import { SendInvitation } from '@/api/invitations';
 import { Avatar, ScreenContainer, ScreenHeader } from '@/components/common';
+import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
+import { ReportModal } from '@/components/common/ReportModal';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useBlockUser, useUnblockUser } from '@/hooks/queries/useUsers'; //
+import { useBlockUser, useUnblockUser } from '@/hooks/queries/useUsers';
 import { queryKeys } from '@/lib/queryClient';
 import { CommonStats, PublicUser } from '@/types/user';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -10,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
 
 const getSportIcon = (sportName: string) => {
   const name = sportName.toLowerCase();
@@ -27,7 +29,7 @@ export default function UserProfileScreen() {
   const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
 
-  // Mutations from your provided hooks
+  // Mutations
   const blockUserMutation = useBlockUser();
   const unblockUserMutation = useUnblockUser();
 
@@ -37,8 +39,8 @@ export default function UserProfileScreen() {
   const [isFriend, setIsFriend] = useState(false);
 
   // UI State
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [isBlocked, setIsBlocked] = useState(false); // Tracks local block state
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -46,7 +48,6 @@ export default function UserProfileScreen() {
 
       try {
         setLoading(true);
-        // We still fetch user data manually here to get commonStats which isn't in useUser hook yet
         const [fetchedUser, fetchedStats] = await Promise.all([
           getUserById(id),
           getUserCommonStats(id)
@@ -76,12 +77,10 @@ export default function UserProfileScreen() {
 
   const handleAddFriend = async () => {
     if (!currentUser || !user) return;
-    setMenuVisible(false);
 
     try {
       const note = `${currentUser.first_name} ${currentUser.last_name || ''} har sendt dig en venneanmodning`.trim();
 
-      // Using SendInvitation directly as per previous context
       await SendInvitation({
         inviter_id: Number(currentUser.id),
         invitee_id: Number(user.id),
@@ -97,7 +96,6 @@ export default function UserProfileScreen() {
 
   const handleUnfriend = () => {
     if (!user) return;
-    setMenuVisible(false);
 
     Alert.alert(
       'Fjern ven',
@@ -112,7 +110,6 @@ export default function UserProfileScreen() {
               await removeFriend(String(user.id));
               setIsFriend(false);
               showSuccessToast(`${user.first_name} er blevet fjernet som ven.`);
-              // Invalidate queries to update lists
               queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
               queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(user.id) });
             } catch (err) {
@@ -127,18 +124,14 @@ export default function UserProfileScreen() {
 
   const handleBlockAction = () => {
     if (!user) return;
-    setMenuVisible(false);
 
     if (isBlocked) {
-      // Unblock Logic
       unblockUserMutation.mutate(String(user.id), {
         onSuccess: () => {
           setIsBlocked(false);
-          // showSuccessToast handled by the hook
         }
       });
     } else {
-      // Block Logic
       Alert.alert(
         'Bloker bruger',
         `Er du sikker på, at du vil blokere ${user.first_name}?`,
@@ -151,8 +144,7 @@ export default function UserProfileScreen() {
               blockUserMutation.mutate(String(user.id), {
                 onSuccess: () => {
                   setIsBlocked(true);
-                  setIsFriend(false); // Blocking removes friendship
-                  // showSuccessToast handled by the hook
+                  setIsFriend(false);
                 }
               });
             },
@@ -178,67 +170,40 @@ export default function UserProfileScreen() {
     )
   }
 
+  const menuActions: MenuAction[] = [
+    {
+      label: isFriend ? 'Fjern ven' : 'Tilføj ven',
+      icon: isFriend ? 'person-remove-outline' : 'person-add-outline',
+      onPress: isFriend ? handleUnfriend : handleAddFriend,
+      variant: isFriend ? 'destructive' : 'default',
+    },
+    {
+      label: isBlocked ? 'Fjern blokering' : 'Bloker bruger',
+      icon: isBlocked ? 'lock-open-outline' : 'ban-outline',
+      onPress: handleBlockAction,
+      variant: 'destructive',
+    },
+    {
+      label: 'Rapporter',
+      icon: 'flag-outline',
+      onPress: () => setReportModalVisible(true),
+      variant: 'destructive',
+    }
+  ];
+
   return (
     <ScreenContainer>
       <ScreenHeader
         title="Profil"
-        rightAction={
-          <Pressable onPress={() => setMenuVisible(true)} className="p-2">
-            <Ionicons name="ellipsis-horizontal-circle" size={32} color="#3b82f6" />
-          </Pressable>
-        }
+        rightAction={<ActionMenu actions={menuActions} />}
       />
 
-      {/* Dropdown Menu Modal */}
-      <Modal
-        visible={menuVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <Pressable
-          className="flex-1 bg-black/60"
-          onPress={() => setMenuVisible(false)}
-        >
-          {/* Menu Container */}
-          <View className="absolute top-28 right-6 bg-[#1E1E1E] rounded-xl overflow-hidden min-w-[200px] shadow-lg border border-[#333]">
-
-            {/* Friend Action */}
-            {isFriend ? (
-              <Pressable
-                onPress={handleUnfriend}
-                className="p-4 border-b border-[#333] active:bg-[#333] flex-row items-center gap-3"
-              >
-                <Ionicons name="person-remove-outline" size={20} color="#ef4444" />
-                <Text className="text-red-500 font-medium text-base">Fjern ven</Text>
-              </Pressable>
-            ) : (
-              <Pressable
-                onPress={handleAddFriend}
-                className="p-4 border-b border-[#333] active:bg-[#333] flex-row items-center gap-3"
-              >
-                <Ionicons name="person-add-outline" size={20} color="#fff" />
-                <Text className="text-white font-medium text-base">Tilføj ven</Text>
-              </Pressable>
-            )}
-
-            {/* Block Action */}
-            <Pressable
-              onPress={handleBlockAction}
-              className="p-4 active:bg-[#333] flex-row items-center gap-3"
-            >
-              <Ionicons
-                name={isBlocked ? "lock-open-outline" : "ban-outline"}
-                size={20}
-                color={isBlocked ? "#fff" : "#ef4444"}
-              />
-              <Text className={isBlocked ? "text-white font-medium text-base" : "text-red-500 font-medium text-base"}>
-                {isBlocked ? 'Fjern blokering' : 'Bloker bruger'}
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
+      <ReportModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        targetId={Number(id)}
+        targetType="USER"
+      />
 
       <ScrollView className="flex-1 px-6">
         <View className="flex-row items-center mb-8">

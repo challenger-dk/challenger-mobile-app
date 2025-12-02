@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View, ActivityIndicator } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { getTeam } from '@/api/teams';
 import { LoadingScreen } from '@/components/common';
+import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
+import { ReportModal } from '@/components/common/ReportModal';
 import type { Team } from '@/types/team';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDeleteTeam, useLeaveTeam } from '@/hooks/queries/useTeams';
@@ -14,6 +16,7 @@ export default function TeamDetailScreen() {
   const { user: currentUser } = useCurrentUser();
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
 
   const leaveTeamMutation = useLeaveTeam();
   const deleteTeamMutation = useDeleteTeam();
@@ -41,7 +44,6 @@ export default function TeamDetailScreen() {
     const isCreator = String(team.creator.id) === String(currentUser.id);
 
     if (isCreator) {
-      // Handle Delete
       Alert.alert(
         'Slet hold',
         'Er du sikker på, at du vil slette dette hold? Dette kan ikke fortrydes.',
@@ -62,7 +64,6 @@ export default function TeamDetailScreen() {
         ]
       );
     } else {
-      // Handle Leave
       Alert.alert(
         'Forlad hold',
         'Er du sikker på, at du vil forlade dette hold?',
@@ -98,10 +99,31 @@ export default function TeamDetailScreen() {
   }
 
   const isCreator = currentUser && String(team.creator.id) === String(currentUser.id);
-  const isProcessing = leaveTeamMutation.isPending || deleteTeamMutation.isPending;
+
+  const menuActions: MenuAction[] = [
+    {
+      label: isCreator ? 'Slet hold' : 'Forlad hold',
+      icon: isCreator ? 'trash-outline' : 'log-out-outline',
+      onPress: handleLeaveOrDelete,
+      variant: 'destructive',
+    },
+    {
+      label: 'Rapporter',
+      icon: 'flag-outline',
+      onPress: () => setReportModalVisible(true),
+      variant: 'destructive',
+    }
+  ];
 
   return (
     <ScrollView className="flex-1 bg-[#171616] p-5 pb-20">
+      <ReportModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        targetId={Number(id)}
+        targetType="TEAM"
+      />
+
       {/* Header */}
       <View className="flex-row items-center justify-between mb-6">
         <Pressable
@@ -112,20 +134,7 @@ export default function TeamDetailScreen() {
         </Pressable>
         <Text className="text-lg font-semibold text-white">Hold</Text>
 
-        {/* Leave / Delete Button */}
-        <Pressable
-          onPress={handleLeaveOrDelete}
-          disabled={isProcessing}
-          className={`bg-red-600 px-3 py-1 rounded-lg ${isProcessing ? 'opacity-50' : ''}`}
-        >
-          {isProcessing ? (
-            <ActivityIndicator size="small" color="#ffffff" />
-          ) : (
-            <Text className="text-white text-sm">
-              {isCreator ? 'Slet hold' : 'Forlad hold'}
-            </Text>
-          )}
-        </Pressable>
+        <ActionMenu actions={menuActions} />
       </View>
 
       {/* Team info */}
