@@ -149,3 +149,73 @@ export const removeFriend = async (userId: string) => {
     return { error: 'Invalid server response' };
   }
 };
+
+export const blockUser = async (userId: string) => {
+  const response = await authenticatedFetch(getApiUrl(`/users/block/${userId}`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  if (response.status === 204) {
+    return { success: true };
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Failed to block user' };
+  }
+
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to block user' };
+    }
+    return responseData;
+  } catch (e) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
+};
+
+export const unblockUser = async (userId: string) => {
+  const response = await authenticatedFetch(getApiUrl(`/users/unblock/${userId}`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  if (response.status === 204) {
+    return { success: true };
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Failed to unblock user' };
+  }
+
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to unblock user' };
+    }
+    return responseData;
+  } catch (e) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
+};
