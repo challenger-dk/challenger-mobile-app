@@ -1,0 +1,36 @@
+# Maestro Test Data Reference
+# 
+# This file documents all test data variables used in Maestro tests.
+# Actual values are defined in test-data.env
+#
+# To use these variables in tests, reference them as ${VARIABLE_NAME}
+# Example: ${USER1_EMAIL}
+
+# Test User Credentials
+# USER1_EMAIL - Email for test user 1
+# USER1_PASSWORD - Password for test user 1
+# USER2_EMAIL - Email for test user 2 (if needed)
+# USER2_PASSWORD - Password for test user 2 (if needed)
+# USER3_EMAIL - Email for test user 3 (if needed)
+# USER3_PASSWORD - Password for test user 3 (if needed)
+
+# Registration Test Data
+# TEST_REGISTER_EMAIL - Email for registration tests
+# TEST_REGISTER_PASSWORD - Password for registration tests
+# TEST_REGISTER_NAME - Name for registration tests
+
+# Challenge Test Data
+# TEST_CHALLENGE_NAME - Name for challenge creation tests
+# TEST_CHALLENGE_DESCRIPTION - Description for challenge creation tests
+
+# Team Test Data
+# TEST_TEAM_NAME - Name for team creation tests
+# TEST_TEAM_DESCRIPTION - Description for team creation tests
+
+# Chat Test Data
+# TEST_MESSAGE - Default message text for chat tests
+
+# App Configuration
+# MAESTRO_APP_ID - App identifier for Maestro tests
+# APP_ID - App identifier (alternative name)
+

@@ -1,0 +1,41 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - auth
+  - login
+  - critical
+env:
+  # Test User 1 Credentials
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  # App Configuration (fallback if not set externally)
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+- launchApp
+- waitForAnimationToEnd
+
+# Conditional logout if already logged in
+- runFlow:
+    when:
+      visible: "Home"     # User is logged in if Home is visible
+    file: "helpers/logout.yaml"
+
+# Now we guarantee we're at login screen
+- assertVisible: "E-mail"
+- assertVisible: "Adgangskode"
+- assertVisible: "Log på"
+
+# Enter email
+- tapOn: "E-mail"
+- inputText: "${USER1_EMAIL}"
+- assertVisible: "${USER1_EMAIL}"
+
+# Enter password
+- tapOn: "Adgangskode"
+- inputText: "${USER1_PASSWORD}"
+
+# Tap login button
+- tapOn: "Log på"
+
+# Verify login success
+- assertVisible:
+    text: "Home"

@@ -1,0 +1,35 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - auth
+  - logout
+---
+# Logout Helper Flow
+# This flow logs out the current user if they are logged in
+# Can be called from other tests to ensure a clean state
+# Note: This assumes the app is already launched
+- waitForAnimationToEnd
+
+# Now try to tap the Profil tab
+# Tab bar is at the bottom, Profil is the 5th tab (last one, rightmost)
+- tapOn: "Profil, tab, 5 of 5"
+
+- waitForAnimationToEnd
+
+# Try to find and tap logout button
+# If we're on profile screen (logged in), find and tap it
+# If we're not (already logged out), these steps will be skipped
+- tapOn:
+    text: "Log ud"
+
+# Confirm logout in alert dialog even when it's the same text as the button behind
+- assertVisible: "Er du sikker på, at du vil logge ud?"
+- tapOn:
+    point: "68%,56%"
+
+# Wait for navigation
+- waitForAnimationToEnd
+
+# Verify we're on login screen (this will pass whether we logged out or were already logged out)
+- assertVisible: "E-mail"
+- assertVisible: "Log på"
+

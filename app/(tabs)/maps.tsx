@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import MapView, { Region } from 'react-native-maps';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { ErrorScreen, LoadingScreen, TabNavigation, TopActionBar } from '../../components/common';
@@ -190,6 +190,23 @@ export default function MapsScreen() {
     return <ErrorScreen error={error instanceof Error ? error : new Error('Kunne ikke hente challenges')} />;
   }
 
+  // Show fallback for web platform since react-native-maps doesn't fully support web
+  if (Platform.OS === 'web') {
+    return (
+      <View className="flex-1 bg-[#171616]">
+        <TopActionBar title="Kort" showNotifications={false} showCalendar={false} showSettings={false} />
+        <View className="flex-1 items-center justify-center px-4">
+          <Text className="text-white text-center text-lg mb-2">
+            Kortet er ikke tilgængeligt på web
+          </Text>
+          <Text className="text-gray-400 text-center">
+            Brug appen på iOS eller Android for at se kortet
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-[#171616]">
       {/* Top Action Bar */}
@@ -220,7 +237,7 @@ export default function MapsScreen() {
         showsMyLocationButton={false}
         showsCompass={true}
         showsScale={true}
-        mapType="none"
+        mapType="standard"
         zoomEnabled={true}
         scrollEnabled={true}
         pitchEnabled={true}

@@ -1,0 +1,34 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - suite
+  - auth
+env:
+  # Test User 1 Credentials
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  # Test User 2 Credentials (if needed)
+  USER2_EMAIL: user2@challenger.dk
+  USER2_PASSWORD: password12
+  # Test User 3 Credentials (if needed)
+  USER3_EMAIL: user3@challenger.dk
+  USER3_PASSWORD: password12
+  # Registration Test Data
+  TEST_REGISTER_EMAIL: testuser@challenger.dk
+  TEST_REGISTER_PASSWORD: testpassword123
+  TEST_REGISTER_NAME: Test User
+  # Challenge Test Data
+  TEST_CHALLENGE_NAME: Test Challenge
+  TEST_CHALLENGE_DESCRIPTION: This is a test challenge description
+  # Team Test Data
+  TEST_TEAM_NAME: Test Team
+  TEST_TEAM_DESCRIPTION: This is a test team description
+  # Chat Test Data
+  TEST_MESSAGE: Test message from Maestro
+  # App Configuration
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Authentication Test Suite
+# Runs all authentication-related tests
+
+- runFlow: "../auth/register.yaml"
+- runFlow: "../auth/login.yaml"
