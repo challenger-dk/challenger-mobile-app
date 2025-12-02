@@ -1,0 +1,24 @@
+appId: ${MAESTRO_APP_ID}
+---
+# Maestro Configuration
+# For iOS: com.daniellorenzen.challenger
+# For Android: com.daniellorenzen.challenger
+
+# Environment variables can be set via:
+# - maestro test --env MAESTRO_APP_ID=com.daniellorenzen.challenger
+# - Or set in your shell before running tests
+
+# Tags for organizing tests
+tags:
+  - e2e
+  - mobile
+
+# Timeout settings
+timeout: 30000
+
+# Enable video recording (optional)
+# recordVideo: true
+
+# Enable screenshots on failure (optional)
+# takeScreenshotOnFailure: true
+

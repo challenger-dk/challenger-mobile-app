@@ -35,6 +35,11 @@ export default {
         'ACCESS_FINE_LOCATION',
         'ACCESS_COARSE_LOCATION',
       ],
+      config: {
+        googleMaps: {
+          apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+        },
+      },
     },
     web: {
       output: 'static',

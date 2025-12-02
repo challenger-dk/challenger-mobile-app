@@ -1,0 +1,49 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - suite
+  - full
+  - all
+env:
+  # Test User 1 Credentials
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  # Test User 2 Credentials (if needed)
+  USER2_EMAIL: user2@challenger.dk
+  USER2_PASSWORD: password12
+  # Test User 3 Credentials (if needed)
+  USER3_EMAIL: user3@challenger.dk
+  USER3_PASSWORD: password12
+  # Registration Test Data
+  TEST_REGISTER_EMAIL: testuser@challenger.dk
+  TEST_REGISTER_PASSWORD: testpassword123
+  TEST_REGISTER_NAME: Test User
+  # Challenge Test Data
+  TEST_CHALLENGE_NAME: Test Challenge
+  TEST_CHALLENGE_DESCRIPTION: This is a test challenge description
+  # Team Test Data
+  TEST_TEAM_NAME: Test Team
+  TEST_TEAM_DESCRIPTION: This is a test team description
+  # Chat Test Data
+  TEST_MESSAGE: Test message from Maestro
+  # App Configuration
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Full Test Suite
+# Runs all tests in the correct order, respecting dependencies
+# Tests that require authentication will run after login
+
+# Step 1: Authentication tests (must run first)
+# Register creates a new user, Login uses existing user
+- runFlow: "../auth/register.yaml"
+- runFlow: "../auth/login.yaml"
+
+# Step 2: Tests that require authentication
+# Add authenticated tests here as they are created
+# Examples (commented out until implemented):
+# - runFlow: "../navigation/tabs.yaml"
+# - runFlow: "../maps/basic.yaml"
+# - runFlow: "../profile/information.yaml"
+# - runFlow: "../teams/create.yaml"
+# - runFlow: "../challenges/create.yaml"
+# - runFlow: "../chat/send-message.yaml"
+

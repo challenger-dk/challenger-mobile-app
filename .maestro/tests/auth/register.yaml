@@ -1,0 +1,77 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - auth
+  - register
+env:
+  # Registration Test Data
+  TEST_REGISTER_EMAIL: testuser@challenger.dk
+  TEST_REGISTER_PASSWORD: testpassword123
+  TEST_REGISTER_NAME: Test User
+  # App Configuration (fallback if not set externally)
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Registration Flow Test
+# Tests the user registration process
+
+- launchApp
+
+# Conditional logout if already logged in
+- runFlow:
+    when:
+      visible: "Home"     # User is logged in if Home is visible
+    file: "helpers/logout.yaml"
+
+# Navigate to register screen if not already there
+- tapOn: "Opret konto"
+
+# Wait for register screen
+- assertVisible: ".*" # Adjust to match your registration screen elements
+
+# Fill in registration form (multi-step form)
+# Step 1: Profile information
+- tapOn: "Fornavn"
+- inputText: "${TEST_REGISTER_NAME}"
+- pressKey: Enter
+- tapOn: "Efternavn"
+- inputText: "Test"
+- pressKey: Enter
+- tapOn: "Alder"
+- inputText: "25"
+- pressKey: Enter
+- tapOn: "Fortsæt" # Next button
+
+# Step 2: Bio (optional, can skip)
+- waitForAnimationToEnd
+- tapOn: "Fortsæt" # Skip bio or add text if needed
+
+# Step 3: Favorite sports
+- waitForAnimationToEnd
+- tapOn: "Tennis"
+- tapOn: "Golf"
+- tapOn: "Fortsæt"
+
+# Step 4: Email and password
+- waitForAnimationToEnd
+- tapOn: "E-mail"
+- inputText: "${TEST_REGISTER_EMAIL}"
+- pressKey: Enter
+- waitForAnimationToEnd
+- tapOn:
+    id: "password"
+- waitForAnimationToEnd
+- inputText: "${TEST_REGISTER_PASSWORD}"
+- pressKey: Enter
+- tapOn:
+    id: "confirmPassword"
+- inputText: "${TEST_REGISTER_PASSWORD}"
+- pressKey: Enter
+- waitForAnimationToEnd
+- tapOn:
+    id: "submitButton"
+
+# Wait for success or error handling
+- waitForAnimationToEnd
+
+# Verify navigation or error message
+- assertVisible: "Home" # Adjust based on expected outcome
+

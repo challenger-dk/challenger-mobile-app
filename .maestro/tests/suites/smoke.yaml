@@ -1,0 +1,18 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - suite
+  - smoke
+  - critical
+env:
+  # Test User Credentials
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  # App Configuration
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Smoke Test Suite
+# Quick tests to verify critical app functionality
+# Run this suite to ensure basic app functionality works
+
+- runFlow: "../auth/login.yaml"
+

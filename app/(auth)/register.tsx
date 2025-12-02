@@ -228,10 +228,15 @@ export default function RegisterScreen() {
             <View className="w-full max-w-sm relative mb-4">
               <TextInput
                 placeholder="Adgangskode"
+                testID='password'
                 placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                textContentType="newPassword"
+                autoComplete="password-new"
+                autoCorrect={false}
+                spellCheck={false}
                 className="w-full bg-surface text-text rounded-lg px-4 py-3 pr-12"
               />
               <Pressable
@@ -244,10 +249,15 @@ export default function RegisterScreen() {
             <View className="w-full max-w-sm relative mb-4">
               <TextInput
                 placeholder="Bekræft adgangskode"
+                testID='confirmPassword'
                 placeholderTextColor="#9CA3AF"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
+                textContentType="newPassword"
+                autoComplete="password-new"
+                autoCorrect={false}
+                spellCheck={false}
                 className="w-full bg-surface text-text rounded-lg px-4 py-3 pr-12"
               />
               <Pressable
@@ -310,6 +320,7 @@ export default function RegisterScreen() {
               onPress={handleSubmit}
               disabled={!canProceedToNextStep() || isSubmitting}
               className={`flex-1 rounded-lg px-4 py-4 ${canProceedToNextStep() && !isSubmitting ? 'bg-white' : 'bg-surface'}`}
+              testID='submitButton'
             >
               <Text className={`text-center font-medium ${canProceedToNextStep() && !isSubmitting ? 'text-black' : 'text-gray-400'}`}>
                 {isSubmitting ? 'Opretter...' : 'Opret konto'}
