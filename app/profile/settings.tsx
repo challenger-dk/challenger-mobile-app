@@ -70,6 +70,11 @@ export default function SettingsScreen() {
           <View className="h-8" />
 
           <SettingItem
+            label="Support & Kontakt"
+            onPress={() => router.push('/profile/support' as any)}
+          />
+
+          <SettingItem
             label="Privatpolitik"
             onPress={() => router.push('/privacy-policy' as any)}
           />

@@ -1,4 +1,4 @@
-import { createUser, getCurrentUser, getUserById, getUsers, updateUser, updateUserSettings } from '@/api/users';
+import { blockUser, createUser, getCurrentUser, getUserById, getUsers, unblockUser, updateUser, updateUserSettings } from '@/api/users';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateUser } from '@/types/user';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -97,6 +97,42 @@ export const useCreateUser = () => {
     },
     onError: (error: Error) => {
       showErrorToast(error.message || 'Der opstod en fejl ved oprettelse af brugeren');
+    },
+  });
+};
+
+/**
+ * Mutation hook to block a user
+ */
+export const useBlockUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: blockUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      showSuccessToast('Brugeren er blevet blokeret');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved blokering af brugeren');
+    },
+  });
+};
+
+/**
+ * Mutation hook to unblock a user
+ */
+export const useUnblockUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: unblockUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      showSuccessToast('Blokeringen er ophævet');
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || 'Der opstod en fejl ved ophævelse af blokeringen');
     },
   });
 };
