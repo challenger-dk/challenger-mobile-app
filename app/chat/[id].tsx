@@ -2,6 +2,7 @@ import { MessageBubble } from '@/components/chat';
 import { LoadingScreen, ScreenContainer } from '@/components/common';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useMarkChatRead } from '@/hooks/queries/useChats';
 import type { ConversationType } from '@/types/message';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,6 +15,7 @@ export default function ChatRoomScreen() {
   const { id, type, name } = useLocalSearchParams<{ id: string; type: string; name: string }>();
   const { user } = useCurrentUser();
   const { messages, status, sendMessage, loadHistory } = useWebSocket();
+  const { mutate: markRead } = useMarkChatRead();
   const insets = useSafeAreaInsets();
 
   const [inputText, setInputText] = useState('');
@@ -23,6 +25,10 @@ export default function ChatRoomScreen() {
   useEffect(() => {
     if (conversationId && conversationType) {
       loadHistory(conversationId, conversationType);
+
+      if (conversationType === 'chat') {
+        markRead(conversationId);
+      }
     }
   }, [conversationId, conversationType, loadHistory]);
 
@@ -38,7 +44,6 @@ export default function ChatRoomScreen() {
     if (conversationType === 'team') {
       sendMessage({ content: inputText, team_id: conversationId });
     } else {
-      // Changed from recipient_id to chat_id for the new system
       sendMessage({ content: inputText, chat_id: conversationId });
     }
 

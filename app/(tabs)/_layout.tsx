@@ -4,14 +4,15 @@ import { Tabs, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useWebSocket } from '../../contexts/WebSocketContext';
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
+  const { unreadCount } = useWebSocket();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect unauthenticated users to auth screens
     if (!isAuthenticated && segments[0] === '(tabs)') {
       router.replace('/(auth)/login' as any);
     }
@@ -49,6 +50,7 @@ export default function TabLayout() {
         name="chat"
         options={{
           title: 'Chat',
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubble" size={size || 28} color={color} />
           ),

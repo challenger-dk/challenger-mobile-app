@@ -4,6 +4,7 @@ export type Chat = {
   id: number;
   name: string; // Optional name for group chats
   users: PublicUser[];
+  unread_count: number;
 };
 
 export type CreateChat = {
