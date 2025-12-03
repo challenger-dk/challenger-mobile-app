@@ -1,5 +1,6 @@
 import { Avatar, EmptyState, LoadingScreen, ScreenContainer, TabNavigation } from '@/components/common';
 import { useMyTeams } from '@/hooks/queries/useTeams';
+import { useMyChats } from '@/hooks/queries/useChats';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -10,25 +11,39 @@ export default function ChatListScreen() {
   const router = useRouter();
   const { user } = useCurrentUser();
   const { data: myTeams = [], isLoading: teamsLoading } = useMyTeams();
+  const { data: myChats = [], isLoading: chatsLoading } = useMyChats();
 
-  const [activeTab, setActiveTab] = useState<'teams' | 'friends'>('teams');
+  const [activeTab, setActiveTab] = useState<'teams' | 'chats'>('teams');
 
-  if (!user || teamsLoading) return <LoadingScreen />;
+  if (!user || teamsLoading || chatsLoading) return <LoadingScreen />;
 
-  const data = activeTab === 'teams' ? myTeams : (user.friends || []);
+  const data = activeTab === 'teams' ? myTeams : myChats;
 
   const renderItem = ({ item }: { item: any }) => {
     const isTeam = activeTab === 'teams';
-    const name = isTeam ? item.name : `${item.first_name} ${item.last_name || ''}`;
-    const image = item.profile_picture || null;
-    const id = item.id;
+    let name = '';
+    let image = null;
+
+    if (isTeam) {
+      name = item.name;
+    } else {
+      // For chats, if it has a name (group chat), use it.
+      // Otherwise, list participant names (excluding self).
+      if (item.name) {
+        name = item.name;
+      } else {
+        const others = item.users.filter((u: any) => u.id !== user.id);
+        name = others.map((u: any) => u.first_name).join(', ') || 'Chat';
+        if (others.length === 1) image = others[0].profile_picture;
+      }
+    }
 
     return (
       <Pressable
         onPress={() => {
           router.push({
             pathname: '/chat/[id]',
-            params: { id: id, type: isTeam ? 'team' : 'user', name: name }
+            params: { id: item.id, type: isTeam ? 'team' : 'chat', name: name }
           } as any);
         }}
         className="flex-row items-center p-4 border-b border-surface"
@@ -37,13 +52,15 @@ export default function ChatListScreen() {
           <Avatar
             uri={image}
             size={48}
-            placeholderIcon={isTeam ? "shield" : "person"}
+            placeholderIcon={isTeam ? "shield" : "chatbubble"}
             className="bg-surface"
           />
         </View>
         <View className="flex-1">
-          <Text className="text-text text-base font-medium">{name}</Text>
-          <Text className="text-text-disabled text-sm">Tryk for at chatte</Text>
+          <Text className="text-text text-base font-medium" numberOfLines={1}>{name}</Text>
+          <Text className="text-text-disabled text-sm">
+            {isTeam ? 'Team Chat' : 'Conversation'}
+          </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#575757" />
       </Pressable>
@@ -52,15 +69,21 @@ export default function ChatListScreen() {
 
   return (
     <ScreenContainer safeArea edges={['top']}>
-      <View className="px-5 pb-2">
+      <View className="px-5 pb-2 flex-row justify-between items-center">
         <Text className="text-text text-xl font-bold mb-4">Beskeder</Text>
+        <Pressable onPress={() => router.push('/chat/create' as any)}>
+          <Ionicons name="add-circle" size={32} color="#D1FF4C" style={{ marginBottom: 16 }} />
+        </Pressable>
+      </View>
+
+      <View className="px-5 pb-2">
         <TabNavigation
           tabs={[
             { key: 'teams', label: 'Hold' },
-            { key: 'friends', label: 'Venner' },
+            { key: 'chats', label: 'Chats' },
           ]}
           activeTab={activeTab}
-          onTabChange={(key) => setActiveTab(key as 'teams' | 'friends')}
+          onTabChange={(key) => setActiveTab(key as 'teams' | 'chats')}
         />
       </View>
 
@@ -70,8 +93,12 @@ export default function ChatListScreen() {
         renderItem={renderItem}
         ListEmptyComponent={
           <EmptyState
-            title={activeTab === 'teams' ? "Ingen hold" : "Ingen venner"}
-            description={activeTab === 'teams' ? "Du er ikke medlem af nogen hold endnu." : "Du har ingen venner endnu."}
+            title={activeTab === 'teams' ? "Ingen hold" : "Ingen chats"}
+            description={
+              activeTab === 'teams'
+                ? "Du er ikke medlem af nogen hold endnu."
+                : "Du har ingen aktive chats. Tryk på + for at starte en."
+            }
             icon="chatbubble-ellipses-outline"
           />
         }

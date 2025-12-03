@@ -1,4 +1,4 @@
-import {authenticatedFetch, getChatServiceUrl} from '../utils/api';
+import { authenticatedFetch, getChatServiceUrl } from '../utils/api';
 import type { ConversationType, Message } from '../types/message';
 
 export const getMessagesHistory = async (
@@ -9,8 +9,8 @@ export const getMessagesHistory = async (
 
   if (type === 'team') {
     params.append('team_id', String(id));
-  } else if (type === 'user') {
-    params.append('recipient_id', String(id));
+  } else if (type === 'chat') {
+    params.append('chat_id', String(id));
   } else {
     throw new Error('Invalid conversation type');
   }
