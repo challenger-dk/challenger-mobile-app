@@ -1,0 +1,39 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - profile
+  - edit
+  - critical
+env:
+  # App Configuration (fallback if not set externally)
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "Profil, tab, 5 of 5"
+- tapOn:
+    id: "editProfile"
+
+- waitForAnimationToEnd
+- assertVisible: "Rediger Profil"
+
+- tapOn:
+    id: "firstName"
+- inputText: "Johnny"
+- pressKey: Enter
+
+- tapOn:
+    id: "lastName"
+- inputText: "Doe"
+- pressKey: Enter
+
+- tapOn:
+    id: "bio"
+- inputText: "I am a test user"
+- hideKeyboard
+
+- scroll
+- tapOn: "Badminton"
+
+- tapOn: "Gem ændringer"
+
+- assertVisible: "Profil opdateret"

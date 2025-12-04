@@ -10,13 +10,12 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test:e2e": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/full.yaml",
-    "test:e2e:ios": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/full.yaml",
-    "test:e2e:android": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/full.yaml",
     "test:e2e:smoke": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/smoke.yaml",
     "test:e2e:auth": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/auth.yaml",
     "test:e2e:full": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/full.yaml",
     "test:e2e:login": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/auth/login.yaml",
-    "test:e2e:register": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/auth/register.yaml"
+    "test:e2e:register": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/auth/register.yaml",
+    "test:e2e:profile": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/profile/editProfile.yaml"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

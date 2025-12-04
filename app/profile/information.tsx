@@ -149,7 +149,7 @@ export default function ProfileInformationScreen() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 + insets.bottom }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <ScreenHeader title="Rediger Profil" />
         <View className="mb-8 items-center">
-          <Pressable onPress={pickImage}>
+          <Pressable onPress={pickImage} testID="pickImage">
             <Avatar uri={imageUri} size={192} className="bg-surface" placeholderIcon="person" />
           </Pressable>
         </View>
@@ -160,6 +160,7 @@ export default function ProfileInformationScreen() {
             placeholderTextColor="#9CA3AF"
             value={firstName}
             onChangeText={setFirstName}
+            testID="firstName"
             className="w-full bg-surface text-text rounded-lg px-4 py-3 mb-4 border border-text-disabled"
           />
           <TextInput
@@ -167,6 +168,7 @@ export default function ProfileInformationScreen() {
             placeholderTextColor="#9CA3AF"
             value={lastName}
             onChangeText={setLastName}
+            testID="lastName"
             className="w-full bg-surface text-text rounded-lg px-4 py-3 border border-text-disabled"
           />
         </View>
@@ -177,6 +179,7 @@ export default function ProfileInformationScreen() {
             placeholderTextColor="#9CA3AF"
             value={bio}
             onChangeText={setBio}
+            testID="bio"
             multiline
             numberOfLines={8}
             textAlignVertical="top"

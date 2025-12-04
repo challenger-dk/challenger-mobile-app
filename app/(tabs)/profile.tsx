@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 
 const ProfileMenuItem = ({ icon, label, color, onPress, count }: any) => (
   <Pressable
@@ -51,7 +51,7 @@ export default function ProfileScreen() {
       <TopActionBar
         title="Profil"
         leftAction={
-          <Pressable onPress={() => router.push('/profile/information' as any)}>
+          <Pressable onPress={() => router.push('/profile/information' as any)} testID="editProfile">
             <Avatar uri={user.profile_picture} size={40} placeholderIcon="person" className="bg-surface" />
           </Pressable>
         }

@@ -1,0 +1,124 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  e2e-android:
+    name: Maestro E2E Tests (Android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    # Environment variables can be set as GitHub Secrets in repository settings
+    # Go to Settings > Secrets and variables > Actions to configure:
+    # - EXPO_PUBLIC_API_BASE_URL (defaults to http://10.0.2.2:8000 for Android emulator)
+    # - EXPO_PUBLIC_TOMTOM_API_KEY (optional, defaults to test-key)
+    # - EXPO_PUBLIC_CHAT_API_URL (defaults to http://10.0.2.2:8002)
+    # - EXPO_PUBLIC_WS_URL (defaults to ws://10.0.2.2:8002)
+    # - EXPO_PUBLIC_GOOGLE_MAPS_API_KEY (optional, defaults to test-key)
+    env:
+      EXPO_PUBLIC_DISABLE_LOGBOX: 'true'
+      MAESTRO_APP_ID: 'com.daniellorenzen.challenger'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          export PATH="$PATH:$HOME/.maestro/bin"
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+          maestro --version
+
+      - name: Create Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: Nexus 6
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -netdelay none -netspeed full
+          script: |
+            # Wait for emulator to be ready
+            echo "Waiting for emulator to be ready..."
+            adb wait-for-device
+            echo "Emulator is ready!"
+            
+            # Disable animations for faster tests
+            adb shell settings put global window_animation_scale 0
+            adb shell settings put global transition_animation_scale 0
+            adb shell settings put global animator_duration_scale 0
+            
+            # Set environment variables for build (use secrets or defaults)
+            export EXPO_PUBLIC_API_BASE_URL="${{ secrets.EXPO_PUBLIC_API_BASE_URL }}"
+            export EXPO_PUBLIC_API_BASE_URL="${EXPO_PUBLIC_API_BASE_URL:-http://10.0.2.2:8000}"
+            export EXPO_PUBLIC_TOMTOM_API_KEY="${{ secrets.EXPO_PUBLIC_TOMTOM_API_KEY }}"
+            export EXPO_PUBLIC_TOMTOM_API_KEY="${EXPO_PUBLIC_TOMTOM_API_KEY:-test-key}"
+            export EXPO_PUBLIC_CHAT_API_URL="${{ secrets.EXPO_PUBLIC_CHAT_API_URL }}"
+            export EXPO_PUBLIC_CHAT_API_URL="${EXPO_PUBLIC_CHAT_API_URL:-http://10.0.2.2:8002}"
+            export EXPO_PUBLIC_WS_URL="${{ secrets.EXPO_PUBLIC_WS_URL }}"
+            export EXPO_PUBLIC_WS_URL="${EXPO_PUBLIC_WS_URL:-ws://10.0.2.2:8002}"
+            export EXPO_PUBLIC_GOOGLE_MAPS_API_KEY="${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}"
+            export EXPO_PUBLIC_GOOGLE_MAPS_API_KEY="${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:-test-key}"
+            export EXPO_PUBLIC_DISABLE_LOGBOX=true
+            export MAESTRO_APP_ID=com.daniellorenzen.challenger
+            
+            # Build and install the app
+            echo "Building and installing app..."
+            npm run android -- --no-build-cache
+            
+            # Wait for app to be installed and ready
+            echo "Waiting for app to be ready..."
+            sleep 15
+            
+            # Verify app is installed
+            adb shell pm list packages | grep com.daniellorenzen.challenger || exit 1
+            
+            # Run Maestro tests
+            echo "Running Maestro E2E tests..."
+            npm run test:e2e:full || {
+              echo "Tests failed, checking logs..."
+              adb logcat -d | tail -100
+              exit 1
+            }
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-test-results
+          path: |
+            .maestro/**/*.png
+            .maestro/**/*.mp4
+          retention-days: 7
+
+      - name: Upload app logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-logs
+          path: |
+            android/app/build/outputs/**/*.apk
+          retention-days: 3
+
