@@ -60,17 +60,27 @@ jobs:
           EXPO_PUBLIC_WS_URL: ${{ secrets.EXPO_PUBLIC_WS_URL }}
           EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}
         run: |
-          # Build debug APK for testing
-          npm run android -- --no-build-cache
+          # Prebuild native Android project (generates android/ directory)
+          echo "Running Expo prebuild..."
+          npx expo prebuild --platform android --clean
+          
+          # Build debug APK using Gradle (no device/emulator required)
+          echo "Building APK with Gradle..."
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+          cd ..
           
           # Find the generated APK
-          APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
+          APK_PATH=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -1)
           if [ -z "$APK_PATH" ]; then
-            echo "Error: APK not found"
+            echo "Error: APK not found. Checking build outputs..."
+            find android/app/build/outputs -type f -name "*.apk" || true
             exit 1
           fi
           echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
           echo "Built APK: $APK_PATH"
+          ls -lh "$APK_PATH"
 
       - name: Run Maestro Cloud Tests
         env:
