@@ -3,6 +3,15 @@ module.exports = function (api) {
   return {
     presets: [['babel-preset-expo', { jsxImportSource: 'nativewind' }]],
     plugins: [
+      [
+        'module-resolver',
+        {
+          root: ['./'],
+          alias: {
+            '@': './',
+          },
+        },
+      ],
       // react-native-reanimated plugin must be listed last
       'react-native-reanimated/plugin',
     ],
