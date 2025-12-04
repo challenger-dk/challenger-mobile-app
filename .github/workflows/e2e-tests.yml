@@ -35,6 +35,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Verify Java installation
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          if [ ! -d "$JAVA_HOME" ]; then
+            echo "Warning: JAVA_HOME directory doesn't exist, finding Java installation..."
+            JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+            echo "Setting JAVA_HOME to: $JAVA_HOME"
+            echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          fi
+          echo "Final JAVA_HOME: $JAVA_HOME"
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
@@ -43,12 +55,13 @@ jobs:
           echo "Checking disk space before cleanup..."
           df -h
           
-          # Remove unnecessary packages and files
+          # Remove unnecessary packages and files (but NOT Java)
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android/sdk/emulator
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          # Don't remove Java - keep it for Maestro
+          # sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           
           # Clean npm cache
           npm cache clean --force
@@ -61,9 +74,25 @@ jobs:
 
       - name: Install Maestro CLI
         run: |
+          # Ensure JAVA_HOME is set correctly before installing Maestro
+          if [ -z "$JAVA_HOME" ] || [ ! -d "$JAVA_HOME" ]; then
+            echo "JAVA_HOME not set or invalid, finding Java..."
+            JAVA_PATH=$(which java)
+            if [ -n "$JAVA_PATH" ]; then
+              JAVA_HOME=$(dirname $(dirname $(readlink -f "$JAVA_PATH")))
+              echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+              export JAVA_HOME
+            fi
+          fi
+          
+          echo "JAVA_HOME before Maestro install: $JAVA_HOME"
+          java -version
+          
           curl -Ls "https://get.maestro.mobile.dev" | bash
           export PATH="$PATH:$HOME/.maestro/bin"
           echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+          
+          # Verify Maestro installation
           maestro --version
 
       - name: Build Android APK
@@ -129,6 +158,15 @@ jobs:
           profile: Nexus 6
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -netdelay none -netspeed full
           script: |
+            # Ensure JAVA_HOME is set (emulator runner might need it)
+            if [ -z "$JAVA_HOME" ] || [ ! -d "$JAVA_HOME" ]; then
+              JAVA_PATH=$(which java)
+              if [ -n "$JAVA_PATH" ]; then
+                JAVA_HOME=$(dirname $(dirname $(readlink -f "$JAVA_PATH")))
+                export JAVA_HOME
+              fi
+            fi
+            
             # Wait for emulator to be ready
             echo "Waiting for emulator to be ready..."
             adb wait-for-device
