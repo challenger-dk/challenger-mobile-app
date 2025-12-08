@@ -73,6 +73,7 @@ export default function HubScreen() {
               challenge={item}
               onParticipate={handleParticipate}
               onPress={handleChallengePress}
+              type={item.is_completed ? 'closed' : 'open'}
             />
           </View>
         )}

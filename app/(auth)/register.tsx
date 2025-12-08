@@ -30,7 +30,7 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [age, setAge] = useState<number | null>(null);
+  const [age, setAge] = useState<number>(0);
 
   const toggleSport = (sport: string) => {
     setFavoriteSports(prev =>
@@ -162,11 +162,11 @@ export default function RegisterScreen() {
             <TextInput
               placeholder="Alder"
               placeholderTextColor="#9CA3AF"
-              value={age !== null ? age.toString() : ''}
+              value={age.toString()}
               keyboardType="numeric"
               onChangeText={(text) => {
                 const parsed = parseInt(text, 10);
-                setAge(isNaN(parsed) ? null : parsed);
+                setAge(parsed);
               }}
               className="w-full max-w-sm bg-surface text-text rounded-lg px-4 py-3 mb-4"
             />
@@ -181,9 +181,9 @@ export default function RegisterScreen() {
               placeholder="Skriv din bio her..."
               placeholderTextColor="#9CA3AF"
               value={bio}
-              onChangeText={setBio}
+              onChangeText={(text) => setBio(text.trim())}
               multiline
-              numberOfLines={8}
+              numberOfLines={4}
               textAlignVertical="top"
               className="w-full max-w-sm bg-surface text-text rounded-lg px-4 py-3 mb-4 min-h-[160px]"
             />

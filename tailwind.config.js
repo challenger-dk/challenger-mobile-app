@@ -15,6 +15,7 @@ module.exports = {
         success: '#016937',
         danger: '#943d40',
         warning: '#fbb03c',
+        softBlue: '#2F6487',
         text: {
           DEFAULT: '#ffffff',
           muted: '#9CA3AF',

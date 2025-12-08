@@ -159,3 +159,72 @@ export const tomTomResultToLocation = (result: TomTomSearchResult): Location => 
   };
 };
 
+/**
+ * Reverse geocode coordinates to get address information
+ * 
+ * @param latitude - Latitude coordinate
+ * @param longitude - Longitude coordinate
+ * @returns Promise with Location object
+ */
+export const reverseGeocode = async (
+  latitude: number,
+  longitude: number
+): Promise<Location> => {
+  const apiKey = getTomTomApiKey();
+  const baseUrl = 'https://api.tomtom.com/search/2/reverseGeocode';
+  
+  const params = new URLSearchParams({
+    key: apiKey,
+    lat: String(latitude),
+    lon: String(longitude),
+  });
+
+  const url = `${baseUrl}/${latitude},${longitude}.json?${params.toString()}`;
+
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`TomTom reverse geocode error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // TomTom reverse geocode returns addresses array
+    if (data.addresses && data.addresses.length > 0) {
+      const address = data.addresses[0].address;
+      return {
+        address: address.freeformAddress || 
+                `${address.streetName || ''} ${address.streetNumber || ''}, ${address.municipality || ''}`.trim() ||
+                `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+        latitude,
+        longitude,
+        postal_code: address.postalCode || '',
+        city: address.municipality || '',
+        country: address.country || address.countryCode || '',
+      };
+    }
+    
+    // Fallback if no address found
+    return {
+      address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+      latitude,
+      longitude,
+      postal_code: '',
+      city: '',
+      country: '',
+    };
+  } catch (error) {
+    console.error('Error reverse geocoding with TomTom:', error);
+    // Return coordinates as fallback
+    return {
+      address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+      latitude,
+      longitude,
+      postal_code: '',
+      city: '',
+      country: '',
+    };
+  }
+};
+
