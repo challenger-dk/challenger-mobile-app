@@ -1,7 +1,7 @@
+import { useUnreadNotifications } from '@/hooks/queries';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
-import { useUnreadNotifications } from '@/hooks/queries';
 
 interface TopActionBarProps {
   title?: string;
@@ -16,16 +16,16 @@ interface TopActionBarProps {
 }
 
 export const TopActionBar = ({
-                               title,
-                               leftAction,
-                               showNotifications = true,
-                               showCalendar = true,
-                               showSettings = true,
-                               onNotificationsPress,
-                               onCalendarPress,
-                               onSettingsPress,
-                               settingsRoute,
-                             }: TopActionBarProps) => {
+  title,
+  leftAction,
+  showNotifications = true,
+  showCalendar = true,
+  showSettings = true,
+  onNotificationsPress,
+  onCalendarPress,
+  onSettingsPress,
+  settingsRoute,
+}: TopActionBarProps) => {
   const router = useRouter();
 
   // Fetch unread count
@@ -49,7 +49,7 @@ export const TopActionBar = ({
   };
 
   return (
-    <View className="flex-row items-center px-6 py-3">
+    <View className="flex-row items-center px-6 py-3" style={{ zIndex: 100 }}>
       {leftAction ? (
         <View className="flex-1 items-start">{leftAction}</View>
       ) : (

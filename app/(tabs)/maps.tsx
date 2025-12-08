@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Dimensions, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import MapView, { Region } from 'react-native-maps';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { MiniChallengeCard } from '../../components/challenges/MiniChallengeCard';
 import { ErrorScreen, LoadingScreen, TabNavigation, TopActionBar } from '../../components/common';
 import { ChallengeClusterMarker, ChallengeMarker, FacilityClusterMarker, FacilityMarker } from '../../components/maps';
 import { useChallenges } from '../../hooks/queries';
@@ -39,7 +40,7 @@ export default function MapsScreen() {
   const scale = useSharedValue(0.95);
   
   // Get user's current location
-  const { location: userLocation, loading: locationLoading, permissionGranted, requestPermission, refreshLocation } = useLocation({
+  const { location: userLocation, permissionGranted, requestPermission, refreshLocation } = useLocation({
     autoRequest: true,
     watchPosition: false, // Don't continuously watch, just get initial location
   });
@@ -123,8 +124,54 @@ export default function MapsScreen() {
     return clusterFacilities(facilities, mapRegion);
   }, [facilities, mapRegion]);
 
+  const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [cardPosition, setCardPosition] = useState<{ x: number; y: number } | null>(null);
+  const markerPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleMarkerPress = (challengeId: number) => {
+    // Clear any pending map press timeout
+    if (markerPressTimeoutRef.current) {
+      clearTimeout(markerPressTimeoutRef.current);
+      markerPressTimeoutRef.current = null;
+    }
+
+    if (selectedChallengeId === challengeId) {
+      // Second click: navigate to challenge
+      router.push(`/hub/${challengeId}` as any);
+      setSelectedChallengeId(null);
+      setSelectedChallenge(null);
+      setCardPosition(null);
+    } else {
+      // First click: show card overlay
+      const challenge = publicChallenges.find((c: Challenge) => c.id === challengeId);
+      if (challenge && mapRef.current) {
+        // Convert marker coordinate to screen position
+        mapRef.current.pointForCoordinate({
+          latitude: challenge.location.latitude,
+          longitude: challenge.location.longitude,
+        }).then((point) => {
+          // Position card above marker (offset by marker height ~60px + some padding)
+          setCardPosition({
+            x: point.x - 140, // Center the card (card width is ~280px)
+            y: point.y - 70, // Position above marker
+          });
+        }).catch(() => {
+          // Fallback to bottom if coordinate conversion fails
+          setCardPosition(null);
+        });
+      }
+      setSelectedChallengeId(challengeId);
+      setSelectedChallenge(challenge || null);
+    }
+  };
+
+  const handleCardPress = (challengeId: number) => {
+    // Clicking on the card navigates to challenge
     router.push(`/hub/${challengeId}` as any);
+    setSelectedChallengeId(null);
+    setSelectedChallenge(null);
+    setCardPosition(null);
   };
 
   const handleFacilityPress = (facilityId: string) => {
@@ -156,13 +203,45 @@ export default function MapsScreen() {
     mapRef.current?.animateToRegion(newRegion, 500);
   };
 
+  const updateCardPosition = useCallback(() => {
+    // Update card position if a challenge is selected
+    if (selectedChallenge && mapRef.current) {
+      mapRef.current.pointForCoordinate({
+        latitude: selectedChallenge.location.latitude,
+        longitude: selectedChallenge.location.longitude,
+      }).then((point) => {
+        setCardPosition({
+          x: point.x - 140,
+          y: point.y - 70, // Match the offset used in handleMarkerPress
+        });
+      }).catch(() => {
+        // Keep existing position if conversion fails
+      });
+    }
+  }, [selectedChallenge]);
+
+  const handleRegionChange = (region: Region) => {
+    // Update card position continuously during map interaction for smooth movement
+    updateCardPosition();
+  };
+
   const handleRegionChangeComplete = (region: Region) => {
     setMapRegion(region);
+    // Final update when interaction completes
+    updateCardPosition();
   };
 
   const handleMapPress = () => {
     // Blur the search input when map is tapped
     searchInputRef.current?.blur();
+    
+    // Delay clearing selection to allow marker press to fire first
+    markerPressTimeoutRef.current = setTimeout(() => {
+      setSelectedChallengeId(null);
+      setSelectedChallenge(null);
+      setCardPosition(null);
+      markerPressTimeoutRef.current = null;
+    }, 100);
   };
 
   const handleSearchFocus = () => {
@@ -235,14 +314,15 @@ export default function MapsScreen() {
         region={mapRegion}
         showsUserLocation={permissionGranted}
         showsMyLocationButton={false}
-        showsCompass={true}
-        showsScale={true}
+        showsCompass={false}
+        showsScale={false}
         mapType="standard"
         zoomEnabled={true}
         scrollEnabled={true}
         pitchEnabled={true}
-        rotateEnabled={true}
+        rotateEnabled={false}
         onPress={handleMapPress}
+        onRegionChange={handleRegionChange}
         onRegionChangeComplete={handleRegionChangeComplete}
       >
         {/* Render markers based on selected view */}
@@ -262,6 +342,7 @@ export default function MapsScreen() {
                 key={challenge.id}
                 challenge={challenge}
                 onPress={handleMarkerPress}
+                selectedChallengeId={selectedChallengeId}
               />
             ))}
           </>
@@ -321,11 +402,30 @@ export default function MapsScreen() {
         style={styles.locationButton}
       >
         <Ionicons 
-          name={locationLoading ? "hourglass" : permissionGranted ? "locate" : "location-outline"} 
+          name={permissionGranted ? "locate" : "location-outline"} 
           size={24} 
           color={permissionGranted ? "#3B82F6" : "#9CA3AF"} 
         />
       </Pressable>
+
+      {/* Mini Challenge Card Overlay - shown when marker is selected */}
+      {selectedChallenge && cardPosition && cardPosition.y > 80 && (
+        <View 
+          className="absolute"
+          style={{
+            left: Math.max(10, Math.min(cardPosition.x, Dimensions.get('window').width - 250)),
+            top: cardPosition.y,
+            zIndex: 1, // Lower than TopActionBar (100) and searchBar (10)
+          }}
+        >
+          <MiniChallengeCard
+            challenge={selectedChallenge}
+            joinedParticipants={selectedChallenge.users?.length || 0}
+            totalParticipants={selectedChallenge.team_size * (selectedChallenge.teams?.length || 2)}
+            onPress={handleCardPress}
+          />
+        </View>
+      )}
     </View>
   );
 }
