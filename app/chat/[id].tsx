@@ -38,8 +38,7 @@ export default function ChatRoomScreen() {
     if (conversationType === 'team') {
       sendMessage({ content: inputText, team_id: conversationId });
     } else {
-      // Changed from recipient_id to chat_id for the new system
-      sendMessage({ content: inputText, chat_id: conversationId });
+      sendMessage({ content: inputText, recipient_id: conversationId });
     }
 
     setInputText('');

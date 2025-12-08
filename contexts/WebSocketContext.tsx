@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from './AuthContext';
-import { getWebSocketUrl } from '../utils/api';
+import { getWebSocketUrl } from '../utils/api'; // <-- Import the new helper
 import type { IncomingMessage, Message, ConversationType } from '../types/message';
 import { getMessagesHistory } from '../api/messages';
 
@@ -24,6 +24,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
   const ws = useRef<WebSocket | null>(null);
 
+  // Function to establish WebSocket connection
   const connect = useCallback(async () => {
     if (!isAuthenticated) return;
     if (ws.current?.readyState === WebSocket.OPEN) return;
@@ -34,7 +35,9 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       const token = await SecureStore.getItemAsync('token');
       if (!token) return;
 
+      // Get the correct URL from our utility (handles .env and Android localhost)
       const wsBaseUrl = getWebSocketUrl();
+
       const url = `${wsBaseUrl}/ws?token=${token}`;
       console.log('Connecting to WebSocket:', url);
 
@@ -49,11 +52,11 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         try {
           const newMessage: Message = JSON.parse(event.data);
 
+          // Only add message to list if it belongs to the current active conversation
           setMessages((prevMessages) => {
-            // Check if message belongs to current view
             const isRelevant =
               (currentConversation.type === 'team' && newMessage.team_id == currentConversation.id) ||
-              (currentConversation.type === 'chat' && newMessage.chat_id == currentConversation.id);
+              (currentConversation.type === 'user' && (newMessage.recipient_id == currentConversation.id || newMessage.sender_id == currentConversation.id));
 
             if (isRelevant) {
               if (prevMessages.some(m => m.id === newMessage.id)) return prevMessages;
@@ -84,6 +87,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, currentConversation]);
 
+  // Connect on mount/auth change
   useEffect(() => {
     if (isAuthenticated) {
       connect();
