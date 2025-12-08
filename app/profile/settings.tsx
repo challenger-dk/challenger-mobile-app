@@ -1,7 +1,8 @@
 import { ScreenHeader } from '@/components/common';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import {Alert, Pressable, ScrollView, Text, View} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {useAuth} from "@/contexts/AuthContext";
 
 interface SettingItemProps {
   label: string;
@@ -25,6 +26,22 @@ const SettingItem = ({ label, value, onPress }: SettingItemProps) => (
 
 export default function SettingsScreen() {
   const router = useRouter();
+
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert("Log ud", "Er du sikker på, at du vil logge ud?", [
+      { text: "Annuller", style: "cancel" },
+      {
+        text: "Log ud",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+          router.replace("/(auth)/login" as any);
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
@@ -79,7 +96,18 @@ export default function SettingsScreen() {
             onPress={() => router.push('/privacy-policy' as any)}
           />
         </ScrollView>
+
+        {/* Logout */}
+          <Pressable
+            onPress={handleLogout}
+            className="bg-danger rounded-lg p-4 items-center justify-center"
+          >
+            <Text className="text-text text-base font-medium">
+              Log ud
+            </Text>
+          </Pressable>
       </View>
+
     </SafeAreaView>
   );
 }
