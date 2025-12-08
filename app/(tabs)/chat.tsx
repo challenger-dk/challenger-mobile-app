@@ -24,11 +24,11 @@ export default function ChatListScreen() {
     let name = '';
     let image = null;
 
-    const unreadCount = !isTeam && item.unread_count ? item.unread_count : 0;
-
     if (isTeam) {
       name = item.name;
     } else {
+      // For chats, if it has a name (group chat), use it.
+      // Otherwise, list participant names (excluding self).
       if (item.name) {
         name = item.name;
       } else {
@@ -62,15 +62,6 @@ export default function ChatListScreen() {
             {isTeam ? 'Team Chat' : 'Conversation'}
           </Text>
         </View>
-
-        {unreadCount > 0 && (
-          <View className="bg-red-500 rounded-full min-w-[20px] h-5 px-1.5 justify-center items-center mr-2">
-            <Text className="text-white text-xs font-bold">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </Text>
-          </View>
-        )}
-
         <Ionicons name="chevron-forward" size={20} color="#575757" />
       </Pressable>
     );

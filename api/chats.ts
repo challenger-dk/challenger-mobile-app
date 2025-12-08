@@ -31,13 +31,3 @@ export const addUserToChat = async (chatId: number, userId: number) => {
     throw new Error('Failed to add user');
   }
 };
-
-export const markChatRead = async (chatId: number): Promise<void> => {
-  const response = await authenticatedFetch(getApiUrl(`/chats/${chatId}/read`), {
-    method: 'PUT',
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to mark chat as read');
-  }
-};
