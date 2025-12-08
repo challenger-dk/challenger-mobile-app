@@ -1,4 +1,4 @@
-name: E2E Tests
+name: Android & iOS E2E (Github Actions MacOS)
 
 on:
   push:
@@ -6,22 +6,27 @@ on:
   pull_request:
     branches: [main, develop]
 
-jobs:
-  e2e-android:
-    name: Maestro E2E Tests (Android)
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+env:
+  MAESTRO_VERSION: 1.30.4
 
-    # Optional GitHub Secrets for app build (Settings > Secrets and variables > Actions):
-    # - EXPO_PUBLIC_API_BASE_URL (defaults to http://10.0.2.2:8000 for Android emulator)
-    # - EXPO_PUBLIC_TOMTOM_API_KEY (optional)
-    # - EXPO_PUBLIC_CHAT_API_URL (defaults to http://10.0.2.2:8002)
-    # - EXPO_PUBLIC_WS_URL (defaults to ws://10.0.2.2:8002)
-    # - EXPO_PUBLIC_GOOGLE_MAPS_API_KEY (optional)
+jobs:
+  run_android_e2e:
+    timeout-minutes: 30
+    runs-on: macos-12
+
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        arch: [x86_64]
+        # Note: macOS runners don't support arm64-v8a for Android emulators
+        api-level: [30, 31, 32, 33, 34]
+        # API levels 21-29 are minimum supported but may have compatibility issues
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,70 +35,16 @@ jobs:
           cache: 'npm'
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Verify Java installation
-        run: |
-          echo "JAVA_HOME: $JAVA_HOME"
-          java -version
-          if [ ! -d "$JAVA_HOME" ]; then
-            echo "Warning: JAVA_HOME directory doesn't exist, finding Java installation..."
-            JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
-            echo "Setting JAVA_HOME to: $JAVA_HOME"
-            echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-          fi
-          echo "Final JAVA_HOME: $JAVA_HOME"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Free up disk space
-        run: |
-          echo "Checking disk space before cleanup..."
-          df -h
-          
-          # Remove unnecessary packages and files (but NOT Java)
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android/sdk/emulator
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          # Don't remove Java - keep it for Maestro
-          # sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          
-          # Clean npm cache
-          npm cache clean --force
-          
-          echo "Disk space after cleanup:"
-          df -h
+          distribution: temurin
+          java-version: 11
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Maestro CLI
-        run: |
-          # Ensure JAVA_HOME is set correctly before installing Maestro
-          if [ -z "$JAVA_HOME" ] || [ ! -d "$JAVA_HOME" ]; then
-            echo "JAVA_HOME not set or invalid, finding Java..."
-            JAVA_PATH=$(which java)
-            if [ -n "$JAVA_PATH" ]; then
-              JAVA_HOME=$(dirname $(dirname $(readlink -f "$JAVA_PATH")))
-              echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-              export JAVA_HOME
-            fi
-          fi
-          
-          echo "JAVA_HOME before Maestro install: $JAVA_HOME"
-          java -version
-          
-          curl -Ls "https://get.maestro.mobile.dev" | bash
-          export PATH="$PATH:$HOME/.maestro/bin"
-          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
-          
-          # Verify Maestro installation
-          maestro --version
+      - name: Install Maestro
+        run: curl -Ls 'https://get.maestro.mobile.dev' | bash
 
       - name: Build Android APK
         env:
@@ -103,133 +54,123 @@ jobs:
           EXPO_PUBLIC_WS_URL: ${{ secrets.EXPO_PUBLIC_WS_URL }}
           EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}
         run: |
-          # Prebuild native Android project (generates android/ directory)
-          echo "Running Expo prebuild..."
           npx expo prebuild --platform android --clean
-          
-          # Build debug APK using Gradle (no device/emulator required)
-          echo "Building APK with Gradle..."
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --no-build-cache
+          ./gradlew assembleDebug --no-daemon
           cd ..
-          
-          # Clean up build artifacts to save space (keep only the APK)
-          echo "Cleaning up build artifacts..."
-          find android -type f -name "*.class" -delete || true
-          find android -type f -name "*.dex" ! -path "*/build/outputs/*" -delete || true
-          rm -rf android/app/build/intermediates || true
-          rm -rf android/app/build/tmp || true
-          
-          # Find the generated APK
-          APK_PATH=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -1)
-          if [ -z "$APK_PATH" ]; then
-            echo "Error: APK not found. Checking build outputs..."
-            find android/app/build/outputs -type f -name "*.apk" || true
-            exit 1
-          fi
-          echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
-          echo "Built APK: $APK_PATH"
-          ls -lh "$APK_PATH"
-          
-          echo "Disk space after build:"
-          df -h
+          # Copy APK to root for easier access
+          cp android/app/build/outputs/apk/debug/*.apk app-release.apk
 
-      - name: Clean up before emulator
-        run: |
-          echo "Cleaning up before emulator setup..."
-          # Remove node_modules to free space (we'll reinstall if needed, but Maestro doesn't need it)
-          # Actually, keep node_modules since npm scripts might need it
-          # Clean up other caches
-          rm -rf ~/.npm/_cacache || true
-          rm -rf ~/.cache || true
-          
-          # Clean up Android build cache (keep only the APK)
-          find android -type d -name ".gradle" -exec rm -rf {} + || true
-          
-          echo "Disk space before emulator:"
-          df -h
-
-      - name: Run Maestro Tests on Emulator
+      - name: Run Maestro E2E tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
-          arch: x86_64
-          profile: Nexus 6
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -netdelay none -netspeed full
+          api-level: ${{ matrix.api-level }}
+          arch: ${{ matrix.arch }}
+          cores: 2
+          ram-size: 2048M
+          force-avd-creation: false
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
           script: |
-            # Ensure JAVA_HOME is set (emulator runner might need it)
-            if [ -z "$JAVA_HOME" ] || [ ! -d "$JAVA_HOME" ]; then
-              JAVA_PATH=$(which java)
-              if [ -n "$JAVA_PATH" ]; then
-                JAVA_HOME=$(dirname $(dirname $(readlink -f "$JAVA_PATH")))
-                export JAVA_HOME
-              fi
-            fi
-            
-            # Wait for emulator to be ready
-            echo "Waiting for emulator to be ready..."
-            adb wait-for-device
-            echo "Emulator is ready!"
-            
-            # Disable animations for faster tests
-            adb shell settings put global window_animation_scale 0
-            adb shell settings put global transition_animation_scale 0
-            adb shell settings put global animator_duration_scale 0
-            
-            # Find the APK (in case env var didn't persist)
-            APK_PATH=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -1)
-            if [ -z "$APK_PATH" ]; then
-              echo "Error: APK not found"
-              find android/app/build/outputs -type f -name "*.apk" || true
-              exit 1
-            fi
-            echo "Installing APK: $APK_PATH"
-            
-            # Install the APK
-            adb install -r "$APK_PATH" || {
-              echo "Failed to install APK"
-              adb logcat -d | tail -50
-              exit 1
-            }
-            
-            # Wait for app to be ready
-            echo "Waiting for app to be ready..."
-            sleep 10
-            
-            # Verify app is installed
-            adb shell pm list packages | grep com.daniellorenzen.challenger || {
-              echo "App not found after installation"
-              exit 1
-            }
-            
-            # Set environment variables for Maestro
+            npx envinfo
+            adb devices
+            adb install app-release.apk
             export EXPO_PUBLIC_DISABLE_LOGBOX=true
             export MAESTRO_APP_ID=com.daniellorenzen.challenger
-            
-            # Run Maestro tests
-            echo "Running Maestro E2E tests..."
-            npm run test:e2e:full || {
-              echo "Tests failed, checking logs..."
-              adb logcat -d | tail -100
-              exit 1
-            }
+            npm run test:e2e:full
 
-      - name: Upload test results
+      - name: Upload report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: maestro-test-results
+          name: E2E Report (Android ${{ matrix.api-level }})
           path: |
-            .maestro/**/*.png
-            .maestro/**/*.mp4
-          retention-days: 7
+            *.mp4
+            *.png
+            report*.xml
+            ~/.maestro/tests/**/*
 
-      - name: Upload APK artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
+  run_ios_e2e:
+    runs-on: macos-12
+    env:
+      XC_SIMULATOR_NAME: iPhone 14
+
+    steps:
+      - uses: actions/checkout@v3
         with:
-          name: android-apk
-          path: android/app/build/outputs/apk/debug/*.apk
-          retention-days: 7
+          fetch-depth: 1
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Run iOS Simulator
+        run: |
+          echo "All valid available device types"
+          xcrun simctl list devicetypes
+          echo "All valid and available runtimes"
+          xcrun simctl list runtimes
+          echo "Run simulator"
+          xcrun simctl boot "${{ env.XC_SIMULATOR_NAME }}"
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - name: Install Maestro
+        run: |
+          brew tap facebook/fb
+          brew install facebook/fb/idb-companion
+          curl -Ls 'https://get.maestro.mobile.dev' | bash
+
+      - name: Build iOS app
+        env:
+          EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
+          EXPO_PUBLIC_TOMTOM_API_KEY: ${{ secrets.EXPO_PUBLIC_TOMTOM_API_KEY }}
+          EXPO_PUBLIC_CHAT_API_URL: ${{ secrets.EXPO_PUBLIC_CHAT_API_URL }}
+          EXPO_PUBLIC_WS_URL: ${{ secrets.EXPO_PUBLIC_WS_URL }}
+          EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}
+        run: |
+          npx expo prebuild --platform ios --clean
+          cd ios
+          xcodebuild -workspace challengermobile.xcworkspace \
+            -scheme challengermobile \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build \
+            -destination 'platform=iOS Simulator,name=iPhone 14' \
+            build
+          cd ..
+
+      - name: Install .app
+        run: |
+          APP_PATH=$(find ios/build/Build/Products/Debug-iphonesimulator -name "*.app" | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app not found"
+            find ios/build -name "*.app" || true
+            exit 1
+          fi
+          xcrun simctl install booted "$APP_PATH"
+
+      - name: Run Maestro E2E tests
+        run: |
+          export EXPO_PUBLIC_DISABLE_LOGBOX=true
+          export MAESTRO_APP_ID=com.daniellorenzen.challenger
+          npm run test:e2e:full
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: E2E Report (iPhone 14)
+          path: |
+            *.mp4
+            *.png
+            report*.xml
+            ~/.maestro/tests/**/*
