@@ -53,9 +53,15 @@ export const useCreateChallenge = () => {
  * Mutation hook to join a challenge
  */
 export const useJoinChallenge = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: joinChallenge,
     onSuccess: () => {
+      // Invalidate challenges list to refresh the UI
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.challenges.lists(),
+      });
       showSuccessToast('Du har deltaget i udfordringen');
     },
     onError: (error: Error) => {
@@ -68,9 +74,15 @@ export const useJoinChallenge = () => {
  * Mutation hook to leave a challenge
  */
 export const useLeaveChallenge = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: leaveChallenge,
     onSuccess: () => {
+      // Invalidate challenges list to refresh the UI
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.challenges.lists(),
+      });
       showSuccessToast('Du har forladt udfordringen');
     },
     onError: (error: Error) => {

@@ -6,13 +6,14 @@ import { Dimensions, Platform, Pressable, StyleSheet, Text, TextInput, View } fr
 import MapView, { Region } from 'react-native-maps';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { MiniChallengeCard } from '../../components/challenges/MiniChallengeCard';
-import { ErrorScreen, LoadingScreen, TabNavigation, TopActionBar } from '../../components/common';
-import { ChallengeClusterMarker, ChallengeMarker, FacilityClusterMarker, FacilityMarker } from '../../components/maps';
+import { ErrorScreen, LoadingScreen, ScreenContainer, TabNavigation, TopActionBar } from '../../components/common';
+import { ChallengeClusterMarker, ChallengeMarker, FacilityClusterMarker, FacilityInfoModal, FacilityMarker } from '../../components/maps';
 import { useChallenges } from '../../hooks/queries';
 import { useFacilities } from '../../hooks/useFacilities';
 import { useLocation } from '../../hooks/useLocation';
 import type { Challenge } from '../../types/challenge';
 import type { Facility } from '../../types/facility';
+import { groupDuplicateFacilities, isGroupedFacility, type GroupedFacility } from '../../utils/facilityGrouping';
 import type { Cluster, FacilityCluster } from '../../utils/markerClustering';
 import { clusterChallenges, clusterFacilities } from '../../utils/markerClustering';
 
@@ -119,14 +120,37 @@ export default function MapsScreen() {
     return clusterChallenges(publicChallenges, mapRegion);
   }, [publicChallenges, mapRegion]);
 
-  // Cluster facilities based on zoom level
+  // Group duplicate facilities first, then cluster
+  const groupedFacilities = useMemo(() => {
+    return groupDuplicateFacilities(facilities);
+  }, [facilities]);
+
+  // Separate grouped and individual facilities
+  const { individualFacilities: individualFacs, groupedFacs } = useMemo(() => {
+    const individual: Facility[] = [];
+    const grouped: GroupedFacility[] = [];
+    
+    groupedFacilities.forEach((f) => {
+      if (isGroupedFacility(f)) {
+        grouped.push(f);
+      } else {
+        individual.push(f);
+      }
+    });
+    
+    return { individualFacilities: individual, groupedFacs: grouped };
+  }, [groupedFacilities]);
+
+  // Cluster only individual facilities (grouped facilities are always shown individually)
   const { clusters: facilityClusters, individualFacilities } = useMemo(() => {
-    return clusterFacilities(facilities, mapRegion);
-  }, [facilities, mapRegion]);
+    const clusteringResult = clusterFacilities(individualFacs, mapRegion);
+    return clusteringResult;
+  }, [individualFacs, mapRegion]);
 
   const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [cardPosition, setCardPosition] = useState<{ x: number; y: number } | null>(null);
+  const [selectedGroupedFacility, setSelectedGroupedFacility] = useState<GroupedFacility | null>(null);
   const markerPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMarkerPress = (challengeId: number) => {
@@ -174,9 +198,14 @@ export default function MapsScreen() {
     setCardPosition(null);
   };
 
-  const handleFacilityPress = (facilityId: string) => {
-    // Could navigate to facility details or show info
-    console.log('Facility pressed:', facilityId);
+  const handleFacilityPress = (facility: Facility | GroupedFacility) => {
+    // If it's a grouped facility, show the modal with all facility types
+    if (isGroupedFacility(facility)) {
+      setSelectedGroupedFacility(facility);
+    } else {
+      // For individual facilities, could show info or navigate
+      console.log('Facility pressed:', facility.id);
+    }
   };
 
   const mapRef = useRef<MapView>(null);
@@ -287,7 +316,7 @@ export default function MapsScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#171616]">
+    <ScreenContainer className='pt-5'>
       {/* Top Action Bar */}
       <TopActionBar title="Kort" showNotifications={false} showCalendar={false} showSettings={false} />
 
@@ -364,6 +393,14 @@ export default function MapsScreen() {
                 onPress={handleFacilityPress}
               />
             ))}
+            {/* Render grouped facilities (always shown individually) */}
+            {groupedFacs.map((groupedFacility: GroupedFacility) => (
+              <FacilityMarker
+                key={groupedFacility.id}
+                facility={groupedFacility}
+                onPress={handleFacilityPress}
+              />
+            ))}
           </>
         )}
       </MapView>
@@ -426,7 +463,16 @@ export default function MapsScreen() {
           />
         </View>
       )}
-    </View>
+
+      {/* Facility Info Modal - shown when grouped facility is clicked */}
+      {selectedGroupedFacility && (
+        <FacilityInfoModal
+          visible={!!selectedGroupedFacility}
+          onClose={() => setSelectedGroupedFacility(null)}
+          groupedFacility={selectedGroupedFacility}
+        />
+      )}
+    </ScreenContainer>
   );
 }
 

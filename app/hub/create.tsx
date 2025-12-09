@@ -16,6 +16,17 @@ import { showErrorToast } from '../../utils/toast';
 
 const AVAILABLE_SPORTS = Object.keys(SPORTS_TRANSLATION_EN_TO_DK);
 
+// Helper function to round time to the nearest 15 minutes
+const roundToNearest15Minutes = (date: Date): Date => {
+  const roundedDate = new Date(date);
+  const minutes = roundedDate.getMinutes();
+  const roundedMinutes = Math.round(minutes / 15) * 15;
+  roundedDate.setMinutes(roundedMinutes);
+  roundedDate.setSeconds(0);
+  roundedDate.setMilliseconds(0);
+  return roundedDate;
+};
+
 export default function CreateChallengeScreen() {
   const router = useRouter();
   const { user, loading, error } = useCurrentUser();
@@ -27,7 +38,7 @@ export default function CreateChallengeScreen() {
   const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
   const [teamSize, setTeamSize] = useState<number | null>(null);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
-  const [participantModalTab, setParticipantModalTab] = useState<'teams' | 'friends'>('teams');
+  const [participantModalTab, setParticipantModalTab] = useState<'friends' | 'teams'>('friends');
   const [showTeamSizePicker, setShowTeamSizePicker] = useState(false);
   const [sport, setSport] = useState<string>('');
   const [location, setLocation] = useState<Location | null>(null);
@@ -182,7 +193,7 @@ export default function CreateChallengeScreen() {
             {/* Left Person Icon - Add Teams */}
             <Pressable
               onPress={() => {
-                setParticipantModalTab('teams');
+                setParticipantModalTab('friends');
                 setShowParticipantModal(true);
               }}
               disabled={isSubmitting}
@@ -324,11 +335,11 @@ export default function CreateChallengeScreen() {
               <View className="px-6 pt-4">
                 <TabNavigation
                   tabs={[
-                    { key: 'teams', label: 'Teams' },
                     { key: 'friends', label: 'Venner' },
+                    { key: 'teams', label: 'Teams' },
                   ]}
                   activeTab={participantModalTab}
-                  onTabChange={(key) => setParticipantModalTab(key as 'teams' | 'friends')}
+                  onTabChange={(key) => setParticipantModalTab(key as 'friends' | 'teams')}
                 />
               </View>
 
@@ -595,7 +606,8 @@ export default function CreateChallengeScreen() {
               : ''}
             placeholder="Vælg start tid"
             onPress={() => {
-              setTempStartTime(startTime || new Date());
+              const timeToSet = startTime || new Date();
+              setTempStartTime(roundToNearest15Minutes(timeToSet));
               setShowStartTimePicker(true);
             }}
             disabled={isSubmitting}
@@ -622,7 +634,7 @@ export default function CreateChallengeScreen() {
                     <Text className="text-white text-lg font-bold">Vælg start tid</Text>
                     <Pressable
                       onPress={() => {
-                        setStartTime(tempStartTime);
+                        setStartTime(roundToNearest15Minutes(tempStartTime));
                         setShowStartTimePicker(false);
                       }}
                     >
@@ -634,6 +646,7 @@ export default function CreateChallengeScreen() {
                       value={tempStartTime}
                       mode="time"
                       display="spinner"
+                      minuteInterval={15}
                       onChange={(event, selectedTime) => {
                         if (selectedTime) {
                           setTempStartTime(selectedTime);
@@ -653,10 +666,11 @@ export default function CreateChallengeScreen() {
                 value={startTime || new Date()}
                 mode="time"
                 display="default"
+                minuteInterval={15}
                 onChange={(event, selectedTime) => {
                   setShowStartTimePicker(false);
                   if (event.type === 'set' && selectedTime) {
-                    setStartTime(selectedTime);
+                    setStartTime(roundToNearest15Minutes(selectedTime));
                   }
                 }}
               />
@@ -671,7 +685,8 @@ export default function CreateChallengeScreen() {
               : ''}
             placeholder="Vælg slut tid"
             onPress={() => {
-              setTempEndTime(endTime || new Date());
+              const timeToSet = endTime || new Date();
+              setTempEndTime(roundToNearest15Minutes(timeToSet));
               setShowEndTimePicker(true);
             }}
             disabled={isSubmitting}
@@ -698,7 +713,7 @@ export default function CreateChallengeScreen() {
                     <Text className="text-white text-lg font-bold">Vælg slut tid</Text>
                     <Pressable
                       onPress={() => {
-                        setEndTime(tempEndTime);
+                        setEndTime(roundToNearest15Minutes(tempEndTime));
                         setShowEndTimePicker(false);
                       }}
                     >
@@ -710,6 +725,7 @@ export default function CreateChallengeScreen() {
                       value={tempEndTime}
                       mode="time"
                       display="spinner"
+                      minuteInterval={15}
                       onChange={(event, selectedTime) => {
                         if (selectedTime) {
                           setTempEndTime(selectedTime);
@@ -729,10 +745,11 @@ export default function CreateChallengeScreen() {
                 value={endTime || new Date()}
                 mode="time"
                 display="default"
+                minuteInterval={15}
                 onChange={(event, selectedTime) => {
                   setShowEndTimePicker(false);
                   if (event.type === 'set' && selectedTime) {
-                    setEndTime(selectedTime);
+                    setEndTime(roundToNearest15Minutes(selectedTime));
                   }
                 }}
               />

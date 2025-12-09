@@ -9,12 +9,11 @@ import { TeamsView } from './TeamsView';
 
 export interface ChallengeCardProps {
   challenge: Challenge;
-  onParticipate: (challengeId: number) => void;
   onPress?: (challengeId: number) => void;
   type: 'open' | 'closed';
 }
 
-export const ChallengeCard = ({ challenge, onParticipate, onPress, type }: ChallengeCardProps) => {
+export const ChallengeCard = ({ challenge, onPress, type }: ChallengeCardProps) => {
   // Calculate joined participants (sum of all users in all teams);
   const joinedParticipants = challenge.users?.length || 0;
   
@@ -61,11 +60,11 @@ export const ChallengeCard = ({ challenge, onParticipate, onPress, type }: Chall
         </View>
       </View>
 
-      <Pressable onPress={() => onPress?.(challenge.id)} className="bg-surface rounded-xl p-3" style={{ height: 136 }}>
+      <Pressable onPress={() => onPress?.(challenge.id)} className="bg-surface rounded-xl p-3 max-w-[370px]" style={{ height: 136 }}>
         <View className="mt-2 flex-row flex-1">
           <View className="flex-1 pr-4 border-r border-black/40 self-stretch">
             {activeTab === 'open' && (
-              <OpenView {...viewProps} onParticipate={onParticipate} />
+              <OpenView {...viewProps} />
             )}
             {activeTab === 'participants' && (
               <ParticipantsView {...viewProps} />

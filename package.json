@@ -65,7 +65,8 @@
     "eslint-config-expo": "~10.0.0",
     "react-native-svg": "^15.15.1",
     "react-native-svg-transformer": "^1.5.2",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "xlsx": "^0.18.5"
   },
   "private": true
 }

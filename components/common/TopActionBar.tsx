@@ -48,18 +48,34 @@ export const TopActionBar = ({
     }
   };
 
+  // Check if there are any right actions
+  const hasRightActions = showNotifications || showCalendar || showSettings;
+  // Title should be left-aligned if there are right actions AND no left action
+  // Title should be centered if there are NO right actions OR there IS a left action
+  const shouldCenterTitle = !hasRightActions || !!leftAction;
+  // Use absolute positioning for true centering when needed
+  const useAbsoluteCentering = shouldCenterTitle;
+
   return (
-    <View className="flex-row items-center px-6 py-3" style={{ zIndex: 100 }}>
+    <View className="flex-row items-center px-6 py-3 w-full" style={{ zIndex: 100 }}>
       {leftAction ? (
         <View className="flex-1 items-start">{leftAction}</View>
-      ) : (
+      ) : shouldCenterTitle ? (
         <View className="flex-1" />
-      )}
+      ) : null}
 
-      {title && !leftAction && (
-        <View className="flex-1 items-center">
-          <Text className="text-white text-lg font-medium">{title}</Text>
-        </View>
+      {title && (
+        <>
+          {useAbsoluteCentering ? (
+            <View className="absolute left-0 right-0 items-center">
+              <Text className="text-white text-lg font-medium">{title}</Text>
+            </View>
+          ) : (
+            <View style={{ flexShrink: 0 }}>
+              <Text className="text-white text-lg font-medium">{title}</Text>
+            </View>
+          )}
+        </>
       )}
 
       <View className="flex-1 flex-row items-center justify-end gap-2">

@@ -1,16 +1,32 @@
 #!/usr/bin/env node
 
 /**
- * Script to convert facilities CSV to JSON with pre-processed coordinates
- * Run this whenever the CSV file is updated:
+ * Script to convert facilities Excel files to JSON with pre-processed coordinates
+ * Processes all Excel files in the excel-files folder
+ * Run this whenever the Excel files are updated:
  * node scripts/generate-facilities-json.js
  */
 
 const fs = require('fs');
 const path = require('path');
+const XLSX = require('xlsx');
 
-const csvPath = path.join(__dirname, '../assets/facilities/facilities-københavn.csv');
+const excelFilesDir = path.join(__dirname, '../assets/facilities/excel-files');
 const jsonPath = path.join(__dirname, '../assets/facilities/facilities.json');
+
+// Facility types to exclude
+const excludedFacilityTypes = [
+  'Fitnesscentre',
+  'Skydeanlæg',
+  'Kabelbaner',
+  'Alpine skianlæg',
+  'Orienteringsbaner',
+  'Parkouranlæg',
+  'Golfanlæg',
+  'Motorsportsanlæg',
+  'MTB-spor og cykelanlæg',
+  'Is- og skøjteanlæg'
+];
 
 // UTM to lat/lng conversion function
 function utmToLatLng(easting, northing, zone = 32) {
@@ -60,73 +76,129 @@ function utmToLatLng(easting, northing, zone = 32) {
   return { latitude, longitude };
 }
 
-// Read and parse CSV
-const csv = fs.readFileSync(csvPath, 'utf8');
-const lines = csv.split('\n').filter(l => l.trim());
-const headers = lines[0].split(';').map(h => h.trim());
-
-const facilities = [];
-
-for (let i = 1; i < lines.length; i++) {
-  const line = lines[i];
-  if (!line.trim()) continue;
+// Extract city name from filename (e.g., "facilities-københavn.xlsx" -> "København")
+function extractCityName(filename) {
+  const name = filename.replace(/^facilities-/, '').replace(/\.xlsx$/, '');
   
-  // Handle multi-line entries
-  let fullLine = line;
-  let j = i + 1;
-  while (j < lines.length && lines[j].split(';').length < headers.length) {
-    fullLine += '\n' + lines[j];
-    j++;
-  }
-  i = j - 1;
-  
-  const values = fullLine.split(';').map(v => v.trim());
-  if (values.length < headers.length) continue;
-  
-  const gisX = parseFloat(values[headers.indexOf('Gis X')] || '0');
-  const gisY = parseFloat(values[headers.indexOf('Gis Y')] || '0');
-  
-  if (!gisX || !gisY || isNaN(gisX) || isNaN(gisY)) continue;
-  
-  const { latitude, longitude } = utmToLatLng(gisX, gisY, 32);
-  
-  if (isNaN(latitude) || isNaN(longitude)) continue;
-  
-  const placement = values[headers.indexOf('Placering')] || '';
-  const indoor = placement.toLowerCase().includes('indendørs') || placement.toLowerCase().includes('indendors');
-  
-  const facility = {
-    id: `facility-${i}`,
-    name: values[headers.indexOf('Navn')] || '',
-    detailedName: values[headers.indexOf('Navn Detaljeret')] || undefined,
-    address: values[headers.indexOf('Adresse')] || '',
-    phone: values[headers.indexOf('Telefon')] || undefined,
-    email: values[headers.indexOf('Email')] || undefined,
-    website: values[headers.indexOf('Hjemmeside')] || undefined,
-    facilityType: values[headers.indexOf('Facilitetstype')] || '',
-    indoor: indoor,
-    notes: values[headers.indexOf('Eksterne bemærkninger')] || undefined,
-    location: {
-      address: values[headers.indexOf('Adresse')] || '',
-      latitude: latitude,
-      longitude: longitude,
-      postal_code: '',
-      city: 'København',
-      country: 'Denmark',
-    },
-  };
-  
-  // Remove undefined fields
-  Object.keys(facility).forEach(key => {
-    if (facility[key] === undefined) {
-      delete facility[key];
-    }
+  // Capitalize first letter of each word, preserving Danish characters
+  const words = name.split('-');
+  const capitalized = words.map(word => {
+    if (word.length === 0) return word;
+    return word.charAt(0).toUpperCase() + word.slice(1);
   });
   
-  facilities.push(facility);
+  return capitalized.join(' ');
 }
 
-// Write JSON file
-fs.writeFileSync(jsonPath, JSON.stringify(facilities, null, 2));
-console.log(`✅ Generated ${facilities.length} facilities in ${jsonPath}`);
+// Process a single Excel file
+function processExcelFile(filePath, cityName) {
+  const workbook = XLSX.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  
+  // Convert to JSON with header row
+  const data = XLSX.utils.sheet_to_json(worksheet, { 
+    header: 1,
+    defval: '',
+    raw: false
+  });
+  
+  if (data.length === 0) return [];
+  
+  const headers = data[0].map(h => String(h).trim());
+  const facilities = [];
+  let facilityIdCounter = 0;
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || row.length === 0) continue;
+    
+    // Ensure row has same length as headers, pad with empty strings
+    while (row.length < headers.length) {
+      row.push('');
+    }
+    
+    const values = row.map(v => {
+      const val = v !== null && v !== undefined ? String(v).trim() : '';
+      return val;
+    });
+    
+    const gisX = parseFloat(values[headers.indexOf('Gis X')] || '0');
+    const gisY = parseFloat(values[headers.indexOf('Gis Y')] || '0');
+    
+    if (!gisX || !gisY || isNaN(gisX) || isNaN(gisY)) continue;
+    
+    const { latitude, longitude } = utmToLatLng(gisX, gisY, 32);
+    
+    if (isNaN(latitude) || isNaN(longitude)) continue;
+    
+    const facilityType = values[headers.indexOf('Facilitetstype')] || '';
+    
+    // Skip excluded facility types
+    if (excludedFacilityTypes.includes(facilityType)) continue;
+    
+    const placement = values[headers.indexOf('Placering')] || '';
+    const indoor = placement.toLowerCase().includes('indendørs') || placement.toLowerCase().includes('indendors');
+    
+    facilityIdCounter++;
+    
+    const facility = {
+      id: `facility-${cityName.toLowerCase().replace(/\s+/g, '-')}-${facilityIdCounter}`,
+      name: values[headers.indexOf('Navn')] || '',
+      detailedName: values[headers.indexOf('Navn Detaljeret')] || undefined,
+      address: values[headers.indexOf('Adresse')] || '',
+      phone: values[headers.indexOf('Telefon')] || undefined,
+      email: values[headers.indexOf('Email')] || undefined,
+      website: values[headers.indexOf('Hjemmeside')] || undefined,
+      facilityType: facilityType,
+      indoor: indoor,
+      notes: values[headers.indexOf('Eksterne bemærkninger')] || undefined,
+      location: {
+        address: values[headers.indexOf('Adresse')] || '',
+        latitude: latitude,
+        longitude: longitude,
+        postal_code: '',
+        city: cityName,
+        country: 'Denmark',
+      },
+    };
+    
+    // Remove undefined fields
+    Object.keys(facility).forEach(key => {
+      if (facility[key] === undefined) {
+        delete facility[key];
+      }
+    });
+    
+    facilities.push(facility);
+  }
+  
+  return facilities;
+}
 
+// Main processing
+const allFacilities = [];
+
+// Get all Excel files
+const files = fs.readdirSync(excelFilesDir).filter(file => file.endsWith('.xlsx'));
+
+console.log(`📂 Found ${files.length} Excel files to process...\n`);
+
+files.forEach((file, index) => {
+  const filePath = path.join(excelFilesDir, file);
+  const cityName = extractCityName(file);
+  
+  console.log(`Processing ${index + 1}/${files.length}: ${file} (${cityName})...`);
+  
+  try {
+    const facilities = processExcelFile(filePath, cityName);
+    allFacilities.push(...facilities);
+    console.log(`  ✅ Added ${facilities.length} facilities from ${cityName}\n`);
+  } catch (error) {
+    console.error(`  ❌ Error processing ${file}:`, error.message);
+  }
+});
+
+// Write JSON file
+fs.writeFileSync(jsonPath, JSON.stringify(allFacilities, null, 2));
+console.log(`\n✅ Generated ${allFacilities.length} total facilities in ${jsonPath}`);

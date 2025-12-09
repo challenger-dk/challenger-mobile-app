@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { TabNavigation, TopActionBar } from '../../components/common';
+import { ScreenContainer, TabNavigation, TopActionBar } from '../../components/common';
 import { Clubs } from '../../components/home/Clubs';
 import { Tournaments } from '../../components/home/Tournaments';
 
@@ -8,7 +8,7 @@ export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState<'turneringer' | 'klubber'>('turneringer');
 
   return (
-    <View className="flex-1 bg-[#171616]">
+    <ScreenContainer className='pt-1'>
       {/* Header Section */}
       <TopActionBar
         title="Home"
@@ -31,6 +31,6 @@ export default function HomeScreen() {
           {activeTab === 'turneringer' ? <Tournaments /> : <Clubs />}
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }

@@ -17,8 +17,23 @@ const SPORTS_TRANSLATION_DK_TO_EN: Record<string, string> = Object.fromEntries(
   Object.entries(SPORTS_TRANSLATION_EN_TO_DK).map(([en, dk]) => [dk, en])
 );
 
-const normalizeSportName = (name: string): string =>
-  SPORTS_TRANSLATION_EN_TO_DK[name] || SPORTS_TRANSLATION_DK_TO_EN[name] || name;
+// Convert sport name to English (for API)
+const toEnglishSportName = (name: string): string =>
+  SPORTS_TRANSLATION_DK_TO_EN[name] || name;
+
+// Convert sport name to Danish (for display)
+const toDanishSportName = (name: string): string =>
+  SPORTS_TRANSLATION_EN_TO_DK[name] || name;
+
+// Normalize sport name for comparison (handles both English and Danish)
+const normalizeSportNameForComparison = (name: string): string => {
+  // If it's already an English key, return it
+  if (SPORTS_TRANSLATION_EN_TO_DK[name]) return name;
+  // If it's Danish, convert to English
+  if (SPORTS_TRANSLATION_DK_TO_EN[name]) return SPORTS_TRANSLATION_DK_TO_EN[name];
+  // Otherwise return as-is
+  return name;
+};
 
 export default function ProfileInformationScreen() {
   const router = useRouter();
@@ -42,7 +57,7 @@ export default function ProfileInformationScreen() {
       setBio(user.bio || '');
       setFavoriteSports((user.favorite_sports || []).map(sport => ({
         ...sport,
-        name: normalizeSportName(sport.name)
+        name: normalizeSportNameForComparison(sport.name)
       })));
       setHasChanges(false);
     }
@@ -54,8 +69,8 @@ export default function ProfileInformationScreen() {
       const hasFirstNameChanged = firstName !== (user.first_name || '');
       const hasLastNameChanged = lastName !== (user.last_name || '');
       const hasBioChanged = bio !== (user.bio || '');
-      const userSportNames = (user.favorite_sports || []).map(s => s.name).sort();
-      const currentSportNames = favoriteSports.map(s => s.name).sort();
+      const userSportNames = (user.favorite_sports || []).map(s => normalizeSportNameForComparison(s.name)).sort();
+      const currentSportNames = favoriteSports.map(s => normalizeSportNameForComparison(s.name)).sort();
       const hasSportsChanged = JSON.stringify(currentSportNames) !== JSON.stringify(userSportNames);
 
       setHasChanges(hasImageChanged || hasFirstNameChanged || hasLastNameChanged || hasBioChanged || hasSportsChanged);
@@ -64,12 +79,13 @@ export default function ProfileInformationScreen() {
 
   const toggleSport = (sportName: string) => {
     setFavoriteSports(prev => {
-      const existingIndex = prev.findIndex(s => s.name.toLowerCase() === sportName.toLowerCase());
+      const normalizedSportName = normalizeSportNameForComparison(sportName);
+      const existingIndex = prev.findIndex(s => normalizeSportNameForComparison(s.name).toLowerCase() === normalizedSportName.toLowerCase());
       if (existingIndex >= 0) {
         return prev.filter((_, index) => index !== existingIndex);
       }
-      const originalSport = user?.favorite_sports?.find(s => s.name.toLowerCase() === sportName.toLowerCase());
-      return [...prev, originalSport || { id: 0, name: sportName }];
+      const originalSport = user?.favorite_sports?.find(s => normalizeSportNameForComparison(s.name).toLowerCase() === normalizedSportName.toLowerCase());
+      return [...prev, originalSport ? { ...originalSport, name: normalizedSportName } : { id: 0, name: normalizedSportName }];
     });
   };
 
@@ -102,7 +118,7 @@ export default function ProfileInformationScreen() {
       }
 
       const sportNames = favoriteSports
-        .map(sport => normalizeSportName(sport.name))
+        .map(sport => toEnglishSportName(sport.name))
         .reduce((acc, sportName) => {
           if (!acc.some(s => s.toLowerCase() === sportName.toLowerCase())) acc.push(sportName);
           return acc;
@@ -150,7 +166,7 @@ export default function ProfileInformationScreen() {
         <ScreenHeader title="Rediger Profil" />
         <View className="mb-8 items-center">
           <Pressable onPress={pickImage} testID="pickImage">
-            <Avatar uri={imageUri} size={192} className="bg-surface" placeholderIcon="person" />
+            <Avatar uri={imageUri} size={164} className="bg-surface" placeholderIcon="camera" />
           </Pressable>
         </View>
         <View className="w-full max-w-sm mb-6">
@@ -181,17 +197,25 @@ export default function ProfileInformationScreen() {
             onChangeText={setBio}
             testID="bio"
             multiline
-            numberOfLines={8}
+            numberOfLines={5}
             textAlignVertical="top"
-            className="w-full bg-surface text-text rounded-lg px-4 py-3 border border-text-disabled min-h-[160px]"
+            className="w-full bg-surface text-text rounded-lg px-4 py-3 border border-text-disabled min-h-24"
           />
         </View>
         <View className="w-full max-w-sm mb-8">
           <Text className="text-text text-xl font-bold mb-4">Favoritsportsgrene</Text>
           <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
             <View className="flex-row flex-wrap gap-3 justify-center">
-              {Object.keys(SPORTS_TRANSLATION_EN_TO_DK).map((sportName) => {
-                const isSelected = favoriteSports.some(s => s.name === sportName);
+              {Object.keys(SPORTS_TRANSLATION_EN_TO_DK)
+                .sort((a, b) => {
+                  const aSelected = favoriteSports.some(s => normalizeSportNameForComparison(s.name) === a);
+                  const bSelected = favoriteSports.some(s => normalizeSportNameForComparison(s.name) === b);
+                  if (aSelected && !bSelected) return -1;
+                  if (!aSelected && bSelected) return 1;
+                  return a.localeCompare(b);
+                })
+                .map((sportName) => {
+                const isSelected = favoriteSports.some(s => normalizeSportNameForComparison(s.name) === sportName);
                 return (
                   <Pressable
                     key={sportName}
@@ -199,7 +223,7 @@ export default function ProfileInformationScreen() {
                     className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-surface border border-text-disabled'}`}
                   >
                     <Text className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-text'}`}>
-                      {SPORTS_TRANSLATION_EN_TO_DK[sportName] || sportName}
+                      {toDanishSportName(sportName)}
                     </Text>
                   </Pressable>
                 );

@@ -16,6 +16,9 @@ module.exports = {
         danger: '#943d40',
         warning: '#fbb03c',
         softBlue: '#2F6487',
+        softGreen: '#76a179',
+        softPurple: '#8572a3',
+        darkBrown: '#423b38',
         text: {
           DEFAULT: '#ffffff',
           muted: '#9CA3AF',

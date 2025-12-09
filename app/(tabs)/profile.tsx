@@ -1,5 +1,6 @@
 // ProfileScreen.tsx
 
+import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import {
   Avatar,
   ErrorScreen,
@@ -8,19 +9,18 @@ import {
   TopActionBar,
 } from "@/components/common";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import type { Challenge } from "@/types/challenge";
+import { SportIcon } from "@/utils/sportIcons";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Pressable,
-  Text,
-  View,
   ScrollView,
+  Text,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { ChallengeCard } from "@/components/challenges/ChallengeCard";
-import type { Challenge } from "@/types/challenge";
-import { SportIcon } from "@/utils/sportIcons";
 
 const SEPARATOR_COLOR = "bg-[#3A3A3C]";
 
@@ -95,10 +95,6 @@ export default function ProfileScreen() {
   const teamsCount = 0; // TODO: plug in real value when available
   const nextChallenges: Challenge[] = user.next_challenges ?? [];
 
-  const handleParticipate = (challengeId: number) => {
-    router.push(`/hub/${challengeId}` as any);
-  };
-
   const handleChallengePress = (challengeId: number) => {
     router.push(`/hub/${challengeId}` as any);
   };
@@ -109,9 +105,9 @@ export default function ProfileScreen() {
   const activeIndex = activeTab === "vs" ? 0 : activeTab === "home" ? 1 : 2;
 
   return (
-    <ScreenContainer>
+    <ScreenContainer className='pt-1'>
       <TopActionBar
-        title="Profil"
+        title={"Profil"}
         leftAction={
           <Pressable
             onPress={() => router.push("/profile/information" as any)}
@@ -304,7 +300,6 @@ export default function ProfileScreen() {
                     <ChallengeCard
                       challenge={ch}
                       type="open"
-                      onParticipate={handleParticipate}
                       onPress={handleChallengePress}
                     />
                   </View>
