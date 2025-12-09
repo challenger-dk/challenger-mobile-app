@@ -182,14 +182,7 @@ export function FriendsContent() {
           </View>
         )}
 
-        <View className="mb-6">
-          <Text className="text-text-muted text-sm mb-3">Mine venner</Text>
-          {filterUsers(friends).map(renderFriendCard)}
-          {filterUsers(friends).length === 0 && (
-            <EmptyState title="Ingen venner" description="Du har ingen venner endnu." icon="people-outline" />
-          )}
-        </View>
-
+        {/* Find nye venner FIRST */}
         <View className="mb-6">
           <Text className="text-text-muted text-sm mb-3">Find nye venner</Text>
           {filterUsers(otherUsers).map(renderOtherUserCard)}
@@ -197,7 +190,21 @@ export function FriendsContent() {
             <Text className="text-text-muted text-sm">Ingen brugere fundet.</Text>
           )}
         </View>
+
+        {/* Mine venner AFTER */}
+        <View className="mb-6">
+          <Text className="text-text-muted text-sm mb-3">Mine venner</Text>
+          {filterUsers(friends).map(renderFriendCard)}
+          {filterUsers(friends).length === 0 && (
+            <EmptyState
+              title="Ingen venner"
+              description="Du har ingen venner endnu."
+              icon="people-outline"
+            />
+          )}
+        </View>
       </View>
     </ScrollView>
   );
 }
+

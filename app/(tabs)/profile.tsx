@@ -8,6 +8,7 @@ import {
   ScreenContainer,
   TopActionBar,
 } from "@/components/common";
+import { FriendsContent } from "@/components/social";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { Challenge } from "@/types/challenge";
 import { SportIcon } from "@/utils/sportIcons";
@@ -315,10 +316,8 @@ export default function ProfileScreen() {
           )}
 
           {activeTab === "home" && (
-            <View className="bg-surface rounded-2xl p-4 mt-3">
-              <Text className="text-sm text-gray-300">
-                Denne sektion kommer snart.
-              </Text>
+            <View className="mt-3">
+              <FriendsContent />
             </View>
           )}
 
