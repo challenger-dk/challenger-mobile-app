@@ -21,6 +21,7 @@ import {
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import type { Challenge } from "@/types/challenge";
 import { SportIcon } from "@/utils/sportIcons";
+import { FriendsContent} from "@/components/social";
 
 const SEPARATOR_COLOR = "bg-[#3A3A3C]";
 
@@ -320,10 +321,8 @@ export default function ProfileScreen() {
           )}
 
           {activeTab === "home" && (
-            <View className="bg-surface rounded-2xl p-4 mt-3">
-              <Text className="text-sm text-gray-300">
-                Denne sektion kommer snart.
-              </Text>
+            <View className="mt-3">
+              <FriendsContent />
             </View>
           )}
 
