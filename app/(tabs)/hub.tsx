@@ -115,7 +115,7 @@ export default function HubScreen() {
             />
           </Pressable>
         }
-        settingsRoute="/profile/settings"
+        showSettings={false}
       />
 
       <View className="px-6 pt-2 pb-2">

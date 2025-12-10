@@ -1,5 +1,5 @@
 import type { UserSettings } from '@/types/settings';
-import type { CommonStats, CreateUser, UpdateUser } from '@/types/user';
+import type { CommonStats, CreateUser, EmergencyContact, UpdateUser } from '@/types/user';
 import { authenticatedFetch, getApiUrl } from '@/utils/api';
 
 export const getUsers = async () => {
@@ -242,6 +242,111 @@ export const unblockUser = async (userId: string) => {
           responseData.error ||
           'Failed to unblock user',
       };
+    }
+    return responseData;
+  } catch (e) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
+};
+
+export const createEmergencyContact = async (contact: EmergencyContact) => {
+  const response = await authenticatedFetch(getApiUrl('/emergency-info'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(contact),
+  });
+
+  if (response.status === 201) {
+    return { success: true };
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Failed to create emergency contact' };
+  }
+
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to create emergency contact' };
+    }
+    return responseData;
+  }
+  catch (e) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
+}
+
+export const updateEmergencyContact = async (contactId: string | number, contact: EmergencyContact) => {
+  const response = await authenticatedFetch(getApiUrl(`/emergency-info/${contactId}`), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(contact),
+  });
+
+  if (response.status === 204) {
+    return { success: true };
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Failed to update emergency contact' };
+  }
+
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to update emergency contact' };
+    }
+    return responseData;
+  } catch (e) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Invalid server response' };
+  }
+}
+
+export const deleteEmergencyContact = async (contactId: string | number) => {
+  const response = await authenticatedFetch(getApiUrl(`/emergency-info/${contactId}`), {
+    method: 'DELETE',
+  });
+
+  if (response.status === 204) {
+    return { success: true };
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    if (response.ok) {
+      return { success: true };
+    }
+    return { error: 'Failed to delete emergency contact' };
+  }
+
+  try {
+    const responseData = JSON.parse(text);
+    if (!response.ok) {
+      return { error: responseData.message || responseData.error || 'Failed to delete emergency contact' };
     }
     return responseData;
   } catch (e) {
