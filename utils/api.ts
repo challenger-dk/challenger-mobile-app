@@ -11,8 +11,15 @@ export const getApiBaseUrl = (): string => {
   // If API URL is set in env, validate and use it
   if (apiUrl) {
     // Basic validation
-    if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://') && apiUrl !== '/api') {
-      console.warn('Warning: API URL should start with http:// or https://. Got:', apiUrl);
+    if (
+      !apiUrl.startsWith('http://') &&
+      !apiUrl.startsWith('https://') &&
+      apiUrl !== '/api'
+    ) {
+      console.warn(
+        'Warning: API URL should start with http:// or https://. Got:',
+        apiUrl
+      );
     }
 
     // On Android, replace localhost with 10.0.2.2 (maps to host machine's localhost)

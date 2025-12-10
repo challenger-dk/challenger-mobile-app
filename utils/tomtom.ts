@@ -1,6 +1,6 @@
 /**
  * TomTom Search API utility functions
- * 
+ *
  * Documentation: https://developer.tomtom.com/search-api/documentation
  */
 
@@ -56,14 +56,16 @@ export interface TomTomSearchResponse {
 const getTomTomApiKey = (): string => {
   const apiKey = process.env.EXPO_PUBLIC_TOMTOM_API_KEY;
   if (!apiKey) {
-    throw new Error('TomTom API key is not set. Please set EXPO_PUBLIC_TOMTOM_API_KEY in your .env file.');
+    throw new Error(
+      'TomTom API key is not set. Please set EXPO_PUBLIC_TOMTOM_API_KEY in your .env file.'
+    );
   }
   return apiKey;
 };
 
 /**
  * Perform a fuzzy search using TomTom Search API
- * 
+ *
  * @param query - The search query string
  * @param options - Optional search parameters
  * @returns Promise with search results
@@ -95,10 +97,10 @@ export const searchLocation = async (
 
   const apiKey = getTomTomApiKey();
   const baseUrl = 'https://api.tomtom.com/search/2/search';
-  
+
   // Encode the query
   const encodedQuery = encodeURIComponent(query.trim());
-  
+
   // Build query parameters
   const params = new URLSearchParams({
     key: apiKey,
@@ -109,12 +111,12 @@ export const searchLocation = async (
   if (options?.countrySet) {
     params.append('countrySet', options.countrySet);
   }
-  
+
   if (options?.lat !== undefined && options?.lon !== undefined) {
     params.append('lat', String(options.lat));
     params.append('lon', String(options.lon));
   }
-  
+
   if (options?.radius) {
     params.append('radius', String(options.radius));
   }
@@ -123,9 +125,11 @@ export const searchLocation = async (
 
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      throw new Error(`TomTom API error: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `TomTom API error: ${response.status} ${response.statusText}`
+      );
     }
 
     const data: TomTomSearchResponse = await response.json();
@@ -140,17 +144,22 @@ export const searchLocation = async (
  * Format a TomTom search result into a display string
  */
 export const formatLocationResult = (result: TomTomSearchResult): string => {
-  return result.address.freeformAddress || 
-         `${result.address.streetName || ''} ${result.address.streetNumber || ''}, ${result.address.municipality || ''}`.trim();
+  return (
+    result.address.freeformAddress ||
+    `${result.address.streetName || ''} ${result.address.streetNumber || ''}, ${result.address.municipality || ''}`.trim()
+  );
 };
 
 /**
  * Convert a TomTom search result to a Location object
  */
-export const tomTomResultToLocation = (result: TomTomSearchResult): Location => {
+export const tomTomResultToLocation = (
+  result: TomTomSearchResult
+): Location => {
   return {
-    address: result.address.freeformAddress || 
-            `${result.address.streetName || ''} ${result.address.streetNumber || ''}, ${result.address.municipality || ''}`.trim(),
+    address:
+      result.address.freeformAddress ||
+      `${result.address.streetName || ''} ${result.address.streetNumber || ''}, ${result.address.municipality || ''}`.trim(),
     latitude: result.position.lat,
     longitude: result.position.lon,
     postal_code: result.address.postalCode || '',
@@ -161,7 +170,7 @@ export const tomTomResultToLocation = (result: TomTomSearchResult): Location => 
 
 /**
  * Reverse geocode coordinates to get address information
- * 
+ *
  * @param latitude - Latitude coordinate
  * @param longitude - Longitude coordinate
  * @returns Promise with Location object
@@ -172,7 +181,7 @@ export const reverseGeocode = async (
 ): Promise<Location> => {
   const apiKey = getTomTomApiKey();
   const baseUrl = 'https://api.tomtom.com/search/2/reverseGeocode';
-  
+
   const params = new URLSearchParams({
     key: apiKey,
     lat: String(latitude),
@@ -183,20 +192,23 @@ export const reverseGeocode = async (
 
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      throw new Error(`TomTom reverse geocode error: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `TomTom reverse geocode error: ${response.status} ${response.statusText}`
+      );
     }
 
     const data = await response.json();
-    
+
     // TomTom reverse geocode returns addresses array
     if (data.addresses && data.addresses.length > 0) {
       const address = data.addresses[0].address;
       return {
-        address: address.freeformAddress || 
-                `${address.streetName || ''} ${address.streetNumber || ''}, ${address.municipality || ''}`.trim() ||
-                `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+        address:
+          address.freeformAddress ||
+          `${address.streetName || ''} ${address.streetNumber || ''}, ${address.municipality || ''}`.trim() ||
+          `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
         latitude,
         longitude,
         postal_code: address.postalCode || '',
@@ -204,7 +216,7 @@ export const reverseGeocode = async (
         country: address.country || address.countryCode || '',
       };
     }
-    
+
     // Fallback if no address found
     return {
       address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
@@ -227,4 +239,3 @@ export const reverseGeocode = async (
     };
   }
 };
-

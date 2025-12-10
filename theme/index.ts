@@ -11,4 +11,3 @@ export type Theme = typeof theme;
 
 // Default export
 export default theme;
-

@@ -9,7 +9,10 @@ export const useImagePicker = () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert('Tilladelse påkrævet', 'Vi har brug for tilladelse til at tilgå dine billeder.');
+      Alert.alert(
+        'Tilladelse påkrævet',
+        'Vi har brug for tilladelse til at tilgå dine billeder.'
+      );
       return;
     }
 

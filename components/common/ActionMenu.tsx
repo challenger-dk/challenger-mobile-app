@@ -22,7 +22,11 @@ export const ActionMenu = ({ actions, trigger }: ActionMenuProps) => {
       <Pressable onPress={() => setVisible(true)}>
         {trigger || (
           <View className="p-2">
-            <Ionicons name="ellipsis-horizontal-circle" size={32} color="#3b82f6" />
+            <Ionicons
+              name="ellipsis-horizontal-circle"
+              size={32}
+              color="#3b82f6"
+            />
           </View>
         )}
       </Pressable>
@@ -57,7 +61,9 @@ export const ActionMenu = ({ actions, trigger }: ActionMenuProps) => {
                 />
                 <Text
                   className={`font-medium text-base ${
-                    action.variant === 'destructive' ? 'text-red-500' : 'text-white'
+                    action.variant === 'destructive'
+                      ? 'text-red-500'
+                      : 'text-white'
                   }`}
                 >
                   {action.label}

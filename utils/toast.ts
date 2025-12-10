@@ -38,4 +38,3 @@ export const showInfoToast = (message: string, title: string = 'Info') => {
     visibilityTime: 3000,
   });
 };
-

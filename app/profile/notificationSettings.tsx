@@ -14,7 +14,13 @@ interface NotificationItemProps {
   disabled?: boolean;
 }
 
-const NotificationItem = ({ label, description, value, onValueChange, disabled }: NotificationItemProps) => (
+const NotificationItem = ({
+  label,
+  description,
+  value,
+  onValueChange,
+  disabled,
+}: NotificationItemProps) => (
   <View className="flex-row items-center justify-between py-4 border-b border-[#2c2c2c]">
     <View className="flex-1 mr-4">
       <Text className="text-white text-base font-medium">{label}</Text>
@@ -48,9 +54,9 @@ export default function NotificationsSettingsScreen() {
   // Sync local state with user data when it loads
   useEffect(() => {
     if (user?.settings) {
-      setSettings(prev => ({
+      setSettings((prev) => ({
         ...prev,
-        ...user.settings
+        ...user.settings,
       }));
     }
   }, [user]);
@@ -75,7 +81,9 @@ export default function NotificationsSettingsScreen() {
         <ScreenHeader title="Notifikationer" />
 
         <ScrollView className="mt-2" showsVerticalScrollIndicator={false}>
-          <Text className="text-[#9CA3AF] text-sm font-medium mb-4 uppercase tracking-wider">Socialt</Text>
+          <Text className="text-[#9CA3AF] text-sm font-medium mb-4 uppercase tracking-wider">
+            Socialt
+          </Text>
 
           <NotificationItem
             label="Venneanmodninger"
@@ -92,20 +100,26 @@ export default function NotificationsSettingsScreen() {
           />
 
           <View className="h-8" />
-          <Text className="text-[#9CA3AF] text-sm font-medium mb-4 uppercase tracking-wider">Udfordringer</Text>
+          <Text className="text-[#9CA3AF] text-sm font-medium mb-4 uppercase tracking-wider">
+            Udfordringer
+          </Text>
 
           <NotificationItem
             label="Invitationer"
             description="Når du bliver inviteret til en udfordring"
             value={settings.notify_challenge_invite}
-            onValueChange={(val) => handleToggle('notify_challenge_invite', val)}
+            onValueChange={(val) =>
+              handleToggle('notify_challenge_invite', val)
+            }
           />
 
           <NotificationItem
             label="Opdateringer"
             description="Ændringer i dine planlagte udfordringer"
             value={settings.notify_challenge_update}
-            onValueChange={(val) => handleToggle('notify_challenge_update', val)}
+            onValueChange={(val) =>
+              handleToggle('notify_challenge_update', val)
+            }
           />
         </ScrollView>
       </View>

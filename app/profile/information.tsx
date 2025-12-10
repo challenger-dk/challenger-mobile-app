@@ -1,5 +1,11 @@
 import { updateUser } from '@/api/users';
-import { Avatar, ErrorScreen, LoadingScreen, ScreenHeader, SubmitButton } from '@/components/common';
+import {
+  Avatar,
+  ErrorScreen,
+  LoadingScreen,
+  ScreenHeader,
+  SubmitButton,
+} from '@/components/common';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { queryKeys } from '@/lib/queryClient';
@@ -10,7 +16,15 @@ import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SPORTS_TRANSLATION_DK_TO_EN: Record<string, string> = Object.fromEntries(
@@ -30,7 +44,8 @@ const normalizeSportNameForComparison = (name: string): string => {
   // If it's already an English key, return it
   if (SPORTS_TRANSLATION_EN_TO_DK[name]) return name;
   // If it's Danish, convert to English
-  if (SPORTS_TRANSLATION_DK_TO_EN[name]) return SPORTS_TRANSLATION_DK_TO_EN[name];
+  if (SPORTS_TRANSLATION_DK_TO_EN[name])
+    return SPORTS_TRANSLATION_DK_TO_EN[name];
   // Otherwise return as-is
   return name;
 };
@@ -55,10 +70,12 @@ export default function ProfileInformationScreen() {
       setFirstName(user.first_name || '');
       setLastName(user.last_name || '');
       setBio(user.bio || '');
-      setFavoriteSports((user.favorite_sports || []).map(sport => ({
-        ...sport,
-        name: normalizeSportNameForComparison(sport.name)
-      })));
+      setFavoriteSports(
+        (user.favorite_sports || []).map((sport) => ({
+          ...sport,
+          name: normalizeSportNameForComparison(sport.name),
+        }))
+      );
       setHasChanges(false);
     }
   }, [user, setImageUri]);
@@ -69,23 +86,47 @@ export default function ProfileInformationScreen() {
       const hasFirstNameChanged = firstName !== (user.first_name || '');
       const hasLastNameChanged = lastName !== (user.last_name || '');
       const hasBioChanged = bio !== (user.bio || '');
-      const userSportNames = (user.favorite_sports || []).map(s => normalizeSportNameForComparison(s.name)).sort();
-      const currentSportNames = favoriteSports.map(s => normalizeSportNameForComparison(s.name)).sort();
-      const hasSportsChanged = JSON.stringify(currentSportNames) !== JSON.stringify(userSportNames);
+      const userSportNames = (user.favorite_sports || [])
+        .map((s) => normalizeSportNameForComparison(s.name))
+        .sort();
+      const currentSportNames = favoriteSports
+        .map((s) => normalizeSportNameForComparison(s.name))
+        .sort();
+      const hasSportsChanged =
+        JSON.stringify(currentSportNames) !== JSON.stringify(userSportNames);
 
-      setHasChanges(hasImageChanged || hasFirstNameChanged || hasLastNameChanged || hasBioChanged || hasSportsChanged);
+      setHasChanges(
+        hasImageChanged ||
+          hasFirstNameChanged ||
+          hasLastNameChanged ||
+          hasBioChanged ||
+          hasSportsChanged
+      );
     }
   }, [imageUri, firstName, lastName, bio, favoriteSports, user]);
 
   const toggleSport = (sportName: string) => {
-    setFavoriteSports(prev => {
+    setFavoriteSports((prev) => {
       const normalizedSportName = normalizeSportNameForComparison(sportName);
-      const existingIndex = prev.findIndex(s => normalizeSportNameForComparison(s.name).toLowerCase() === normalizedSportName.toLowerCase());
+      const existingIndex = prev.findIndex(
+        (s) =>
+          normalizeSportNameForComparison(s.name).toLowerCase() ===
+          normalizedSportName.toLowerCase()
+      );
       if (existingIndex >= 0) {
         return prev.filter((_, index) => index !== existingIndex);
       }
-      const originalSport = user?.favorite_sports?.find(s => normalizeSportNameForComparison(s.name).toLowerCase() === normalizedSportName.toLowerCase());
-      return [...prev, originalSport ? { ...originalSport, name: normalizedSportName } : { id: 0, name: normalizedSportName }];
+      const originalSport = user?.favorite_sports?.find(
+        (s) =>
+          normalizeSportNameForComparison(s.name).toLowerCase() ===
+          normalizedSportName.toLowerCase()
+      );
+      return [
+        ...prev,
+        originalSport
+          ? { ...originalSport, name: normalizedSportName }
+          : { id: 0, name: normalizedSportName },
+      ];
     });
   };
 
@@ -103,7 +144,10 @@ export default function ProfileInformationScreen() {
       // 1. Upload new image if changed
       if (imageUri && imageUri !== user.profile_picture) {
         try {
-          finalProfilePictureUrl = await uploadProfilePicture(imageUri, user.id);
+          finalProfilePictureUrl = await uploadProfilePicture(
+            imageUri,
+            user.id
+          );
 
           // 2. Delete old image if it existed
           if (user.profile_picture) {
@@ -118,9 +162,10 @@ export default function ProfileInformationScreen() {
       }
 
       const sportNames = favoriteSports
-        .map(sport => toEnglishSportName(sport.name))
+        .map((sport) => toEnglishSportName(sport.name))
         .reduce((acc, sportName) => {
-          if (!acc.some(s => s.toLowerCase() === sportName.toLowerCase())) acc.push(sportName);
+          if (!acc.some((s) => s.toLowerCase() === sportName.toLowerCase()))
+            acc.push(sportName);
           return acc;
         }, [] as string[]);
 
@@ -140,8 +185,12 @@ export default function ProfileInformationScreen() {
       }
 
       // 3. Invalidate React Query Cache so the app refreshes the user data
-      await queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.users.current(),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.users.lists(),
+      });
 
       showSuccessToast('Profil opdateret');
       router.back();
@@ -162,11 +211,23 @@ export default function ProfileInformationScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       className="flex-1 bg-background"
     >
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 + insets.bottom }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingBottom: 24 + insets.bottom,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <ScreenHeader title="Rediger Profil" />
         <View className="mb-8 items-center">
           <Pressable onPress={pickImage} testID="pickImage">
-            <Avatar uri={imageUri} size={164} className="bg-surface" placeholderIcon="camera" />
+            <Avatar
+              uri={imageUri}
+              size={164}
+              className="bg-surface"
+              placeholderIcon="camera"
+            />
           </Pressable>
         </View>
         <View className="w-full max-w-sm mb-6">
@@ -203,31 +264,41 @@ export default function ProfileInformationScreen() {
           />
         </View>
         <View className="w-full max-w-sm mb-8">
-          <Text className="text-text text-xl font-bold mb-4">Favoritsportsgrene</Text>
+          <Text className="text-text text-xl font-bold mb-4">
+            Favoritsportsgrene
+          </Text>
           <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
             <View className="flex-row flex-wrap gap-3 justify-center">
               {Object.keys(SPORTS_TRANSLATION_EN_TO_DK)
                 .sort((a, b) => {
-                  const aSelected = favoriteSports.some(s => normalizeSportNameForComparison(s.name) === a);
-                  const bSelected = favoriteSports.some(s => normalizeSportNameForComparison(s.name) === b);
+                  const aSelected = favoriteSports.some(
+                    (s) => normalizeSportNameForComparison(s.name) === a
+                  );
+                  const bSelected = favoriteSports.some(
+                    (s) => normalizeSportNameForComparison(s.name) === b
+                  );
                   if (aSelected && !bSelected) return -1;
                   if (!aSelected && bSelected) return 1;
                   return a.localeCompare(b);
                 })
                 .map((sportName) => {
-                const isSelected = favoriteSports.some(s => normalizeSportNameForComparison(s.name) === sportName);
-                return (
-                  <Pressable
-                    key={sportName}
-                    onPress={() => toggleSport(sportName)}
-                    className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-surface border border-text-disabled'}`}
-                  >
-                    <Text className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-text'}`}>
-                      {toDanishSportName(sportName)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+                  const isSelected = favoriteSports.some(
+                    (s) => normalizeSportNameForComparison(s.name) === sportName
+                  );
+                  return (
+                    <Pressable
+                      key={sportName}
+                      onPress={() => toggleSport(sportName)}
+                      className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-surface border border-text-disabled'}`}
+                    >
+                      <Text
+                        className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-text'}`}
+                      >
+                        {toDanishSportName(sportName)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
             </View>
           </ScrollView>
         </View>

@@ -25,7 +25,9 @@ export const FacilityMarker = ({ facility, onPress }: FacilityMarkerProps) => {
 
   // For grouped facilities, always show as Sportshaller
   // For individual facilities, use their actual category
-  const facilityType = isGroupedFacility(facility) ? 'Sportshaller' : facility.facilityType;
+  const facilityType = isGroupedFacility(facility)
+    ? 'Sportshaller'
+    : facility.facilityType;
   const categoryConfig = getFacilityCategoryConfig(facilityType);
 
   const getBackgroundColor = () => {
@@ -64,12 +66,30 @@ export const FacilityMarker = ({ facility, onPress }: FacilityMarkerProps) => {
   const renderIcon = () => {
     switch (categoryConfig.iconLibrary) {
       case 'fontawesome6':
-        return <FontAwesome6 name={categoryConfig.iconName as any} size={24} color="white" />;
+        return (
+          <FontAwesome6
+            name={categoryConfig.iconName as any}
+            size={24}
+            color="white"
+          />
+        );
       case 'material-community':
-        return <MaterialCommunityIcons name={categoryConfig.iconName as any} size={24} color="white" />;
+        return (
+          <MaterialCommunityIcons
+            name={categoryConfig.iconName as any}
+            size={24}
+            color="white"
+          />
+        );
       case 'ionicons':
       default:
-        return <Ionicons name={categoryConfig.iconName as any} size={24} color="white" />;
+        return (
+          <Ionicons
+            name={categoryConfig.iconName as any}
+            size={24}
+            color="white"
+          />
+        );
     }
   };
 
@@ -81,15 +101,23 @@ export const FacilityMarker = ({ facility, onPress }: FacilityMarkerProps) => {
       }}
       centerOffset={{ x: 0, y: centerOffsetY }}
       title={facility.name}
-      description={isGroupedFacility(facility) ? `${facility.facilityTypes.length} aktiviteter` : facility.address}
+      description={
+        isGroupedFacility(facility)
+          ? `${facility.facilityTypes.length} aktiviteter`
+          : facility.address
+      }
       onPress={() => onPress(facility)}
       zIndex={500}
     >
       <View className="items-center z-10">
         {/* Square marker with rounded corners */}
-        <View 
+        <View
           className={`w-10 h-10 rounded-full items-center justify-center shadow-lg ${getBackgroundClass()}`}
-          style={categoryConfig.color.startsWith('#') ? { backgroundColor: getBackgroundColor() } : undefined}
+          style={
+            categoryConfig.color.startsWith('#')
+              ? { backgroundColor: getBackgroundColor() }
+              : undefined
+          }
         >
           {renderIcon()}
         </View>
@@ -111,4 +139,3 @@ export const FacilityMarker = ({ facility, onPress }: FacilityMarkerProps) => {
     </Marker>
   );
 };
-

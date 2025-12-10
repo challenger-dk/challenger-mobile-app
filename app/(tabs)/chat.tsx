@@ -1,4 +1,11 @@
-import { Avatar, EmptyState, LoadingScreen, ScreenContainer, TabNavigation, TopActionBar } from '@/components/common';
+import {
+  Avatar,
+  EmptyState,
+  LoadingScreen,
+  ScreenContainer,
+  TabNavigation,
+  TopActionBar,
+} from '@/components/common';
 import { useMyTeams } from '@/hooks/queries/useTeams';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,11 +22,13 @@ export default function ChatListScreen() {
 
   if (!user || teamsLoading) return <LoadingScreen />;
 
-  const data = activeTab === 'teams' ? myTeams : (user.friends || []);
+  const data = activeTab === 'teams' ? myTeams : user.friends || [];
 
   const renderItem = ({ item }: { item: any }) => {
     const isTeam = activeTab === 'teams';
-    const name = isTeam ? item.name : `${item.first_name} ${item.last_name || ''}`;
+    const name = isTeam
+      ? item.name
+      : `${item.first_name} ${item.last_name || ''}`;
     const image = item.profile_picture || null;
     const id = item.id;
 
@@ -28,7 +37,7 @@ export default function ChatListScreen() {
         onPress={() => {
           router.push({
             pathname: '/chat/[id]',
-            params: { id: id, type: isTeam ? 'team' : 'user', name: name }
+            params: { id: id, type: isTeam ? 'team' : 'user', name: name },
           } as any);
         }}
         className="flex-row items-center p-4 border-b border-surface"
@@ -37,7 +46,7 @@ export default function ChatListScreen() {
           <Avatar
             uri={image}
             size={48}
-            placeholderIcon={isTeam ? "shield" : "person"}
+            placeholderIcon={isTeam ? 'shield' : 'person'}
             className="bg-surface"
           />
         </View>
@@ -51,7 +60,7 @@ export default function ChatListScreen() {
   };
 
   return (
-    <ScreenContainer className='pt-5'>
+    <ScreenContainer className="pt-5">
       <TopActionBar
         title="Beskeder"
         showNotifications={false}
@@ -75,8 +84,12 @@ export default function ChatListScreen() {
         renderItem={renderItem}
         ListEmptyComponent={
           <EmptyState
-            title={activeTab === 'teams' ? "Ingen hold" : "Ingen venner"}
-            description={activeTab === 'teams' ? "Du er ikke medlem af nogen hold endnu." : "Du har ingen venner endnu."}
+            title={activeTab === 'teams' ? 'Ingen hold' : 'Ingen venner'}
+            description={
+              activeTab === 'teams'
+                ? 'Du er ikke medlem af nogen hold endnu.'
+                : 'Du har ingen venner endnu.'
+            }
             icon="chatbubble-ellipses-outline"
           />
         }

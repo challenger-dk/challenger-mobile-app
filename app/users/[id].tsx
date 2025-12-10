@@ -12,16 +12,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 const SEPARATOR_COLOR = 'bg-[#3A3A3C]';
 
 // ---- Helpers (similar to ProfileScreen) ----
 const StatItem = ({
-                    label,
-                    value,
-                    secondaryValue,
-                  }: {
+  label,
+  value,
+  secondaryValue,
+}: {
   label: string;
   value: number | string;
   secondaryValue?: number | string;
@@ -36,7 +43,10 @@ const StatItem = ({
     <Text className="text-2xl font-semibold text-white mt-1">
       {value}
       {secondaryValue !== undefined && (
-        <Text className="text-base font-normal text-gray-400"> ({secondaryValue})</Text>
+        <Text className="text-base font-normal text-gray-400">
+          {' '}
+          ({secondaryValue})
+        </Text>
       )}
     </Text>
   </View>
@@ -146,7 +156,8 @@ export default function UserProfileScreen() {
     if (!currentUser || !user) return;
 
     try {
-      const note = `${currentUser.first_name} ${currentUser.last_name || ''} har sendt dig en venneanmodning`.trim();
+      const note =
+        `${currentUser.first_name} ${currentUser.last_name || ''} har sendt dig en venneanmodning`.trim();
 
       await SendInvitation({
         inviter_id: Number(currentUser.id),
@@ -177,8 +188,12 @@ export default function UserProfileScreen() {
               await removeFriend(String(user.id));
               setIsFriend(false);
               showSuccessToast(`${user.first_name} er blevet fjernet som ven.`);
-              queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
-              queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(user.id) });
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.users.current(),
+              });
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.users.detail(user.id),
+              });
             } catch (err) {
               console.error('Failed to remove friend:', err);
               showErrorToast('Kunne ikke fjerne ven.');
@@ -317,7 +332,11 @@ export default function UserProfileScreen() {
             {/* Chat icon */}
             <View className="items-center">
               <View className="w-9 h-9 rounded-xl bg-surface items-center justify-center mb-1">
-                <Ionicons name="chatbubble-ellipses-outline" size={18} color="#ffffff" />
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={18}
+                  color="#ffffff"
+                />
               </View>
               <Text className="text-[11px] text-gray-200">Besked</Text>
             </View>
@@ -331,7 +350,10 @@ export default function UserProfileScreen() {
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
               {/* Venner */}
-              <View style={{ flex: 1 }} className="items-center justify-center px-2">
+              <View
+                style={{ flex: 1 }}
+                className="items-center justify-center px-2"
+              >
                 <StatItem
                   label="Venner"
                   value={friendsCount}
@@ -343,7 +365,10 @@ export default function UserProfileScreen() {
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
               {/* Hold */}
-              <View style={{ flex: 1 }} className="items-center justify-center px-2">
+              <View
+                style={{ flex: 1 }}
+                className="items-center justify-center px-2"
+              >
                 <StatItem
                   label="Hold"
                   value={teamsCount}
@@ -355,7 +380,10 @@ export default function UserProfileScreen() {
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
               {/* Fuldførte Challenges */}
-              <View style={{ flex: 3 }} className="items-center justify-center px-1">
+              <View
+                style={{ flex: 3 }}
+                className="items-center justify-center px-1"
+              >
                 <StatItem
                   label="Fuldførte Challenges"
                   value={completedChallenges}

@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+.expo/
+.expo-shared/
+
+# Generated files
+*.log
+*.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+
+# iOS
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+
+# Assets (binary files)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Data files
+*.xlsx
+*.csv
+*.json
+!package.json
+!tsconfig.json
+!app.config.js
+
+# Firebase
+google-play-service-account.json
+

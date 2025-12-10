@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, Text, TextInput, View, ActivityIndicator } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { createReport, ReportTargetType } from '@/api/reports';
 import { showSuccessToast, showErrorToast } from '@/utils/toast';
 
@@ -10,7 +17,12 @@ interface ReportModalProps {
   targetType: ReportTargetType;
 }
 
-export const ReportModal = ({ visible, onClose, targetId, targetType }: ReportModalProps) => {
+export const ReportModal = ({
+  visible,
+  onClose,
+  targetId,
+  targetType,
+}: ReportModalProps) => {
   const [reason, setReason] = useState('');
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,17 +46,26 @@ export const ReportModal = ({ visible, onClose, targetId, targetType }: ReportMo
       setComment('');
       onClose();
     } catch (error) {
-      showErrorToast(error instanceof Error ? error.message : 'Failed to submit report');
+      showErrorToast(
+        error instanceof Error ? error.message : 'Failed to submit report'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View className="flex-1 bg-black/60 justify-center items-center px-4">
         <View className="bg-[#1E1E1E] w-full rounded-xl p-5 border border-[#333]">
-          <Text className="text-white text-lg font-bold mb-4">Report {targetType.toLowerCase()}</Text>
+          <Text className="text-white text-lg font-bold mb-4">
+            Report {targetType.toLowerCase()}
+          </Text>
 
           <Text className="text-gray-400 text-sm mb-2">Reason (Required)</Text>
           <TextInput
@@ -55,7 +76,9 @@ export const ReportModal = ({ visible, onClose, targetId, targetType }: ReportMo
             onChangeText={setReason}
           />
 
-          <Text className="text-gray-400 text-sm mb-2">Additional Details (Optional)</Text>
+          <Text className="text-gray-400 text-sm mb-2">
+            Additional Details (Optional)
+          </Text>
           <TextInput
             className="bg-[#2c2c2c] text-white p-3 rounded-lg mb-6 min-h-[80px]"
             placeholder="Describe what happened..."
@@ -67,7 +90,10 @@ export const ReportModal = ({ visible, onClose, targetId, targetType }: ReportMo
           />
 
           <View className="flex-row gap-3">
-            <Pressable className="flex-1 bg-[#333] p-3 rounded-lg items-center" onPress={onClose}>
+            <Pressable
+              className="flex-1 bg-[#333] p-3 rounded-lg items-center"
+              onPress={onClose}
+            >
               <Text className="text-white font-medium">Cancel</Text>
             </Pressable>
             <Pressable

@@ -6,7 +6,10 @@ interface StepIndicatorProps {
   currentStep: number;
 }
 
-export const StepIndicator = ({ totalSteps, currentStep }: StepIndicatorProps) => {
+export const StepIndicator = ({
+  totalSteps,
+  currentStep,
+}: StepIndicatorProps) => {
   return (
     <View className="w-full max-w-sm flex-row justify-center gap-2 mb-8">
       {Array.from({ length: totalSteps }).map((_, index) => (

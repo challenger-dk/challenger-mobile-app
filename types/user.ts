@@ -1,6 +1,6 @@
-import type { Sport } from "./sports";
-import type { Challenge } from "./challenge";
-import { UserSettings } from "@/types/settings";
+import type { Sport } from './sports';
+import type { Challenge } from './challenge';
+import { UserSettings } from '@/types/settings';
 
 export type User = {
   id: string | number;

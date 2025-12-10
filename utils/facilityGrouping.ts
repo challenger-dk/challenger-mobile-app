@@ -35,7 +35,10 @@ const areCoordinatesClose = (
   // Rough conversion: 1 degree latitude ≈ 111 km
   // 1 degree longitude ≈ 111 km * cos(latitude)
   const latDiff = Math.abs(lat1 - lat2) * 111000; // Convert to meters
-  const lonDiff = Math.abs(lon1 - lon2) * 111000 * Math.cos((lat1 + lat2) / 2 * Math.PI / 180);
+  const lonDiff =
+    Math.abs(lon1 - lon2) *
+    111000 *
+    Math.cos((((lat1 + lat2) / 2) * Math.PI) / 180);
   const distance = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
   return distance < thresholdMeters;
 };
@@ -43,7 +46,10 @@ const areCoordinatesClose = (
 /**
  * Check if two facilities are duplicates based on name, address, or coordinates
  */
-const areFacilitiesDuplicate = (facility1: Facility, facility2: Facility): boolean => {
+const areFacilitiesDuplicate = (
+  facility1: Facility,
+  facility2: Facility
+): boolean => {
   // Check if coordinates are very close (within 50 meters)
   const coordinatesMatch = areCoordinatesClose(
     facility1.location.latitude,
@@ -54,15 +60,20 @@ const areFacilitiesDuplicate = (facility1: Facility, facility2: Facility): boole
   );
 
   // Check if name matches (normalized)
-  const nameMatch = normalizeString(facility1.name) === normalizeString(facility2.name);
+  const nameMatch =
+    normalizeString(facility1.name) === normalizeString(facility2.name);
 
   // Check if address matches (normalized)
-  const addressMatch = normalizeString(facility1.address) === normalizeString(facility2.address);
+  const addressMatch =
+    normalizeString(facility1.address) === normalizeString(facility2.address);
 
   // Consider them duplicates if:
   // 1. Coordinates are very close AND (name matches OR address matches)
   // 2. Name and address both match (even if coordinates differ slightly)
-  return (coordinatesMatch && (nameMatch || addressMatch)) || (nameMatch && addressMatch);
+  return (
+    (coordinatesMatch && (nameMatch || addressMatch)) ||
+    (nameMatch && addressMatch)
+  );
 };
 
 /**
@@ -70,7 +81,9 @@ const areFacilitiesDuplicate = (facility1: Facility, facility2: Facility): boole
  * Facilities are considered duplicates if they have the same name, address, or are at the same coordinates
  * Optimized using hash maps and spatial grid to reduce O(n²) to approximately O(n)
  */
-export function groupDuplicateFacilities(facilities: Facility[]): (Facility | GroupedFacility)[] {
+export function groupDuplicateFacilities(
+  facilities: Facility[]
+): (Facility | GroupedFacility)[] {
   if (facilities.length === 0) {
     return [];
   }
@@ -79,7 +92,9 @@ export function groupDuplicateFacilities(facilities: Facility[]): (Facility | Gr
   // This is a safety measure - in production, you might want to process in chunks or use web workers
   const MAX_FACILITIES_TO_PROCESS = 5000;
   if (facilities.length > MAX_FACILITIES_TO_PROCESS) {
-    console.warn(`Too many facilities (${facilities.length}), skipping grouping to avoid performance issues`);
+    console.warn(
+      `Too many facilities (${facilities.length}), skipping grouping to avoid performance issues`
+    );
     return facilities;
   }
 
@@ -155,11 +170,15 @@ export function groupDuplicateFacilities(facilities: Facility[]): (Facility | Gr
     if (duplicates.length > 1) {
       // Use the first facility as the base, but collect all facility types
       const base = duplicates[0];
-      const facilityTypes = [...new Set(duplicates.map(f => f.facilityType))];
-      
+      const facilityTypes = [...new Set(duplicates.map((f) => f.facilityType))];
+
       // Calculate average coordinates for better positioning
-      const avgLat = duplicates.reduce((sum, f) => sum + f.location.latitude, 0) / duplicates.length;
-      const avgLon = duplicates.reduce((sum, f) => sum + f.location.longitude, 0) / duplicates.length;
+      const avgLat =
+        duplicates.reduce((sum, f) => sum + f.location.latitude, 0) /
+        duplicates.length;
+      const avgLon =
+        duplicates.reduce((sum, f) => sum + f.location.longitude, 0) /
+        duplicates.length;
 
       const grouped: GroupedFacility = {
         id: `grouped-${base.id}`,
@@ -196,6 +215,8 @@ export function groupDuplicateFacilities(facilities: Facility[]): (Facility | Gr
 export function isGroupedFacility(
   facility: Facility | GroupedFacility
 ): facility is GroupedFacility {
-  return 'facilityTypes' in facility && Array.isArray((facility as GroupedFacility).facilityTypes);
+  return (
+    'facilityTypes' in facility &&
+    Array.isArray((facility as GroupedFacility).facilityTypes)
+  );
 }
-

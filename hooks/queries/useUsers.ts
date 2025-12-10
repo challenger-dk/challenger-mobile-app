@@ -1,4 +1,13 @@
-import { blockUser, createUser, getCurrentUser, getUserById, getUsers, unblockUser, updateUser, updateUserSettings } from '@/api/users';
+import {
+  blockUser,
+  createUser,
+  getCurrentUser,
+  getUserById,
+  getUsers,
+  unblockUser,
+  updateUser,
+  updateUserSettings,
+} from '@/api/users';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateUser } from '@/types/user';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -48,7 +57,9 @@ export const useUpdateUser = () => {
       updateUser(userId, user),
     onSuccess: (data, variables) => {
       // Invalidate the specific user's cache
-      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(variables.userId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.detail(variables.userId),
+      });
       // Invalidate current user if it's the same user
       queryClient.invalidateQueries({ queryKey: queryKeys.users.current() });
       // Invalidate users list to reflect changes
@@ -56,7 +67,9 @@ export const useUpdateUser = () => {
       showSuccessToast('Profilen er opdateret!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved opdatering af profilen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved opdatering af profilen'
+      );
     },
   });
 };
@@ -76,7 +89,9 @@ export const useUpdateUserSettings = () => {
       showSuccessToast('Indstillingerne er opdateret!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved opdatering af indstillingerne');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved opdatering af indstillingerne'
+      );
     },
   });
 };
@@ -96,7 +111,9 @@ export const useCreateUser = () => {
       showSuccessToast('Brugeren er oprettet!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved oprettelse af brugeren');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved oprettelse af brugeren'
+      );
     },
   });
 };
@@ -114,7 +131,9 @@ export const useBlockUser = () => {
       showSuccessToast('Brugeren er blevet blokeret');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved blokering af brugeren');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved blokering af brugeren'
+      );
     },
   });
 };
@@ -132,7 +151,9 @@ export const useUnblockUser = () => {
       showSuccessToast('Blokeringen er ophævet');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved ophævelse af blokeringen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved ophævelse af blokeringen'
+      );
     },
   });
 };

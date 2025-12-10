@@ -2,20 +2,47 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Dimensions,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import MapView, { Region } from 'react-native-maps';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { MiniChallengeCard } from '../../components/challenges/MiniChallengeCard';
-import { ErrorScreen, LoadingScreen, ScreenContainer, TabNavigation, TopActionBar } from '../../components/common';
-import { ChallengeClusterMarker, ChallengeMarker, FacilityClusterMarker, FacilityInfoModal, FacilityMarker } from '../../components/maps';
+import {
+  ErrorScreen,
+  LoadingScreen,
+  ScreenContainer,
+  TabNavigation,
+  TopActionBar,
+} from '../../components/common';
+import {
+  ChallengeClusterMarker,
+  ChallengeMarker,
+  FacilityClusterMarker,
+  FacilityInfoModal,
+  FacilityMarker,
+  FilterMenu,
+} from '../../components/maps';
 import { useChallenges } from '../../hooks/queries';
 import { useFacilities } from '../../hooks/useFacilities';
 import { useLocation } from '../../hooks/useLocation';
 import type { Challenge } from '../../types/challenge';
 import type { Facility } from '../../types/facility';
-import { groupDuplicateFacilities, isGroupedFacility, type GroupedFacility } from '../../utils/facilityGrouping';
+import {
+  groupDuplicateFacilities,
+  isGroupedFacility,
+  type GroupedFacility,
+} from '../../utils/facilityGrouping';
 import type { Cluster, FacilityCluster } from '../../utils/markerClustering';
-import { clusterChallenges, clusterFacilities } from '../../utils/markerClustering';
+import {
+  clusterChallenges,
+  clusterFacilities,
+} from '../../utils/markerClustering';
 
 type MapViewType = 'challenges' | 'facilities';
 
@@ -31,24 +58,33 @@ export default function MapsScreen() {
   const router = useRouter();
   const [mapViewType, setMapViewType] = useState<MapViewType>('challenges');
   const [searchQuery, setSearchQuery] = useState('');
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInput | null>(null);
+  const mapRef = useRef<MapView | null>(null);
   const [mapRegion, setMapRegion] = useState<Region>(DEFAULT_LOCATION);
   const [initialRegionSet, setInitialRegionSet] = useState(false);
   const shouldCenterOnLocationRef = useRef(false);
-  
-  // Animation values for search bar
-  const opacity = useSharedValue(0.3);
-  const scale = useSharedValue(0.95);
-  
+  const [filterMenuVisible, setFilterMenuVisible] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
   // Get user's current location
-  const { location: userLocation, permissionGranted, requestPermission, refreshLocation } = useLocation({
+  const {
+    location: userLocation,
+    permissionGranted,
+    requestPermission,
+    refreshLocation,
+  } = useLocation({
     autoRequest: true,
     watchPosition: false, // Don't continuously watch, just get initial location
   });
-  
+
   // React Query hook - automatically handles caching and refetching
-  const { data: challenges = [], isLoading: loading, error, refetch } = useChallenges();
-  
+  const {
+    data: challenges = [],
+    isLoading: loading,
+    error,
+    refetch,
+  } = useChallenges();
+
   // Load facilities from CSV
   const { facilities = [], isLoading: facilitiesLoading } = useFacilities();
 
@@ -105,15 +141,19 @@ export default function MapsScreen() {
   }, [permissionGranted, requestPermission, refreshLocation]);
 
   // Filter for public challenges with valid coordinates
-  const publicChallenges = useMemo(() => challenges.filter(
-    (challenge: Challenge) =>
-      challenge.is_public &&
-      challenge.location &&
-      typeof challenge.location.latitude === 'number' &&
-      typeof challenge.location.longitude === 'number' &&
-      !isNaN(challenge.location.latitude) &&
-      !isNaN(challenge.location.longitude)
-  ), [challenges]);
+  const publicChallenges = useMemo(
+    () =>
+      challenges.filter(
+        (challenge: Challenge) =>
+          challenge.is_public &&
+          challenge.location &&
+          typeof challenge.location.latitude === 'number' &&
+          typeof challenge.location.longitude === 'number' &&
+          !isNaN(challenge.location.latitude) &&
+          !isNaN(challenge.location.longitude)
+      ),
+    [challenges]
+  );
 
   // Cluster challenges based on zoom level
   const { clusters, individualChallenges } = useMemo(() => {
@@ -129,7 +169,7 @@ export default function MapsScreen() {
   const { individualFacilities: individualFacs, groupedFacs } = useMemo(() => {
     const individual: Facility[] = [];
     const grouped: GroupedFacility[] = [];
-    
+
     groupedFacilities.forEach((f) => {
       if (isGroupedFacility(f)) {
         grouped.push(f);
@@ -137,7 +177,7 @@ export default function MapsScreen() {
         individual.push(f);
       }
     });
-    
+
     return { individualFacilities: individual, groupedFacs: grouped };
   }, [groupedFacilities]);
 
@@ -147,11 +187,21 @@ export default function MapsScreen() {
     return clusteringResult;
   }, [individualFacs, mapRegion]);
 
-  const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
-  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
-  const [cardPosition, setCardPosition] = useState<{ x: number; y: number } | null>(null);
-  const [selectedGroupedFacility, setSelectedGroupedFacility] = useState<GroupedFacility | null>(null);
-  const markerPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(
+    null
+  );
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(
+    null
+  );
+  const [cardPosition, setCardPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [selectedGroupedFacility, setSelectedGroupedFacility] =
+    useState<GroupedFacility | null>(null);
+  const markerPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const handleMarkerPress = (challengeId: number) => {
     // Clear any pending map press timeout
@@ -168,22 +218,27 @@ export default function MapsScreen() {
       setCardPosition(null);
     } else {
       // First click: show card overlay
-      const challenge = publicChallenges.find((c: Challenge) => c.id === challengeId);
+      const challenge = publicChallenges.find(
+        (c: Challenge) => c.id === challengeId
+      );
       if (challenge && mapRef.current) {
         // Convert marker coordinate to screen position
-        mapRef.current.pointForCoordinate({
-          latitude: challenge.location.latitude,
-          longitude: challenge.location.longitude,
-        }).then((point) => {
-          // Position card above marker (offset by marker height ~60px + some padding)
-          setCardPosition({
-            x: point.x - 140, // Center the card (card width is ~280px)
-            y: point.y - 70, // Position above marker
+        mapRef.current
+          .pointForCoordinate({
+            latitude: challenge.location.latitude,
+            longitude: challenge.location.longitude,
+          })
+          .then((point) => {
+            // Position card above marker
+            setCardPosition({
+              x: point.x - 140, // Center the card (card width is ~280px)
+              y: point.y - 95, // Position above marker
+            });
+          })
+          .catch(() => {
+            // Fallback to bottom if coordinate conversion fails
+            setCardPosition(null);
           });
-        }).catch(() => {
-          // Fallback to bottom if coordinate conversion fails
-          setCardPosition(null);
-        });
       }
       setSelectedChallengeId(challengeId);
       setSelectedChallenge(challenge || null);
@@ -207,8 +262,6 @@ export default function MapsScreen() {
       console.log('Facility pressed:', facility.id);
     }
   };
-
-  const mapRef = useRef<MapView>(null);
 
   const handleClusterPress = (cluster: Cluster) => {
     // Zoom in to show individual challenges
@@ -235,17 +288,20 @@ export default function MapsScreen() {
   const updateCardPosition = useCallback(() => {
     // Update card position if a challenge is selected
     if (selectedChallenge && mapRef.current) {
-      mapRef.current.pointForCoordinate({
-        latitude: selectedChallenge.location.latitude,
-        longitude: selectedChallenge.location.longitude,
-      }).then((point) => {
-        setCardPosition({
-          x: point.x - 140,
-          y: point.y - 70, // Match the offset used in handleMarkerPress
+      mapRef.current
+        .pointForCoordinate({
+          latitude: selectedChallenge.location.latitude,
+          longitude: selectedChallenge.location.longitude,
+        })
+        .then((point) => {
+          setCardPosition({
+            x: point.x - 140,
+            y: point.y - 95, // Match the offset used in handleMarkerPress
+          });
+        })
+        .catch(() => {
+          // Keep existing position if conversion fails
         });
-      }).catch(() => {
-        // Keep existing position if conversion fails
-      });
     }
   }, [selectedChallenge]);
 
@@ -263,7 +319,7 @@ export default function MapsScreen() {
   const handleMapPress = () => {
     // Blur the search input when map is tapped
     searchInputRef.current?.blur();
-    
+
     // Delay clearing selection to allow marker press to fire first
     markerPressTimeoutRef.current = setTimeout(() => {
       setSelectedChallengeId(null);
@@ -273,36 +329,32 @@ export default function MapsScreen() {
     }, 100);
   };
 
-  const handleSearchFocus = () => {
-    opacity.value = withSpring(1);
-    scale.value = withSpring(1);
-  };
-
-  const handleSearchBlur = () => {
-    opacity.value = withSpring(0.3);
-    scale.value = withSpring(0.95);
-  };
-
-  const animatedSearchStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-      transform: [{ scale: scale.value }],
-    };
-  });
-
   if (loading || facilitiesLoading) {
     return <LoadingScreen message="Loader challenges..." />;
   }
 
   if (error) {
-    return <ErrorScreen error={error instanceof Error ? error : new Error('Kunne ikke hente challenges')} />;
+    return (
+      <ErrorScreen
+        error={
+          error instanceof Error
+            ? error
+            : new Error('Kunne ikke hente challenges')
+        }
+      />
+    );
   }
 
   // Show fallback for web platform since react-native-maps doesn't fully support web
   if (Platform.OS === 'web') {
     return (
       <View className="flex-1 bg-[#171616]">
-        <TopActionBar title="Kort" showNotifications={false} showCalendar={false} showSettings={false} />
+        <TopActionBar
+          title="Kort"
+          showNotifications={false}
+          showCalendar={false}
+          showSettings={false}
+        />
         <View className="flex-1 items-center justify-center px-4">
           <Text className="text-white text-center text-lg mb-2">
             Kortet er ikke tilgængeligt på web
@@ -316,9 +368,14 @@ export default function MapsScreen() {
   }
 
   return (
-    <ScreenContainer className='pt-5'>
+    <ScreenContainer className="pt-5">
       {/* Top Action Bar */}
-      <TopActionBar title="Kort" showNotifications={false} showCalendar={false} showSettings={false} />
+      <TopActionBar
+        title="Kort"
+        showNotifications={false}
+        showCalendar={false}
+        showSettings={false}
+      />
 
       {/* View Toggle */}
       <TabNavigation
@@ -332,14 +389,20 @@ export default function MapsScreen() {
 
       {/* Map */}
       <MapView
-        ref={mapRef}
+        ref={(ref) => {
+          mapRef.current = ref ?? null;
+        }}
         style={styles.map}
-        initialRegion={userLocation ? {
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        } : DEFAULT_LOCATION}
+        initialRegion={
+          userLocation
+            ? {
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }
+            : DEFAULT_LOCATION
+        }
         region={mapRegion}
         showsUserLocation={permissionGranted}
         showsMyLocationButton={false}
@@ -406,9 +469,11 @@ export default function MapsScreen() {
       </MapView>
 
       {/* Semi-transparent Search Bar - positioned below toggle */}
-      <Animated.View 
-        className="absolute top-[100px] left-4 right-[60px] z-10"
-        style={animatedSearchStyle}
+      <View
+        className="absolute top-[75px] left-4 right-[68px] z-10"
+        style={{
+          opacity: isSearchFocused ? 1 : 0.3,
+        }}
       >
         <View className="flex-row items-center bg-[#272626]/90 rounded-xl px-3 py-2.5 border border-[#575757]/50">
           <View className="mr-2">
@@ -420,9 +485,10 @@ export default function MapsScreen() {
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            onFocus={handleSearchFocus}
-            onBlur={handleSearchBlur}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
             className="flex-1 text-white text-base p-0"
+            style={{ textAlignVertical: 'center' }}
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery('')} className="ml-2 p-1">
@@ -430,7 +496,24 @@ export default function MapsScreen() {
             </Pressable>
           )}
         </View>
-      </Animated.View>
+      </View>
+
+      {/* Filter Button */}
+      <Pressable
+        onPress={() => setFilterMenuVisible(!filterMenuVisible)}
+        className="absolute top-[75px] right-4 z-10 bg-[#1E1E1E] rounded-xl p-2.5 border"
+      >
+        <Ionicons name="ellipsis-horizontal" size={20} color="#9CA3AF" />
+      </Pressable>
+
+      {/* Filter Menu */}
+      <FilterMenu
+        visible={filterMenuVisible}
+        onClose={() => setFilterMenuVisible(false)}
+        onResetFilters={() => {
+          setSearchQuery('');
+        }}
+      />
 
       {/* Center on Location Button */}
       <Pressable
@@ -438,19 +521,22 @@ export default function MapsScreen() {
         className="absolute bottom-8 right-4 z-10 bg-[#272626]/90 rounded-full p-3 border border-[#575757]/50 shadow-lg"
         style={styles.locationButton}
       >
-        <Ionicons 
-          name={permissionGranted ? "locate" : "location-outline"} 
-          size={24} 
-          color={permissionGranted ? "#3B82F6" : "#9CA3AF"} 
+        <Ionicons
+          name={permissionGranted ? 'locate' : 'location-outline'}
+          size={24}
+          color={permissionGranted ? '#3B82F6' : '#9CA3AF'}
         />
       </Pressable>
 
       {/* Mini Challenge Card Overlay - shown when marker is selected */}
       {selectedChallenge && cardPosition && cardPosition.y > 80 && (
-        <View 
+        <View
           className="absolute"
           style={{
-            left: Math.max(10, Math.min(cardPosition.x, Dimensions.get('window').width - 250)),
+            left: Math.max(
+              10,
+              Math.min(cardPosition.x, Dimensions.get('window').width - 250)
+            ),
             top: cardPosition.y,
             zIndex: 1, // Lower than TopActionBar (100) and searchBar (10)
           }}
@@ -458,7 +544,10 @@ export default function MapsScreen() {
           <MiniChallengeCard
             challenge={selectedChallenge}
             joinedParticipants={selectedChallenge.users?.length || 0}
-            totalParticipants={selectedChallenge.team_size * (selectedChallenge.teams?.length || 2)}
+            totalParticipants={
+              selectedChallenge.team_size *
+              (selectedChallenge.teams?.length || 2)
+            }
             onPress={handleCardPress}
           />
         </View>
@@ -491,4 +580,3 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 });
-

@@ -17,10 +17,7 @@ export const UserCard = ({ user, onPress, rightAction }: UserCardProps) => {
       className="flex-row items-center justify-between py-3"
     >
       <View className="flex-row items-center gap-4">
-        <Avatar
-          uri={user.profile_picture}
-          size={48}
-        />
+        <Avatar uri={user.profile_picture} size={48} />
         <View>
           <Text className="text-text text-base font-medium">
             {user.first_name} {user.last_name || ''}

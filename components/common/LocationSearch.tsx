@@ -1,13 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFacilities } from '../../hooks/useFacilities';
 import { useLocation } from '../../hooks/useLocation';
 import type { Facility } from '../../types/facility';
 import type { Location } from '../../types/location';
-import { formatLocationResult, reverseGeocode, searchLocation, tomTomResultToLocation, type TomTomSearchResult } from '../../utils/tomtom';
+import {
+  formatLocationResult,
+  reverseGeocode,
+  searchLocation,
+  tomTomResultToLocation,
+  type TomTomSearchResult,
+} from '../../utils/tomtom';
 
 interface LocationSearchProps {
   value: Location | null;
@@ -18,7 +35,7 @@ interface LocationSearchProps {
   onResultsChange?: (hasResults: boolean) => void;
 }
 
-type SearchResult = 
+type SearchResult =
   | { type: 'facility'; facility: Facility }
   | { type: 'tomtom'; result: TomTomSearchResult };
 
@@ -36,7 +53,10 @@ export const LocationSearch = ({
   const [isWaiting, setIsWaiting] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const [mapPinLocation, setMapPinLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mapPinLocation, setMapPinLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
   const { facilities } = useFacilities();
   const { location: userLocation } = useLocation({ autoRequest: false });
@@ -62,10 +82,16 @@ export const LocationSearch = ({
     return facilities
       .filter((facility) => {
         const nameMatch = facility.name.toLowerCase().includes(query);
-        const detailedNameMatch = facility.detailedName?.toLowerCase().includes(query);
+        const detailedNameMatch = facility.detailedName
+          ?.toLowerCase()
+          .includes(query);
         const addressMatch = facility.address.toLowerCase().includes(query);
-        const facilityTypeMatch = facility.facilityType.toLowerCase().includes(query);
-        return nameMatch || detailedNameMatch || addressMatch || facilityTypeMatch;
+        const facilityTypeMatch = facility.facilityType
+          .toLowerCase()
+          .includes(query);
+        return (
+          nameMatch || detailedNameMatch || addressMatch || facilityTypeMatch
+        );
       })
       .slice(0, 10); // Limit to 10 facilities
   }, [searchQuery, facilities]);
@@ -86,10 +112,12 @@ export const LocationSearch = ({
     setShowResults(true);
 
     // Show facility results immediately (they're already filtered)
-    const facilitySearchResults: SearchResult[] = facilityResults.map((facility) => ({
-      type: 'facility',
-      facility,
-    }));
+    const facilitySearchResults: SearchResult[] = facilityResults.map(
+      (facility) => ({
+        type: 'facility',
+        facility,
+      })
+    );
     setSearchResults(facilitySearchResults);
     onResultsChange?.(facilitySearchResults.length > 0);
 
@@ -97,21 +125,26 @@ export const LocationSearch = ({
       // After 2 seconds of no typing, actually make the TomTom API call
       setIsWaiting(false);
       setIsSearching(true);
-      
+
       try {
         // Search with Denmark as default country set (can be made configurable)
         const response = await searchLocation(searchQuery, {
           limit: 10,
           countrySet: 'DK', // Focus on Denmark, can be expanded to 'DK,SE,NO' for Nordic countries
         });
-        
+
         // Combine facility results (first priority) with TomTom results (second priority)
-        const tomTomSearchResults: SearchResult[] = response.results.map((result) => ({
-          type: 'tomtom',
-          result,
-        }));
-        
-        const combinedResults = [...facilitySearchResults, ...tomTomSearchResults];
+        const tomTomSearchResults: SearchResult[] = response.results.map(
+          (result) => ({
+            type: 'tomtom',
+            result,
+          })
+        );
+
+        const combinedResults = [
+          ...facilitySearchResults,
+          ...tomTomSearchResults,
+        ];
         setSearchResults(combinedResults);
         setShowResults(true);
         onResultsChange?.(combinedResults.length > 0);
@@ -138,7 +171,7 @@ export const LocationSearch = ({
 
     if (result.type === 'facility') {
       location = result.facility.location;
-      formattedLocation = result.facility.detailedName 
+      formattedLocation = result.facility.detailedName
         ? `${result.facility.name} - ${result.facility.detailedName}`
         : result.facility.name;
     } else {
@@ -178,9 +211,15 @@ export const LocationSearch = ({
   const handleMapPickerOpen = () => {
     // Initialize map with current location or selected location
     if (value) {
-      setMapPinLocation({ latitude: value.latitude, longitude: value.longitude });
+      setMapPinLocation({
+        latitude: value.latitude,
+        longitude: value.longitude,
+      });
     } else if (userLocation) {
-      setMapPinLocation({ latitude: userLocation.latitude, longitude: userLocation.longitude });
+      setMapPinLocation({
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+      });
     } else {
       // Default to Copenhagen
       setMapPinLocation({ latitude: 55.6761, longitude: 12.5683 });
@@ -188,7 +227,9 @@ export const LocationSearch = ({
     setShowMapPicker(true);
   };
 
-  const handleMapPress = (event: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+  const handleMapPress = (event: {
+    nativeEvent: { coordinate: { latitude: number; longitude: number } };
+  }) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
     setMapPinLocation({ latitude, longitude });
   };
@@ -198,7 +239,10 @@ export const LocationSearch = ({
 
     setIsReverseGeocoding(true);
     try {
-      const location = await reverseGeocode(mapPinLocation.latitude, mapPinLocation.longitude);
+      const location = await reverseGeocode(
+        mapPinLocation.latitude,
+        mapPinLocation.longitude
+      );
       setSearchQuery(location.address);
       onLocationSelect(location);
       setShowMapPicker(false);
@@ -235,7 +279,9 @@ export const LocationSearch = ({
         <View className="py-8 items-center">
           <ActivityIndicator size="small" color="#ffffff" />
           <Text className="text-[#9CA3AF] text-sm mt-2">
-            {isWaiting ? 'Venter på at du stopper med at skrive...' : 'Søger...'}
+            {isWaiting
+              ? 'Venter på at du stopper med at skrive...'
+              : 'Søger...'}
           </Text>
         </View>
       );
@@ -255,7 +301,9 @@ export const LocationSearch = ({
       return (
         <FlatList
           data={searchResults}
-          keyExtractor={(item) => item.type === 'facility' ? item.facility.id : item.result.id}
+          keyExtractor={(item) =>
+            item.type === 'facility' ? item.facility.id : item.result.id
+          }
           renderItem={({ item }) => {
             if (item.type === 'facility') {
               return (
@@ -267,7 +315,7 @@ export const LocationSearch = ({
                     <Ionicons name="location" size={16} color="#3B82F6" />
                     <View className="flex-1">
                       <Text className="text-white text-base font-medium">
-                        {item.facility.detailedName 
+                        {item.facility.detailedName
                           ? `${item.facility.name} - ${item.facility.detailedName}`
                           : item.facility.name}
                       </Text>
@@ -295,7 +343,8 @@ export const LocationSearch = ({
                   {item.result.address.municipality && (
                     <Text className="text-[#9CA3AF] text-sm mt-1">
                       {item.result.address.municipality}
-                      {item.result.address.postalCode && `, ${item.result.address.postalCode}`}
+                      {item.result.address.postalCode &&
+                        `, ${item.result.address.postalCode}`}
                     </Text>
                   )}
                 </Pressable>
@@ -363,19 +412,39 @@ export const LocationSearch = ({
           onRequestClose={() => setShowMapPicker(false)}
         >
           <View className="flex-1 bg-black/50 justify-end">
-            <Pressable className="absolute inset-0" onPress={() => setShowMapPicker(false)} />
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'position' : 'height'} keyboardVerticalOffset={0}>
-              <View className="bg-background rounded-t-3xl" style={{ maxHeight: Dimensions.get('window').height * 0.9, minHeight: Dimensions.get('window').height * 0.7, paddingBottom: insets.bottom }}>
+            <Pressable
+              className="absolute inset-0"
+              onPress={() => setShowMapPicker(false)}
+            />
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+              keyboardVerticalOffset={0}
+            >
+              <View
+                className="bg-background rounded-t-3xl"
+                style={{
+                  maxHeight: Dimensions.get('window').height * 0.9,
+                  minHeight: Dimensions.get('window').height * 0.7,
+                  paddingBottom: insets.bottom,
+                }}
+              >
                 <View className="flex-row items-center justify-between px-6 py-4 border-b border-surface">
                   <Pressable onPress={() => setShowMapPicker(false)}>
                     <Text className="text-text text-base">Annuller</Text>
                   </Pressable>
-                  <Text className="text-text text-lg font-bold">Vælg lokation på kort</Text>
-                  <Pressable onPress={handleMapPickerConfirm} disabled={!mapPinLocation || isReverseGeocoding}>
+                  <Text className="text-text text-lg font-bold">
+                    Vælg lokation på kort
+                  </Text>
+                  <Pressable
+                    onPress={handleMapPickerConfirm}
+                    disabled={!mapPinLocation || isReverseGeocoding}
+                  >
                     {isReverseGeocoding ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                      <Text className={`text-text text-base font-medium ${!mapPinLocation ? 'opacity-50' : ''}`}>
+                      <Text
+                        className={`text-text text-base font-medium ${!mapPinLocation ? 'opacity-50' : ''}`}
+                      >
                         Færdig
                       </Text>
                     )}
@@ -400,7 +469,9 @@ export const LocationSearch = ({
                       <Marker
                         coordinate={mapPinLocation}
                         draggable
-                        onDragEnd={(e) => setMapPinLocation(e.nativeEvent.coordinate)}
+                        onDragEnd={(e) =>
+                          setMapPinLocation(e.nativeEvent.coordinate)
+                        }
                       />
                     </MapView>
                   )}
@@ -454,76 +525,79 @@ export const LocationSearch = ({
           </Pressable>
         </View>
 
-      {/* Search Results Dropdown */}
-      {showResults && searchQuery.length >= 2 && searchResults.length > 0 && (
-        <View className="absolute top-full left-0 right-0 mt-1 bg-[#272626] rounded-lg border border-[#575757] max-h-64 z-50">
-          <FlatList
-            data={searchResults}
-            keyExtractor={(item) => item.type === 'facility' ? item.facility.id : item.result.id}
-            renderItem={({ item }) => {
-              if (item.type === 'facility') {
-                return (
-                  <Pressable
-                    onPress={() => handleSelectResult(item)}
-                    className="px-4 py-3 border-b border-[#575757] active:bg-[#171616]"
-                  >
-                    <View className="flex-row items-center gap-2">
-                      <Ionicons name="location" size={16} color="#3B82F6" />
-                      <View className="flex-1">
-                        <Text className="text-white text-base font-medium">
-                          {item.facility.detailedName 
-                            ? `${item.facility.name} - ${item.facility.detailedName}`
-                            : item.facility.name}
-                        </Text>
-                        <Text className="text-[#9CA3AF] text-sm mt-1">
-                          {item.facility.address}
-                        </Text>
-                        {item.facility.facilityType && (
-                          <Text className="text-[#3B82F6] text-xs mt-1">
-                            {item.facility.facilityType}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  </Pressable>
-                );
-              } else {
-                return (
-                  <Pressable
-                    onPress={() => handleSelectResult(item)}
-                    className="px-4 py-3 border-b border-[#575757] active:bg-[#171616]"
-                  >
-                    <Text className="text-white text-base font-medium">
-                      {formatLocationResult(item.result)}
-                    </Text>
-                    {item.result.address.municipality && (
-                      <Text className="text-[#9CA3AF] text-sm mt-1">
-                        {item.result.address.municipality}
-                        {item.result.address.postalCode && `, ${item.result.address.postalCode}`}
-                      </Text>
-                    )}
-                  </Pressable>
-                );
+        {/* Search Results Dropdown */}
+        {showResults && searchQuery.length >= 2 && searchResults.length > 0 && (
+          <View className="absolute top-full left-0 right-0 mt-1 bg-[#272626] rounded-lg border border-[#575757] max-h-64 z-50">
+            <FlatList
+              data={searchResults}
+              keyExtractor={(item) =>
+                item.type === 'facility' ? item.facility.id : item.result.id
               }
-            }}
-            keyboardShouldPersistTaps="handled"
-            nestedScrollEnabled
-          />
-        </View>
-      )}
+              renderItem={({ item }) => {
+                if (item.type === 'facility') {
+                  return (
+                    <Pressable
+                      onPress={() => handleSelectResult(item)}
+                      className="px-4 py-3 border-b border-[#575757] active:bg-[#171616]"
+                    >
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons name="location" size={16} color="#3B82F6" />
+                        <View className="flex-1">
+                          <Text className="text-white text-base font-medium">
+                            {item.facility.detailedName
+                              ? `${item.facility.name} - ${item.facility.detailedName}`
+                              : item.facility.name}
+                          </Text>
+                          <Text className="text-[#9CA3AF] text-sm mt-1">
+                            {item.facility.address}
+                          </Text>
+                          {item.facility.facilityType && (
+                            <Text className="text-[#3B82F6] text-xs mt-1">
+                              {item.facility.facilityType}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+                    </Pressable>
+                  );
+                } else {
+                  return (
+                    <Pressable
+                      onPress={() => handleSelectResult(item)}
+                      className="px-4 py-3 border-b border-[#575757] active:bg-[#171616]"
+                    >
+                      <Text className="text-white text-base font-medium">
+                        {formatLocationResult(item.result)}
+                      </Text>
+                      {item.result.address.municipality && (
+                        <Text className="text-[#9CA3AF] text-sm mt-1">
+                          {item.result.address.municipality}
+                          {item.result.address.postalCode &&
+                            `, ${item.result.address.postalCode}`}
+                        </Text>
+                      )}
+                    </Pressable>
+                  );
+                }
+              }}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+            />
+          </View>
+        )}
 
-      {/* No Results Message */}
-      {showResults && 
-       searchQuery.length >= 2 && 
-       !isSearching && 
-       searchResults.length === 0 && 
-       searchQuery.trim().length > 0 && (
-        <View className="absolute top-full left-0 right-0 mt-1 bg-[#272626] rounded-lg border border-[#575757] p-4 z-50">
-          <Text className="text-[#9CA3AF] text-center">
-            Ingen resultater fundet
-          </Text>
-        </View>
-      )}
+        {/* No Results Message */}
+        {showResults &&
+          searchQuery.length >= 2 &&
+          !isSearching &&
+          searchResults.length === 0 &&
+          searchQuery.trim().length > 0 && (
+            <View className="absolute top-full left-0 right-0 mt-1 bg-[#272626] rounded-lg border border-[#575757] p-4 z-50">
+              <Text className="text-[#9CA3AF] text-center">
+                Ingen resultater fundet
+              </Text>
+            </View>
+          )}
       </View>
       {/* Map Picker Modal */}
       <Modal
@@ -533,19 +607,39 @@ export const LocationSearch = ({
         onRequestClose={() => setShowMapPicker(false)}
       >
         <View className="flex-1 bg-black/50 justify-end">
-          <Pressable className="absolute inset-0" onPress={() => setShowMapPicker(false)} />
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'position' : 'height'} keyboardVerticalOffset={0}>
-            <View className="bg-background rounded-t-3xl" style={{ maxHeight: Dimensions.get('window').height * 0.9, minHeight: Dimensions.get('window').height * 0.7, paddingBottom: insets.bottom }}>
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setShowMapPicker(false)}
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+            keyboardVerticalOffset={0}
+          >
+            <View
+              className="bg-background rounded-t-3xl"
+              style={{
+                maxHeight: Dimensions.get('window').height * 0.9,
+                minHeight: Dimensions.get('window').height * 0.7,
+                paddingBottom: insets.bottom,
+              }}
+            >
               <View className="flex-row items-center justify-between px-6 py-4 border-b border-surface">
                 <Pressable onPress={() => setShowMapPicker(false)}>
                   <Text className="text-text text-base">Annuller</Text>
                 </Pressable>
-                <Text className="text-text text-lg font-bold">Vælg lokation på kort</Text>
-                <Pressable onPress={handleMapPickerConfirm} disabled={!mapPinLocation || isReverseGeocoding}>
+                <Text className="text-text text-lg font-bold">
+                  Vælg lokation på kort
+                </Text>
+                <Pressable
+                  onPress={handleMapPickerConfirm}
+                  disabled={!mapPinLocation || isReverseGeocoding}
+                >
                   {isReverseGeocoding ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
-                    <Text className={`text-text text-base font-medium ${!mapPinLocation ? 'opacity-50' : ''}`}>
+                    <Text
+                      className={`text-text text-base font-medium ${!mapPinLocation ? 'opacity-50' : ''}`}
+                    >
                       Færdig
                     </Text>
                   )}
@@ -570,7 +664,9 @@ export const LocationSearch = ({
                     <Marker
                       coordinate={mapPinLocation}
                       draggable
-                      onDragEnd={(e) => setMapPinLocation(e.nativeEvent.coordinate)}
+                      onDragEnd={(e) =>
+                        setMapPinLocation(e.nativeEvent.coordinate)
+                      }
                     />
                   </MapView>
                 )}
@@ -582,4 +678,3 @@ export const LocationSearch = ({
     </>
   );
 };
-

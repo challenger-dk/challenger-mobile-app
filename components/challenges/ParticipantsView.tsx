@@ -7,7 +7,11 @@ export interface ViewProps {
   totalParticipants: number;
 }
 
-export const ParticipantsView = ({ challenge, joinedParticipants, totalParticipants }: ViewProps) => {
+export const ParticipantsView = ({
+  challenge,
+  joinedParticipants,
+  totalParticipants,
+}: ViewProps) => {
   // Calculate empty spots
   const emptySpots = totalParticipants - joinedParticipants;
 
@@ -24,10 +28,15 @@ export const ParticipantsView = ({ challenge, joinedParticipants, totalParticipa
       isEmpty: true,
     })),
   ];
-  
+
   // Split into two columns
-  const leftColumn = participantList.slice(0, Math.ceil(participantList.length / 2));
-  const rightColumn = participantList.slice(Math.ceil(participantList.length / 2));
+  const leftColumn = participantList.slice(
+    0,
+    Math.ceil(participantList.length / 2)
+  );
+  const rightColumn = participantList.slice(
+    Math.ceil(participantList.length / 2)
+  );
 
   return (
     <View className="flex-1 justify-center">
@@ -36,7 +45,10 @@ export const ParticipantsView = ({ challenge, joinedParticipants, totalParticipa
           <View className="flex-col">
             {leftColumn.map((item) => (
               <View key={item.id} className="mb-1">
-                <Text className={`text-sm ${item.isEmpty ? 'text-gray-500' : 'text-white'}`} numberOfLines={1}>
+                <Text
+                  className={`text-sm ${item.isEmpty ? 'text-gray-500' : 'text-white'}`}
+                  numberOfLines={1}
+                >
                   {item.name}
                 </Text>
               </View>
@@ -47,7 +59,10 @@ export const ParticipantsView = ({ challenge, joinedParticipants, totalParticipa
           <View className="flex-col">
             {rightColumn.map((item) => (
               <View key={item.id} className="mb-1">
-                <Text className={`text-sm ${item.isEmpty ? 'text-gray-500' : 'text-white'}`} numberOfLines={1}>
+                <Text
+                  className={`text-sm ${item.isEmpty ? 'text-gray-500' : 'text-white'}`}
+                  numberOfLines={1}
+                >
                   {item.name}
                 </Text>
               </View>
@@ -58,4 +73,3 @@ export const ParticipantsView = ({ challenge, joinedParticipants, totalParticipa
     </View>
   );
 };
-

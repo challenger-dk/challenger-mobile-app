@@ -16,8 +16,10 @@ export default {
       buildNumber: '1.0.0',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
-        NSLocationWhenInUseUsageDescription: 'This app needs access to your location to show your position on the map and help you find nearby challenges and facilities.',
-        NSLocationAlwaysAndWhenInUseUsageDescription: 'This app needs access to your location to show your position on the map and help you find nearby challenges and facilities.',
+        NSLocationWhenInUseUsageDescription:
+          'This app needs access to your location to show your position on the map and help you find nearby challenges and facilities.',
+        NSLocationAlwaysAndWhenInUseUsageDescription:
+          'This app needs access to your location to show your position on the map and help you find nearby challenges and facilities.',
       },
     },
     android: {
@@ -31,10 +33,7 @@ export default {
       predictiveBackGestureEnabled: false,
       package: 'com.daniellorenzen.challenger',
       versionCode: 1,
-      permissions: [
-        'ACCESS_FINE_LOCATION',
-        'ACCESS_COARSE_LOCATION',
-      ],
+      permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
       config: {
         googleMaps: {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -69,7 +68,8 @@ export default {
       [
         'expo-location',
         {
-          locationWhenInUsePermission: 'This app needs access to your location to show your position on the map and help you find nearby challenges and facilities.',
+          locationWhenInUsePermission:
+            'This app needs access to your location to show your position on the map and help you find nearby challenges and facilities.',
         },
       ],
     ],
@@ -88,4 +88,3 @@ export default {
     },
   },
 };
-

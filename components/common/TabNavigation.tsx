@@ -11,7 +11,11 @@ interface TabNavigationProps {
   onTabChange: (tabKey: string) => void;
 }
 
-export const TabNavigation = ({ tabs, activeTab, onTabChange }: TabNavigationProps) => {
+export const TabNavigation = ({
+  tabs,
+  activeTab,
+  onTabChange,
+}: TabNavigationProps) => {
   return (
     <View className="flex-row border-b border-[#272626]">
       {tabs.map((tab) => (
@@ -20,7 +24,9 @@ export const TabNavigation = ({ tabs, activeTab, onTabChange }: TabNavigationPro
           onPress={() => onTabChange(tab.key)}
           className="flex-1 py-3"
         >
-          <Text className={`text-white text-center ${activeTab === tab.key ? 'font-medium' : ''}`}>
+          <Text
+            className={`text-white text-center ${activeTab === tab.key ? 'font-medium' : ''}`}
+          >
             {tab.label}
           </Text>
           {activeTab === tab.key && (
@@ -31,4 +37,3 @@ export const TabNavigation = ({ tabs, activeTab, onTabChange }: TabNavigationPro
     </View>
   );
 };
-

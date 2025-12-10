@@ -7,15 +7,22 @@ interface SearchInputProps extends TextInputProps {
 }
 
 export const SearchInput = ({
-                              value,
-                              onChangeText,
-                              onClear,
-                              containerClassName = '',
-                              placeholderTextColor = "#9CA3AF",
-                              ...props
-                            }: SearchInputProps) => (
-  <View className={`flex-row items-center bg-surface rounded-lg px-3 border border-text-disabled ${containerClassName}`}>
-    <Ionicons name="search" size={20} color={placeholderTextColor as string} style={{ marginRight: 8 }} />
+  value,
+  onChangeText,
+  onClear,
+  containerClassName = '',
+  placeholderTextColor = '#9CA3AF',
+  ...props
+}: SearchInputProps) => (
+  <View
+    className={`flex-row items-center bg-surface rounded-lg px-3 border border-text-disabled ${containerClassName}`}
+  >
+    <Ionicons
+      name="search"
+      size={20}
+      color={placeholderTextColor as string}
+      style={{ marginRight: 8 }}
+    />
     <TextInput
       value={value}
       onChangeText={onChangeText}
@@ -26,7 +33,11 @@ export const SearchInput = ({
     />
     {value && value.length > 0 ? (
       <Pressable onPress={onClear}>
-        <Ionicons name="close-circle" size={20} color={placeholderTextColor as string} />
+        <Ionicons
+          name="close-circle"
+          size={20}
+          color={placeholderTextColor as string}
+        />
       </Pressable>
     ) : null}
   </View>

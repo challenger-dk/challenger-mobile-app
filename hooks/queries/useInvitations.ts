@@ -50,7 +50,9 @@ export const useSendInvitation = () => {
       showSuccessToast('Invitationen er sendt!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved afsendelse af invitationen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved afsendelse af invitationen'
+      );
     },
   });
 };
@@ -76,7 +78,9 @@ export const useAcceptInvitation = () => {
       showSuccessToast('Invitationen er accepteret!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved accept af invitationen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved accept af invitationen'
+      );
     },
   });
 };
@@ -96,7 +100,9 @@ export const useDeclineInvitation = () => {
       showSuccessToast('Invitationen er afvist');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved afvisning af invitationen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved afvisning af invitationen'
+      );
     },
   });
 };

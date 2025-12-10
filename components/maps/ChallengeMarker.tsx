@@ -1,4 +1,8 @@
-import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from '@expo/vector-icons';
 import { View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import type { Challenge } from '../../types/challenge';
@@ -10,19 +14,37 @@ interface ChallengeMarkerProps {
   selectedChallengeId?: number | null;
 }
 
-export const ChallengeMarker = ({ challenge, onPress, selectedChallengeId }: ChallengeMarkerProps) => {
+export const ChallengeMarker = ({
+  challenge,
+  onPress,
+  selectedChallengeId,
+}: ChallengeMarkerProps) => {
   const iconConfig = getSportIcon(challenge.sport);
   const isSelected = selectedChallengeId === challenge.id;
 
   const renderIcon = () => {
     switch (iconConfig.library) {
       case 'material':
-        return <MaterialIcons name={iconConfig.name as any} size={20} color="#FFFFFF" />;
+        return (
+          <MaterialIcons
+            name={iconConfig.name as any}
+            size={20}
+            color="#FFFFFF"
+          />
+        );
       case 'material-community':
-        return <MaterialCommunityIcons name={iconConfig.name as any} size={20} color="#FFFFFF" />;
+        return (
+          <MaterialCommunityIcons
+            name={iconConfig.name as any}
+            size={20}
+            color="#FFFFFF"
+          />
+        );
       case 'ionicons':
       default:
-        return <Ionicons name={iconConfig.name as any} size={20} color="#FFFFFF" />;
+        return (
+          <Ionicons name={iconConfig.name as any} size={20} color="#FFFFFF" />
+        );
     }
   };
 
@@ -59,7 +81,9 @@ export const ChallengeMarker = ({ challenge, onPress, selectedChallengeId }: Cha
       tracksViewChanges={false}
     >
       <View className="items-center z-20" pointerEvents="none">
-        <View className={`w-10 h-10 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-[#262626]'} items-center justify-center shadow-lg`}>
+        <View
+          className={`w-10 h-10 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-[#262626]'} items-center justify-center shadow-lg`}
+        >
           {renderIcon()}
         </View>
         <View
@@ -79,4 +103,3 @@ export const ChallengeMarker = ({ challenge, onPress, selectedChallengeId }: Cha
     </Marker>
   );
 };
-

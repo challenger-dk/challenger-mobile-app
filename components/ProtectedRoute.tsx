@@ -17,7 +17,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, [checkAuth]);
 
   useEffect(() => {
-    if (!isAuthenticated && segments[0] === '(auth)' as any) {
+    if (!isAuthenticated && segments[0] === ('(auth)' as any)) {
       router.replace('/(auth)/login' as any);
     }
   }, [isAuthenticated, segments, router]);
@@ -33,4 +33,3 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   return <>{children}</>;
 };
-

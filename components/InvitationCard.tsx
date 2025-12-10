@@ -11,7 +11,10 @@ interface InvitationCardProps {
   onInvitationHandled: () => void;
 }
 
-export function InvitationCard({ invitation, onInvitationHandled }: InvitationCardProps) {
+export function InvitationCard({
+  invitation,
+  onInvitationHandled,
+}: InvitationCardProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAccept = async () => {
@@ -54,7 +57,9 @@ export function InvitationCard({ invitation, onInvitationHandled }: InvitationCa
       </View>
 
       {invitation.note && (
-        <Text className="text-gray-300 text-sm mb-4 ml-13">&quot;{invitation.note}&quot;</Text>
+        <Text className="text-gray-300 text-sm mb-4 ml-13">
+          &quot;{invitation.note}&quot;
+        </Text>
       )}
 
       <View className="flex-row gap-3">

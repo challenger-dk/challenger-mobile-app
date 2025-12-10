@@ -1,10 +1,12 @@
 import { authenticatedFetch, getApiUrl } from '@/utils/api';
-import { CreateInvitation } from "@/types/invitation";
+import { CreateInvitation } from '@/types/invitation';
 
 const type: string = 'invitations';
 
 export const getInvitationsByUser = async (userId: number | string) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/user/${userId}`));
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/user/${userId}`)
+  );
   return response.json();
 };
 
@@ -32,12 +34,15 @@ export const SendInvitation = async (inv: CreateInvitation) => {
 };
 
 export const acceptInvitation = async (invId: number) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/${invId}/accept`), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/${invId}/accept`),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
-  });
+  );
 
   if (response.ok) {
     return;
@@ -49,12 +54,15 @@ export const acceptInvitation = async (invId: number) => {
 };
 
 export const declineInvitation = async (invId: number) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/${invId}/decline`), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/${invId}/decline`),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
-  });
+  );
 
   if (response.ok) {
     return;

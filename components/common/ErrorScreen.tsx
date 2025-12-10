@@ -14,4 +14,3 @@ export const ErrorScreen = ({ error, message }: ErrorScreenProps) => {
     </View>
   );
 };
-

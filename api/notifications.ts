@@ -23,16 +23,21 @@ export const getNotifications = async (filters?: NotificationFilters) => {
   }
 
   const queryString = params.toString();
-  const endpoint = queryString ? `/notifications?${queryString}` : '/notifications';
+  const endpoint = queryString
+    ? `/notifications?${queryString}`
+    : '/notifications';
 
   const response = await authenticatedFetch(getApiUrl(endpoint));
   return response.json() as Promise<Notification[]>;
 };
 
 export const markRead = async (id: number) => {
-  const response = await authenticatedFetch(getApiUrl(`/notifications/${id}/read`), {
-    method: 'PUT',
-  });
+  const response = await authenticatedFetch(
+    getApiUrl(`/notifications/${id}/read`),
+    {
+      method: 'PUT',
+    }
+  );
 
   if (!response.ok) {
     throw new Error('Failed to mark notification as read');
@@ -40,9 +45,12 @@ export const markRead = async (id: number) => {
 };
 
 export const markAllRead = async () => {
-  const response = await authenticatedFetch(getApiUrl('/notifications/read-all'), {
-    method: 'PUT',
-  });
+  const response = await authenticatedFetch(
+    getApiUrl('/notifications/read-all'),
+    {
+      method: 'PUT',
+    }
+  );
 
   if (!response.ok) {
     throw new Error('Failed to mark all as read');

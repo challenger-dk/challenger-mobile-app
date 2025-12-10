@@ -25,8 +25,8 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
       label: 'Rapporter besked',
       icon: 'flag-outline',
       onPress: () => setReportVisible(true),
-      variant: 'destructive'
-    }
+      variant: 'destructive',
+    },
   ];
 
   return (
@@ -38,7 +38,9 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
         targetType="MESSAGE"
       />
 
-      <View className={`flex-row mb-4 ${isMe ? 'justify-end' : 'justify-start'}`}>
+      <View
+        className={`flex-row mb-4 ${isMe ? 'justify-end' : 'justify-start'}`}
+      >
         {!isMe && (
           <View className="mr-2 justify-end">
             <Avatar

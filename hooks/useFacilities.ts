@@ -6,8 +6,8 @@ import type { Facility } from '../types/facility';
 const facilitiesData = (facilitiesDataRaw as any).default || facilitiesDataRaw;
 
 // Ensure we have an array
-const allFacilities: Facility[] = Array.isArray(facilitiesData) 
-  ? (facilitiesData as Facility[]) 
+const allFacilities: Facility[] = Array.isArray(facilitiesData)
+  ? (facilitiesData as Facility[])
   : [];
 
 export function useFacilities() {
@@ -30,4 +30,3 @@ export function useFacilities() {
     refetch: () => Promise.resolve(), // No-op for static data
   };
 }
-

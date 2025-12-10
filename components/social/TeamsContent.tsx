@@ -11,7 +11,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 export function TeamsContent() {
   const router = useRouter();
@@ -44,17 +51,25 @@ export function TeamsContent() {
   const { myTeams, otherTeams, invitations } = useMemo(() => {
     if (!user) return { myTeams: [], otherTeams: [], invitations: [] };
 
-    const isCurrentUser = (id: string | number) => String(id) === String(user.id);
+    const isCurrentUser = (id: string | number) =>
+      String(id) === String(user.id);
 
-    const validUserTeams = userTeams.filter((t: Team) =>
-      (t.creator && isCurrentUser(t.creator.id)) || (t.users && t.users.some(u => isCurrentUser(u.id)))
+    const validUserTeams = userTeams.filter(
+      (t: Team) =>
+        (t.creator && isCurrentUser(t.creator.id)) ||
+        (t.users && t.users.some((u) => isCurrentUser(u.id)))
     );
 
-    const createdTeams = validUserTeams.filter((t: Team) => t.creator && isCurrentUser(t.creator.id));
-    const memberTeams = validUserTeams.filter((t: Team) => t.creator && !isCurrentUser(t.creator.id));
+    const createdTeams = validUserTeams.filter(
+      (t: Team) => t.creator && isCurrentUser(t.creator.id)
+    );
+    const memberTeams = validUserTeams.filter(
+      (t: Team) => t.creator && !isCurrentUser(t.creator.id)
+    );
 
     const pendingTeamInvitations = userInvitations.filter(
-      (inv: Invitation) => inv.resource_type === 'team' && inv.status === 'pending'
+      (inv: Invitation) =>
+        inv.resource_type === 'team' && inv.status === 'pending'
     );
 
     return {
@@ -86,7 +101,13 @@ export function TeamsContent() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#fff"
+        />
+      }
     >
       <View className="px-6 py-4">
         <View className="flex-row items-center gap-3 mb-5">
@@ -123,20 +144,34 @@ export function TeamsContent() {
         <View className="mb-6">
           <Text className="text-text-muted text-sm mb-3">Mine hold</Text>
           {filterTeams(myTeams).map((team) => (
-            <TeamCard key={team.id} team={team} onPress={(id) => router.push(`/teams/${id}` as any)} />
+            <TeamCard
+              key={team.id}
+              team={team}
+              onPress={(id) => router.push(`/teams/${id}` as any)}
+            />
           ))}
           {filterTeams(myTeams).length === 0 && (
-            <EmptyState title="Ingen hold" description="Du har ikke oprettet nogen hold endnu." />
+            <EmptyState
+              title="Ingen hold"
+              description="Du har ikke oprettet nogen hold endnu."
+            />
           )}
         </View>
 
         <View className="mb-6">
           <Text className="text-text-muted text-sm mb-3">Andre hold</Text>
           {filterTeams(otherTeams).map((team) => (
-            <TeamCard key={team.id} team={team} onPress={(id) => router.push(`/teams/${id}` as any)} />
+            <TeamCard
+              key={team.id}
+              team={team}
+              onPress={(id) => router.push(`/teams/${id}` as any)}
+            />
           ))}
           {filterTeams(otherTeams).length === 0 && (
-            <EmptyState title="Ingen hold" description="Du er ikke medlem af andre hold." />
+            <EmptyState
+              title="Ingen hold"
+              description="Du er ikke medlem af andre hold."
+            />
           )}
         </View>
       </View>

@@ -6,12 +6,24 @@ import type { ConversationType } from '@/types/message';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ChatRoomScreen() {
   const router = useRouter();
-  const { id, type, name } = useLocalSearchParams<{ id: string; type: string; name: string }>();
+  const { id, type, name } = useLocalSearchParams<{
+    id: string;
+    type: string;
+    name: string;
+  }>();
   const { user } = useCurrentUser();
   const { messages, status, sendMessage, loadHistory } = useWebSocket();
   const insets = useSafeAreaInsets();
@@ -27,8 +39,9 @@ export default function ChatRoomScreen() {
   }, [conversationId, conversationType, loadHistory]);
 
   const sortedMessages = useMemo(() => {
-    return [...messages].sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    return [...messages].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [messages]);
 
@@ -54,10 +67,16 @@ export default function ChatRoomScreen() {
             <Ionicons name="chevron-back" size={28} color="#ffffff" />
           </Pressable>
           <View>
-            <Text className="text-text text-lg font-bold">{name || 'Chat'}</Text>
+            <Text className="text-text text-lg font-bold">
+              {name || 'Chat'}
+            </Text>
             <View className="flex-row items-center">
-              <View className={`w-2 h-2 rounded-full mr-2 ${status === 'connected' ? 'bg-green-500' : 'bg-red-500'}`} />
-              <Text className="text-text-muted text-xs">{status === 'connected' ? 'Online' : 'Forbinder...'}</Text>
+              <View
+                className={`w-2 h-2 rounded-full mr-2 ${status === 'connected' ? 'bg-green-500' : 'bg-red-500'}`}
+              />
+              <Text className="text-text-muted text-xs">
+                {status === 'connected' ? 'Online' : 'Forbinder...'}
+              </Text>
             </View>
           </View>
         </View>
@@ -97,7 +116,11 @@ export default function ChatRoomScreen() {
             disabled={!inputText.trim() || status !== 'connected'}
             className={`p-3 rounded-full ${inputText.trim() ? 'bg-primary' : 'bg-surface'}`}
           >
-            <Ionicons name="send" size={20} color={inputText.trim() ? '#ffffff' : '#575757'} />
+            <Ionicons
+              name="send"
+              size={20}
+              color={inputText.trim() ? '#ffffff' : '#575757'}
+            />
           </Pressable>
         </View>
       </KeyboardAvoidingView>

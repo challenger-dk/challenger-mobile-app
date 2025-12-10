@@ -23,15 +23,15 @@ export const TeamSizeSelector = ({
           {teamSize ? teamSize : '?'}
         </Text>
       </View>
-      
+
       {/* VS Text */}
       <View className="">
         <Text className="text-white text-4xl font-medium italic z-10">vs</Text>
       </View>
-      
+
       {/* Black Separator Line */}
       <View className="w-[1px] bg-[#171616] mx-2 absolute h-[200%]" />
-      
+
       {/* Right Number */}
       <View className="flex-1 items-center justify-center">
         <Text className="text-white text-6xl font-bold">
@@ -41,4 +41,3 @@ export const TeamSizeSelector = ({
     </Pressable>
   );
 };
-

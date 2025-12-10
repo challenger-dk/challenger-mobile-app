@@ -314,7 +314,6 @@ EXPO_PUBLIC_TOMTOM_API_KEY=your_tomtom_api_key
 - `EXPO_PUBLIC_API_BASE_URL`: Your backend API base URL
   - Development: `http://localhost:3000` (iOS) or `http://10.0.2.2:3000` (Android)
   - Production: Set via EAS Secrets
-  
 - `EXPO_PUBLIC_TOMTOM_API_KEY`: Your TomTom API key for location services
   - Get your key from: <https://developer.tomtom.com/>
   - Set via EAS Secrets for production builds

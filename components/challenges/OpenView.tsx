@@ -1,4 +1,7 @@
-import { useJoinChallenge, useLeaveChallenge } from '@/hooks/queries/useChallenges';
+import {
+  useJoinChallenge,
+  useLeaveChallenge,
+} from '@/hooks/queries/useChallenges';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { queryKeys } from '@/lib/queryClient';
 import { formatDate, formatTimeRange } from '@/utils/date';
@@ -26,10 +29,12 @@ export const OpenView = ({ challenge }: ViewProps) => {
   const queryClient = useQueryClient();
   const [isJoining, setIsJoining] = useState(false);
 
-  const isUserParticipating = user && (
-    challenge.users.some((u: User) => u.id === user.id) ||
-    challenge.teams.some((team: Team) => team.users?.some((u: User) => u.id === user.id))
-  );
+  const isUserParticipating =
+    user &&
+    (challenge.users.some((u: User) => u.id === user.id) ||
+      challenge.teams.some((team: Team) =>
+        team.users?.some((u: User) => u.id === user.id)
+      ));
 
   const handleJoinLeave = async () => {
     if (!user) {
@@ -50,7 +55,7 @@ export const OpenView = ({ challenge }: ViewProps) => {
         await joinChallengeMutation.mutateAsync(challenge.id.toString());
       }
       // Invalidate challenges list to refresh the UI
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: queryKeys.challenges.lists(),
       });
     } catch (err) {
@@ -60,8 +65,9 @@ export const OpenView = ({ challenge }: ViewProps) => {
       setIsJoining(false);
     }
   };
-  const sportName = SPORTS_TRANSLATION_EN_TO_DK[challenge.sport] || challenge.sport;
-  
+  const sportName =
+    SPORTS_TRANSLATION_EN_TO_DK[challenge.sport] || challenge.sport;
+
   const creatorName = challenge.creator
     ? challenge.creator.last_name
       ? `${challenge.creator.first_name} ${challenge.creator.last_name}`
@@ -69,7 +75,10 @@ export const OpenView = ({ challenge }: ViewProps) => {
     : 'Unknown';
 
   const formattedDate = formatDate(challenge.date);
-  const formattedTimeRange = formatTimeRange(challenge.start_time, challenge.end_time);
+  const formattedTimeRange = formatTimeRange(
+    challenge.start_time,
+    challenge.end_time
+  );
 
   return (
     <View className="flex-1 justify-between">
@@ -79,18 +88,34 @@ export const OpenView = ({ challenge }: ViewProps) => {
             <SportIcon sport={challenge.sport} size={48} color="#ffffff" />
             <View className="ml-2 flex-1">
               <View className="flex-row items-center">
-                <Text className="text-text text-base font-semibold flex-1" numberOfLines={1}>{sportName}</Text>
-                <Text className="text-text text-xs ml-2 italic">{challenge.is_indoor ? 'INT' : 'EXT'}</Text>
+                <Text
+                  className="text-text text-base font-semibold flex-1"
+                  numberOfLines={1}
+                >
+                  {sportName}
+                </Text>
+                <Text className="text-text text-xs ml-2 italic">
+                  {challenge.is_indoor ? 'INT' : 'EXT'}
+                </Text>
               </View>
-              <Text className="text-text-disabled text-sm" numberOfLines={1}>{creatorName}</Text>
+              <Text className="text-text-disabled text-sm" numberOfLines={1}>
+                {creatorName}
+              </Text>
             </View>
           </View>
         </View>
         <View className="w-[43%] justify-center pl-4 relative">
           <View className="absolute -top-5 right-0 w-8 h-8 bg-black/20 rounded-bl-full items-center justify-center">
-            <Ionicons className="absolute top-1 right-1" name="calendar-outline" size={14} color="#ffffff" />
+            <Ionicons
+              className="absolute top-1 right-1"
+              name="calendar-outline"
+              size={14}
+              color="#ffffff"
+            />
           </View>
-          <Text className="text-text text-lg text-center">{formattedTimeRange}</Text>
+          <Text className="text-text text-lg text-center">
+            {formattedTimeRange}
+          </Text>
           <Text className="text-text text-xs text-center">{formattedDate}</Text>
         </View>
       </View>
@@ -100,11 +125,18 @@ export const OpenView = ({ challenge }: ViewProps) => {
       <View className="flex-row -mr-4 -mb-3 items-stretch">
         <View className="w-[55%] border-r border-black/40 pr-4 justify-center py-3 relative">
           <View className="absolute top-0 right-0 w-8 h-8 bg-black/20 rounded-bl-full items-center justify-center">
-            <Ionicons className="absolute top-1 right-1" name="pin-outline" size={14} color="#ffffff" />
+            <Ionicons
+              className="absolute top-1 right-1"
+              name="pin-outline"
+              size={14}
+              color="#ffffff"
+            />
           </View>
           <View className="flex-row items-center">
             <Ionicons name="location-outline" size={16} color="#ffffff" />
-            <Text className="text-text text-sm ml-2 flex-1" numberOfLines={2}>{challenge.location.address}</Text>
+            <Text className="text-text text-sm ml-2 flex-1" numberOfLines={2}>
+              {challenge.location.address}
+            </Text>
           </View>
         </View>
         <Pressable
@@ -112,12 +144,17 @@ export const OpenView = ({ challenge }: ViewProps) => {
           disabled={isUserParticipating || isJoining || challenge.is_completed}
           className={`flex-1 justify-center items-center ${isUserParticipating || challenge.is_completed ? 'bg-surface' : 'bg-softBlue'}`}
         >
-          <Text className={`text-sm font-medium ${isUserParticipating || challenge.is_completed ? 'text-text-disabled' : 'text-white'}`}>
-            {isJoining ? 'Deltager...' : isUserParticipating ? 'Deltager' : 'Deltag'}
+          <Text
+            className={`text-sm font-medium ${isUserParticipating || challenge.is_completed ? 'text-text-disabled' : 'text-white'}`}
+          >
+            {isJoining
+              ? 'Deltager...'
+              : isUserParticipating
+                ? 'Deltager'
+                : 'Deltag'}
           </Text>
         </Pressable>
       </View>
     </View>
   );
 };
-

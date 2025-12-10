@@ -1,8 +1,8 @@
 import { ScreenHeader } from '@/components/common';
 import { useRouter } from 'expo-router';
-import {Alert, Pressable, ScrollView, Text, View} from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {useAuth} from "@/contexts/AuthContext";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SettingItemProps {
   label: string;
@@ -30,14 +30,14 @@ export default function SettingsScreen() {
   const { logout } = useAuth();
 
   const handleLogout = () => {
-    Alert.alert("Log ud", "Er du sikker på, at du vil logge ud?", [
-      { text: "Annuller", style: "cancel" },
+    Alert.alert('Log ud', 'Er du sikker på, at du vil logge ud?', [
+      { text: 'Annuller', style: 'cancel' },
       {
-        text: "Log ud",
-        style: "destructive",
+        text: 'Log ud',
+        style: 'destructive',
         onPress: async () => {
           await logout();
-          router.replace("/(auth)/login" as any);
+          router.replace('/(auth)/login' as any);
         },
       },
     ]);
@@ -49,39 +49,23 @@ export default function SettingsScreen() {
         <ScreenHeader title="Indstillinger" />
 
         <ScrollView className="mt-2" showsVerticalScrollIndicator={false}>
-          <SettingItem
-            label="Sprog"
-            value="Dansk"
-            onPress={() => {}}
-          />
+          <SettingItem label="Sprog" value="Dansk" onPress={() => {}} />
 
           <SettingItem
             label="Notifikationer"
             onPress={() => router.push('/profile/notificationSettings' as any)}
           />
 
-          <SettingItem
-            label="Kalender Sync."
-            onPress={() => {}}
-          />
+          <SettingItem label="Kalender Sync." onPress={() => {}} />
 
-          <SettingItem
-            label="Blokering"
-            onPress={() => {}}
-          />
+          <SettingItem label="Blokering" onPress={() => {}} />
 
           {/* Spacer for visual separation */}
           <View className="h-8" />
 
-          <SettingItem
-            label="Privatindstillinger"
-            onPress={() => {}}
-          />
+          <SettingItem label="Privatindstillinger" onPress={() => {}} />
 
-          <SettingItem
-            label="Tilladelser"
-            onPress={() => {}}
-          />
+          <SettingItem label="Tilladelser" onPress={() => {}} />
 
           {/* Spacer for visual separation */}
           <View className="h-8" />
@@ -98,16 +82,13 @@ export default function SettingsScreen() {
         </ScrollView>
 
         {/* Logout */}
-          <Pressable
-            onPress={handleLogout}
-            className="bg-danger rounded-lg p-4 items-center justify-center"
-          >
-            <Text className="text-text text-base font-medium">
-              Log ud
-            </Text>
-          </Pressable>
+        <Pressable
+          onPress={handleLogout}
+          className="bg-danger rounded-lg p-4 items-center justify-center"
+        >
+          <Text className="text-text text-base font-medium">Log ud</Text>
+        </Pressable>
       </View>
-
     </SafeAreaView>
   );
 }

@@ -10,7 +10,7 @@ type TabType = 'friends' | 'teams';
 export default function SocialScreen() {
   const router = useRouter();
   const segments = useSegments();
-  
+
   // Determine initial tab based on route
   const getInitialTab = useCallback((): TabType => {
     const path = segments.join('/');

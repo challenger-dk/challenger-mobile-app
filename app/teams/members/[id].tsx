@@ -1,9 +1,24 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { LoadingScreen, ScreenContainer, ScreenHeader, EmptyState } from '@/components/common';
+import {
+  LoadingScreen,
+  ScreenContainer,
+  ScreenHeader,
+  EmptyState,
+} from '@/components/common';
 import { UserCard } from '@/components/users/UserCard';
 import { useRemoveUserFromTeam, useTeam } from '@/hooks/queries/useTeams';
 import { useUsers } from '@/hooks/queries/useUsers';
@@ -29,31 +44,34 @@ export default function TeamMembersScreen() {
 
   const getAvailableUsers = () => {
     if (!team || !allUsers) return [];
-    const memberIds = new Set(team.users.map(u => u.id));
+    const memberIds = new Set(team.users.map((u) => u.id));
     if (currentUser) memberIds.add(Number(currentUser.id));
 
-    return allUsers.filter((u: User) =>
-      !memberIds.has(Number(u.id)) &&
-      !invitedUserIds.has(Number(u.id)) &&
-      `${u.first_name} ${u.last_name || ''}`.toLowerCase().includes(searchQuery.toLowerCase())
+    return allUsers.filter(
+      (u: User) =>
+        !memberIds.has(Number(u.id)) &&
+        !invitedUserIds.has(Number(u.id)) &&
+        `${u.first_name} ${u.last_name || ''}`
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
     );
   };
 
   const handleRemoveUser = (userId: string | number, userName: string) => {
     Alert.alert(
-      "Fjern medlem",
+      'Fjern medlem',
       `Er du sikker på, at du vil fjerne ${userName} fra holdet?`,
       [
-        { text: "Annuller", style: "cancel" },
+        { text: 'Annuller', style: 'cancel' },
         {
-          text: "Fjern",
-          style: "destructive",
+          text: 'Fjern',
+          style: 'destructive',
           onPress: () => {
             if (id) {
               removeUserMutation.mutate({ teamId: id, userId: String(userId) });
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -62,22 +80,25 @@ export default function TeamMembersScreen() {
     if (!currentUser || !team) return;
     const inviteeId = Number(userToInvite.id);
 
-    sendInvitationMutation.mutate({
-      inviter_id: currentUser.id,
-      invitee_id: inviteeId,
-      resource_type: 'team',
-      resource_id: team.id,
-      note: `${currentUser.first_name} har inviteret dig til holdet ${team.name}`
-    }, {
-      onSuccess: () => {
-        setInvitedUserIds(prev => {
-          const newSet = new Set(prev);
-          newSet.add(inviteeId);
-          return newSet;
-        });
-        showSuccessToast(`Invitation sendt til ${userToInvite.first_name}`);
+    sendInvitationMutation.mutate(
+      {
+        inviter_id: currentUser.id,
+        invitee_id: inviteeId,
+        resource_type: 'team',
+        resource_id: team.id,
+        note: `${currentUser.first_name} har inviteret dig til holdet ${team.name}`,
+      },
+      {
+        onSuccess: () => {
+          setInvitedUserIds((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(inviteeId);
+            return newSet;
+          });
+          showSuccessToast(`Invitation sendt til ${userToInvite.first_name}`);
+        },
       }
-    });
+    );
   };
 
   if (teamLoading || !currentUser) {
@@ -114,7 +135,9 @@ export default function TeamMembersScreen() {
       />
 
       <ScrollView className="flex-1 px-5 pb-20">
-        <Text className="text-text-muted text-sm mb-3">Medlemmer ({team.users?.length ?? 0})</Text>
+        <Text className="text-text-muted text-sm mb-3">
+          Medlemmer ({team.users?.length ?? 0})
+        </Text>
         {team.users && team.users.length > 0 ? (
           team.users.map((user) => (
             <UserCard
@@ -137,19 +160,27 @@ export default function TeamMembersScreen() {
                     {removeUserMutation.isPending ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                      <Text className="text-white text-xs font-medium">Fjern</Text>
+                      <Text className="text-white text-xs font-medium">
+                        Fjern
+                      </Text>
                     )}
                   </Pressable>
                 ) : String(user.id) === String(team.creator.id) ? (
                   <View className="bg-blue-900/30 rounded-full px-3 py-1 border border-blue-500/50">
-                    <Text className="text-primary text-xs font-medium">Ejer</Text>
+                    <Text className="text-primary text-xs font-medium">
+                      Ejer
+                    </Text>
                   </View>
                 ) : null
               }
             />
           ))
         ) : (
-          <EmptyState title="Ingen medlemmer" description="Der er ingen medlemmer på dette hold endnu." icon="people-outline" />
+          <EmptyState
+            title="Ingen medlemmer"
+            description="Der er ingen medlemmer på dette hold endnu."
+            icon="people-outline"
+          />
         )}
       </ScrollView>
 
@@ -161,16 +192,26 @@ export default function TeamMembersScreen() {
       >
         <View className="flex-1 bg-background">
           <View className="px-4 py-4 border-b border-surface flex-row justify-between items-center">
-            <Pressable onPress={() => setShowInviteModal(false)} className="p-2 -ml-2">
+            <Pressable
+              onPress={() => setShowInviteModal(false)}
+              className="p-2 -ml-2"
+            >
               <Ionicons name="chevron-back" size={28} color="#0A84FF" />
             </Pressable>
-            <Text className="text-text text-lg font-bold">Inviter medlemmer</Text>
+            <Text className="text-text text-lg font-bold">
+              Inviter medlemmer
+            </Text>
             <View className="w-10" />
           </View>
 
           <View className="p-4">
             <View className="flex-row items-center bg-surface rounded-lg px-3 border border-text-disabled">
-              <Ionicons name="search" size={20} color="#9CA3AF" style={{marginRight: 8}} />
+              <Ionicons
+                name="search"
+                size={20}
+                color="#9CA3AF"
+                style={{ marginRight: 8 }}
+              />
               <TextInput
                 placeholder="Søg efter brugere..."
                 placeholderTextColor="#9CA3AF"
@@ -197,14 +238,20 @@ export default function TeamMembersScreen() {
                     disabled={sendInvitationMutation.isPending}
                     className="bg-primary rounded-full px-4 py-2"
                   >
-                    <Text className="text-white text-xs font-medium">Inviter</Text>
+                    <Text className="text-white text-xs font-medium">
+                      Inviter
+                    </Text>
                   </Pressable>
                 }
               />
             )}
             ListEmptyComponent={
               <EmptyState
-                title={searchQuery ? 'Ingen brugere fundet' : 'Søg for at finde brugere'}
+                title={
+                  searchQuery
+                    ? 'Ingen brugere fundet'
+                    : 'Søg for at finde brugere'
+                }
                 icon="search-outline"
               />
             }

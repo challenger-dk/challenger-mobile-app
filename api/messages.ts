@@ -1,4 +1,4 @@
-import {authenticatedFetch, getChatServiceUrl} from '../utils/api';
+import { authenticatedFetch, getChatServiceUrl } from '../utils/api';
 import type { ConversationType, Message } from '../types/message';
 
 export const getMessagesHistory = async (

@@ -35,7 +35,9 @@ export const createReport = async (data: CreateReportDto) => {
   try {
     const responseData = JSON.parse(text);
     if (!response.ok) {
-      throw new Error(responseData.message || responseData.error || 'Failed to submit report');
+      throw new Error(
+        responseData.message || responseData.error || 'Failed to submit report'
+      );
     }
     return responseData;
   } catch (e) {

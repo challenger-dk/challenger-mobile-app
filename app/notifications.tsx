@@ -1,13 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from 'react-native';
 
 import { getNotifications, markAllRead, markRead } from '@/api/notifications';
 import { InvitationCard } from '@/components/InvitationCard';
-import { EmptyState, LoadingScreen, ScreenContainer, ScreenHeader } from '@/components/common';
+import {
+  EmptyState,
+  LoadingScreen,
+  ScreenContainer,
+  ScreenHeader,
+} from '@/components/common';
 import { queryKeys } from '@/lib/queryClient';
 import type { Invitation } from '@/types/invitation';
 import type { Notification } from '@/types/notification';
@@ -25,7 +41,7 @@ export default function NotificationsScreen() {
     isFetchingNextPage,
     isLoading,
     refetch,
-    isRefetching
+    isRefetching,
   } = useInfiniteQuery({
     queryKey: queryKeys.notifications.all,
     queryFn: async ({ pageParam = 0 }) => {
@@ -49,7 +65,9 @@ export default function NotificationsScreen() {
     mutationFn: markRead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unread() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unread(),
+      });
     },
   });
 
@@ -57,7 +75,9 @@ export default function NotificationsScreen() {
     mutationFn: markAllRead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unread() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unread(),
+      });
     },
   });
 
@@ -73,7 +93,9 @@ export default function NotificationsScreen() {
 
   const handleInvitationHandled = () => {
     refetch();
-    queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unread() });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.notifications.unread(),
+    });
   };
 
   const renderFooter = () => {
@@ -90,11 +112,11 @@ export default function NotificationsScreen() {
   const renderNotificationItem = ({ item }: { item: Notification }) => {
     const isUnread = !item.is_read;
 
-    const isActionable = item.invitation_id && (
-      item.type === 'friend_request' ||
-      item.type === 'team_invite' ||
-      item.type === 'challenge_request'
-    );
+    const isActionable =
+      item.invitation_id &&
+      (item.type === 'friend_request' ||
+        item.type === 'team_invite' ||
+        item.type === 'challenge_request');
 
     if (isActionable && item.invitation_id && item.actor) {
       const invitationData: Invitation = {
@@ -128,16 +150,24 @@ export default function NotificationsScreen() {
         }}
       >
         <View className="flex-row justify-between items-start mb-1">
-          <Text className="text-text font-bold text-base flex-1 mr-2">{item.title}</Text>
+          <Text className="text-text font-bold text-base flex-1 mr-2">
+            {item.title}
+          </Text>
           {isUnread && (
             <View className="w-2 h-2 rounded-full bg-primary mt-2" />
           )}
         </View>
 
-        <Text className="text-text-disabled text-sm mb-2 leading-5">{item.content}</Text>
+        <Text className="text-text-disabled text-sm mb-2 leading-5">
+          {item.content}
+        </Text>
 
         <Text className="text-text-muted text-xs">
-          {new Date(item.created_at).toLocaleDateString()} • {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(item.created_at).toLocaleDateString()} •{' '}
+          {new Date(item.created_at).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
         </Text>
       </Pressable>
     );
@@ -161,7 +191,11 @@ export default function NotificationsScreen() {
               {markAllReadMutation.isPending ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
-                <Ionicons name="checkmark-done-outline" size={24} color="#ffffff" />
+                <Ionicons
+                  name="checkmark-done-outline"
+                  size={24}
+                  color="#ffffff"
+                />
               )}
             </Pressable>
           }

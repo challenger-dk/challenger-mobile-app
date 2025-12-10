@@ -31,31 +31,38 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
     lists: () => [...queryKeys.users.all, 'list'] as const,
-    list: (filters: string) => [...queryKeys.users.lists(), { filters }] as const,
+    list: (filters: string) =>
+      [...queryKeys.users.lists(), { filters }] as const,
     details: () => [...queryKeys.users.all, 'detail'] as const,
-    detail: (id: string | number) => [...queryKeys.users.details(), id] as const,
+    detail: (id: string | number) =>
+      [...queryKeys.users.details(), id] as const,
     current: () => [...queryKeys.users.all, 'current'] as const,
   },
   challenges: {
     all: ['challenges'] as const,
     lists: () => [...queryKeys.challenges.all, 'list'] as const,
-    list: (filters: string) => [...queryKeys.challenges.lists(), { filters }] as const,
+    list: (filters: string) =>
+      [...queryKeys.challenges.lists(), { filters }] as const,
     details: () => [...queryKeys.challenges.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.challenges.details(), id] as const,
   },
   teams: {
     all: ['teams'] as const,
     lists: () => [...queryKeys.teams.all, 'list'] as const,
-    list: (filters: string) => [...queryKeys.teams.lists(), { filters }] as const,
+    list: (filters: string) =>
+      [...queryKeys.teams.lists(), { filters }] as const,
     details: () => [...queryKeys.teams.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.teams.details(), id] as const,
-    byUser: (userId: string | number) => [...queryKeys.teams.all, 'user', userId] as const,
+    byUser: (userId: string | number) =>
+      [...queryKeys.teams.all, 'user', userId] as const,
   },
   invitations: {
     all: ['invitations'] as const,
     lists: () => [...queryKeys.invitations.all, 'list'] as const,
-    list: (filters: string) => [...queryKeys.invitations.lists(), { filters }] as const,
-    byUser: (userId: string | number) => [...queryKeys.invitations.all, 'user', userId] as const,
+    list: (filters: string) =>
+      [...queryKeys.invitations.lists(), { filters }] as const,
+    byUser: (userId: string | number) =>
+      [...queryKeys.invitations.all, 'user', userId] as const,
     details: () => [...queryKeys.invitations.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.invitations.details(), id] as const,
   },

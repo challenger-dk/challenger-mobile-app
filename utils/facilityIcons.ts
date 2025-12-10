@@ -1,4 +1,9 @@
-export type FacilityCategory = 'Boldspil' | 'Ketchersport' | 'Andet' | 'Sportshaller' | 'Open area';
+export type FacilityCategory =
+  | 'Boldspil'
+  | 'Ketchersport'
+  | 'Andet'
+  | 'Sportshaller'
+  | 'Open area';
 
 export interface FacilityCategoryConfig {
   category: FacilityCategory;
@@ -12,15 +17,12 @@ export interface FacilityCategoryConfig {
  */
 export const getFacilityCategory = (facilityType: string): FacilityCategory => {
   const typeLower = facilityType.toLowerCase();
-  
+
   // Boldspil - football/soccer facilities
-  if (
-    typeLower.includes('fodbold') ||
-    typeLower.includes('fodboldanlæg')
-  ) {
+  if (typeLower.includes('fodbold') || typeLower.includes('fodboldanlæg')) {
     return 'Boldspil';
   }
-  
+
   // Ketchersport - racket sports
   if (
     typeLower.includes('tennis') ||
@@ -30,7 +32,7 @@ export const getFacilityCategory = (facilityType: string): FacilityCategory => {
   ) {
     return 'Ketchersport';
   }
-  
+
   // Sportshaller - sports halls
   if (
     typeLower.includes('idræt') ||
@@ -43,7 +45,7 @@ export const getFacilityCategory = (facilityType: string): FacilityCategory => {
   ) {
     return 'Sportshaller';
   }
-  
+
   // Open area - outdoor/open spaces
   if (
     typeLower.includes('åbent område') ||
@@ -54,7 +56,7 @@ export const getFacilityCategory = (facilityType: string): FacilityCategory => {
   ) {
     return 'Open area';
   }
-  
+
   // Default to "Andet" for everything else
   return 'Andet';
 };
@@ -62,9 +64,11 @@ export const getFacilityCategory = (facilityType: string): FacilityCategory => {
 /**
  * Get icon and color configuration for a facility category
  */
-export const getFacilityCategoryConfig = (facilityType: string): FacilityCategoryConfig => {
+export const getFacilityCategoryConfig = (
+  facilityType: string
+): FacilityCategoryConfig => {
   const category = getFacilityCategory(facilityType);
-  
+
   switch (category) {
     case 'Boldspil':
       return {
@@ -104,4 +108,3 @@ export const getFacilityCategoryConfig = (facilityType: string): FacilityCategor
       };
   }
 };
-

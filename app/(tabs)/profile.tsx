@@ -1,35 +1,35 @@
 // ProfileScreen.tsx
 
-import { ChallengeCard } from "@/components/challenges/ChallengeCard";
+import { ChallengeCard } from '@/components/challenges/ChallengeCard';
 import {
   Avatar,
   ErrorScreen,
   LoadingScreen,
   ScreenContainer,
   TopActionBar,
-} from "@/components/common";
-import { FriendsContent } from "@/components/social";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import type { Challenge } from "@/types/challenge";
-import { SportIcon } from "@/utils/sportIcons";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+} from '@/components/common';
+import { FriendsContent } from '@/components/social';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import type { Challenge } from '@/types/challenge';
+import { SportIcon } from '@/utils/sportIcons';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
 import {
   Pressable,
   ScrollView,
   Text,
   useWindowDimensions,
   View,
-} from "react-native";
+} from 'react-native';
 
-const SEPARATOR_COLOR = "bg-[#3A3A3C]";
+const SEPARATOR_COLOR = 'bg-[#3A3A3C]';
 
 // Small helpers
 const StatItem = ({
-                    label,
-                    value,
-                  }: {
+  label,
+  value,
+}: {
   label: string;
   value: number | string;
 }) => (
@@ -40,9 +40,7 @@ const StatItem = ({
     >
       {label}
     </Text>
-    <Text className="text-2xl font-semibold text-white mt-1">
-      {value}
-    </Text>
+    <Text className="text-2xl font-semibold text-white mt-1">{value}</Text>
   </View>
 );
 
@@ -85,7 +83,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const [activeTab, setActiveTab] = useState<"vs" | "home" | "stats">("vs");
+  const [activeTab, setActiveTab] = useState<'vs' | 'home' | 'stats'>('vs');
 
   if (loading) return <LoadingScreen />;
   if (error) return <ErrorScreen error={error} />;
@@ -103,15 +101,15 @@ export default function ProfileScreen() {
   // underline indicator sizing (3 equal tabs)
   const tabCount = 3;
   const indicatorWidth = width / tabCount;
-  const activeIndex = activeTab === "vs" ? 0 : activeTab === "home" ? 1 : 2;
+  const activeIndex = activeTab === 'vs' ? 0 : activeTab === 'home' ? 1 : 2;
 
   return (
-    <ScreenContainer className='pt-1'>
+    <ScreenContainer className="pt-1">
       <TopActionBar
-        title={"Profil"}
+        title={'Profil'}
         leftAction={
           <Pressable
-            onPress={() => router.push("/profile/information" as any)}
+            onPress={() => router.push('/profile/information' as any)}
             className="flex-row items-center bg-surface px-3 py-1.5 rounded-full gap-2"
           >
             <Text className="text-white text-sm font-medium">
@@ -144,7 +142,7 @@ export default function ProfileScreen() {
                   {user.first_name} {user.last_name}
                 </Text>
                 <Text className="text-sm text-gray-300 mt-1">
-                  {user.age ? `${user.age} år` : ""}
+                  {user.age ? `${user.age} år` : ''}
                 </Text>
               </View>
             </View>
@@ -152,7 +150,7 @@ export default function ProfileScreen() {
             {/* Nødinfo */}
             <Pressable
               className="items-center"
-              onPress={() => router.push("/profile/emergency-info" as any)}
+              onPress={() => router.push('/profile/emergency-info' as any)}
             >
               <View className="w-9 h-9 rounded-xl bg-[#943d40]/12 border border-[#943d40]/25 items-center justify-center mb-1">
                 <View className="w-6 h-6 rounded-full bg-[#943d40] items-center justify-center">
@@ -171,7 +169,10 @@ export default function ProfileScreen() {
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
               {/* Venner */}
-              <View style={{ flex: 1 }} className="items-center justify-center px-2">
+              <View
+                style={{ flex: 1 }}
+                className="items-center justify-center px-2"
+              >
                 <StatItem label="Venner" value={friendsCount} />
               </View>
 
@@ -179,7 +180,10 @@ export default function ProfileScreen() {
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
               {/* Hold */}
-              <View style={{ flex: 1 }} className="items-center justify-center px-2">
+              <View
+                style={{ flex: 1 }}
+                className="items-center justify-center px-2"
+              >
                 <StatItem label="Hold" value={teamsCount} />
               </View>
 
@@ -187,7 +191,10 @@ export default function ProfileScreen() {
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
               {/* Fuldførte Challenges */}
-              <View style={{ flex: 3 }} className="items-center justify-center px-1">
+              <View
+                style={{ flex: 3 }}
+                className="items-center justify-center px-1"
+              >
                 <Text
                   className="text-[11px] uppercase tracking-[1px] text-gray-400"
                   numberOfLines={1}
@@ -213,19 +220,19 @@ export default function ProfileScreen() {
           <View className="flex-row w-full">
             {/* VS tab */}
             <Pressable
-              onPress={() => setActiveTab("vs")}
+              onPress={() => setActiveTab('vs')}
               className="flex-1 items-center"
             >
               <View
                 className={`px-4 py-1.5 rounded-full border ${
-                  activeTab === "vs"
-                    ? "border-white bg-white/10"
-                    : "border-transparent bg-transparent"
+                  activeTab === 'vs'
+                    ? 'border-white bg-white/10'
+                    : 'border-transparent bg-transparent'
                 }`}
               >
                 <Text
                   className={`text-xs font-semibold ${
-                    activeTab === "vs" ? "text-white" : "text-gray-400"
+                    activeTab === 'vs' ? 'text-white' : 'text-gray-400'
                   }`}
                 >
                   VS
@@ -235,40 +242,40 @@ export default function ProfileScreen() {
 
             {/* Home tab */}
             <Pressable
-              onPress={() => setActiveTab("home")}
+              onPress={() => setActiveTab('home')}
               className="flex-1 items-center"
             >
               <View
                 className={`px-4 py-1.5 rounded-full border ${
-                  activeTab === "home"
-                    ? "border-white bg-white/10"
-                    : "border-transparent bg-transparent"
+                  activeTab === 'home'
+                    ? 'border-white bg-white/10'
+                    : 'border-transparent bg-transparent'
                 }`}
               >
                 <Ionicons
                   name="home"
                   size={16}
-                  color={activeTab === "home" ? "#ffffff" : "#9CA3AF"}
+                  color={activeTab === 'home' ? '#ffffff' : '#9CA3AF'}
                 />
               </View>
             </Pressable>
 
             {/* Stats tab */}
             <Pressable
-              onPress={() => setActiveTab("stats")}
+              onPress={() => setActiveTab('stats')}
               className="flex-1 items-center"
             >
               <View
                 className={`px-4 py-1.5 rounded-full border ${
-                  activeTab === "stats"
-                    ? "border-white bg-white/10"
-                    : "border-transparent bg-transparent"
+                  activeTab === 'stats'
+                    ? 'border-white bg-white/10'
+                    : 'border-transparent bg-transparent'
                 }`}
               >
                 <Ionicons
                   name="stats-chart"
                   size={16}
-                  color={activeTab === "stats" ? "#ffffff" : "#9CA3AF"}
+                  color={activeTab === 'stats' ? '#ffffff' : '#9CA3AF'}
                 />
               </View>
             </Pressable>
@@ -289,7 +296,7 @@ export default function ProfileScreen() {
 
         {/* Tab content – inside px-6 so it aligns with header/stats/tabs */}
         <View className="px-6 mt-4">
-          {activeTab === "vs" && (
+          {activeTab === 'vs' && (
             <>
               <Text className="text-white text-lg font-semibold mb-2">
                 Næste Challenges
@@ -315,13 +322,13 @@ export default function ProfileScreen() {
             </>
           )}
 
-          {activeTab === "home" && (
+          {activeTab === 'home' && (
             <View className="mt-3">
               <FriendsContent />
             </View>
           )}
 
-          {activeTab === "stats" && (
+          {activeTab === 'stats' && (
             <View className="bg-surface rounded-2xl p-4 mt-3">
               <Text className="text-sm text-gray-300">
                 Statistik-sektionen kommer snart.

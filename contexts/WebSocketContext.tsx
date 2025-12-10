@@ -1,9 +1,20 @@
 import * as SecureStore from 'expo-secure-store';
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from './AuthContext';
 import { getWebSocketUrl } from '../utils/api'; // <-- Import the new helper
-import type { IncomingMessage, Message, ConversationType } from '../types/message';
+import type {
+  IncomingMessage,
+  Message,
+  ConversationType,
+} from '../types/message';
 import { getMessagesHistory } from '../api/messages';
 
 interface WebSocketContextType {
@@ -11,16 +22,24 @@ interface WebSocketContextType {
   status: 'connecting' | 'connected' | 'disconnected' | 'error';
   sendMessage: (msg: IncomingMessage) => void;
   loadHistory: (id: number | string, type: ConversationType) => Promise<void>;
-  currentConversation: { id: number | string | null, type: ConversationType | null };
+  currentConversation: {
+    id: number | string | null;
+    type: ConversationType | null;
+  };
 }
 
-const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
+const WebSocketContext = createContext<WebSocketContextType | undefined>(
+  undefined
+);
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [status, setStatus] = useState<WebSocketContextType['status']>('disconnected');
-  const [currentConversation, setCurrentConversation] = useState<WebSocketContextType['currentConversation']>({ id: null, type: null });
+  const [status, setStatus] =
+    useState<WebSocketContextType['status']>('disconnected');
+  const [currentConversation, setCurrentConversation] = useState<
+    WebSocketContextType['currentConversation']
+  >({ id: null, type: null });
 
   const ws = useRef<WebSocket | null>(null);
 
@@ -55,11 +74,15 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           // Only add message to list if it belongs to the current active conversation
           setMessages((prevMessages) => {
             const isRelevant =
-              (currentConversation.type === 'team' && newMessage.team_id == currentConversation.id) ||
-              (currentConversation.type === 'user' && (newMessage.recipient_id == currentConversation.id || newMessage.sender_id == currentConversation.id));
+              (currentConversation.type === 'team' &&
+                newMessage.team_id == currentConversation.id) ||
+              (currentConversation.type === 'user' &&
+                (newMessage.recipient_id == currentConversation.id ||
+                  newMessage.sender_id == currentConversation.id));
 
             if (isRelevant) {
-              if (prevMessages.some(m => m.id === newMessage.id)) return prevMessages;
+              if (prevMessages.some((m) => m.id === newMessage.id))
+                return prevMessages;
               return [newMessage, ...prevMessages];
             }
             return prevMessages;
@@ -97,28 +120,42 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isAuthenticated, connect]);
 
-  const sendMessage = useCallback((msg: IncomingMessage) => {
-    if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(msg));
-    } else {
-      Alert.alert('Connection Lost', 'Reconnecting...');
-      connect();
-    }
-  }, [connect]);
+  const sendMessage = useCallback(
+    (msg: IncomingMessage) => {
+      if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(JSON.stringify(msg));
+      } else {
+        Alert.alert('Connection Lost', 'Reconnecting...');
+        connect();
+      }
+    },
+    [connect]
+  );
 
-  const loadHistory = useCallback(async (id: number | string, type: ConversationType) => {
-    setCurrentConversation({ id, type });
-    try {
-      const history = await getMessagesHistory(id, type);
-      setMessages(Array.isArray(history) ? history : []);
-    } catch (e) {
-      console.error('Failed to load history', e);
-      setMessages([]);
-    }
-  }, []);
+  const loadHistory = useCallback(
+    async (id: number | string, type: ConversationType) => {
+      setCurrentConversation({ id, type });
+      try {
+        const history = await getMessagesHistory(id, type);
+        setMessages(Array.isArray(history) ? history : []);
+      } catch (e) {
+        console.error('Failed to load history', e);
+        setMessages([]);
+      }
+    },
+    []
+  );
 
   return (
-    <WebSocketContext.Provider value={{ messages, status, sendMessage, loadHistory, currentConversation }}>
+    <WebSocketContext.Provider
+      value={{
+        messages,
+        status,
+        sendMessage,
+        loadHistory,
+        currentConversation,
+      }}
+    >
       {children}
     </WebSocketContext.Provider>
   );
@@ -126,6 +163,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
 export const useWebSocket = () => {
   const context = useContext(WebSocketContext);
-  if (!context) throw new Error('useWebSocket must be used within a WebSocketProvider');
+  if (!context)
+    throw new Error('useWebSocket must be used within a WebSocketProvider');
   return context;
 };

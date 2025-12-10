@@ -12,7 +12,7 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
   const segments = useSegments();
 
   useEffect(() => {
-    if (isAuthenticated && segments[0] === '(auth)' as any) {
+    if (isAuthenticated && segments[0] === ('(auth)' as any)) {
       router.replace('/(tabs)' as any);
     }
   }, [isAuthenticated, segments, router]);
@@ -24,4 +24,3 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
 
   return <>{children}</>;
 };
-

@@ -1,4 +1,4 @@
-import type { UserSettings } from "@/types/settings";
+import type { UserSettings } from '@/types/settings';
 import type { CommonStats, CreateUser, UpdateUser } from '@/types/user';
 import { authenticatedFetch, getApiUrl } from '@/utils/api';
 
@@ -21,13 +21,15 @@ export const getUserById = async (userId: string | number) => {
 };
 
 export const getUserCommonStats = async (targetUserId: string | number) => {
-  const response = await authenticatedFetch(getApiUrl(`/users/${targetUserId}/in-common`));
+  const response = await authenticatedFetch(
+    getApiUrl(`/users/${targetUserId}/in-common`)
+  );
   if (!response.ok) {
     // Fallback if endpoint fails
     return {
       common_friends_count: 0,
       common_teams_count: 0,
-      common_sports: []
+      common_sports: [],
     };
   }
   return response.json() as Promise<CommonStats>;
@@ -56,7 +58,10 @@ export const updateUser = async (user: UpdateUser) => {
   try {
     const responseData = JSON.parse(text);
     if (!response.ok) {
-      return { error: responseData.message || responseData.error || 'Failed to update user' };
+      return {
+        error:
+          responseData.message || responseData.error || 'Failed to update user',
+      };
     }
     return responseData;
   } catch (e) {
@@ -93,7 +98,12 @@ export const updateUserSettings = async (settings: Partial<UserSettings>) => {
   try {
     const responseData = JSON.parse(text);
     if (!response.ok) {
-      return { error: responseData.message || responseData.error || 'Failed to update user settings' };
+      return {
+        error:
+          responseData.message ||
+          responseData.error ||
+          'Failed to update user settings',
+      };
     }
     return responseData;
   } catch (e) {
@@ -102,7 +112,7 @@ export const updateUserSettings = async (settings: Partial<UserSettings>) => {
     }
     return { error: 'Invalid server response' };
   }
-}
+};
 
 export const createUser = async (user: CreateUser) => {
   const response = await authenticatedFetch(getApiUrl('/users'), {
@@ -116,12 +126,15 @@ export const createUser = async (user: CreateUser) => {
 };
 
 export const removeFriend = async (userId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/users/${userId}/remove`), {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await authenticatedFetch(
+    getApiUrl(`/users/${userId}/remove`),
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
-  });
+  );
 
   if (response.status === 204) {
     return { success: true };
@@ -139,7 +152,12 @@ export const removeFriend = async (userId: string) => {
   try {
     const responseData = JSON.parse(text);
     if (!response.ok) {
-      return { error: responseData.message || responseData.error || 'Failed to remove friend' };
+      return {
+        error:
+          responseData.message ||
+          responseData.error ||
+          'Failed to remove friend',
+      };
     }
     return responseData;
   } catch (e) {
@@ -151,12 +169,15 @@ export const removeFriend = async (userId: string) => {
 };
 
 export const blockUser = async (userId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/users/block/${userId}`), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await authenticatedFetch(
+    getApiUrl(`/users/block/${userId}`),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
-  });
+  );
 
   if (response.status === 204) {
     return { success: true };
@@ -174,7 +195,10 @@ export const blockUser = async (userId: string) => {
   try {
     const responseData = JSON.parse(text);
     if (!response.ok) {
-      return { error: responseData.message || responseData.error || 'Failed to block user' };
+      return {
+        error:
+          responseData.message || responseData.error || 'Failed to block user',
+      };
     }
     return responseData;
   } catch (e) {
@@ -186,12 +210,15 @@ export const blockUser = async (userId: string) => {
 };
 
 export const unblockUser = async (userId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/users/unblock/${userId}`), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await authenticatedFetch(
+    getApiUrl(`/users/unblock/${userId}`),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
-  });
+  );
 
   if (response.status === 204) {
     return { success: true };
@@ -209,7 +236,12 @@ export const unblockUser = async (userId: string) => {
   try {
     const responseData = JSON.parse(text);
     if (!response.ok) {
-      return { error: responseData.message || responseData.error || 'Failed to unblock user' };
+      return {
+        error:
+          responseData.message ||
+          responseData.error ||
+          'Failed to unblock user',
+      };
     }
     return responseData;
   } catch (e) {

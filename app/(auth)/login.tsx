@@ -1,7 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { login } from '../../api/auth';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,7 +36,7 @@ export default function LoginScreen() {
 
     try {
       const response = await login(email, password);
-      
+
       if (response.success && response.token) {
         await setToken(response.token);
         router.replace('/(tabs)' as any);
@@ -35,7 +44,11 @@ export default function LoginScreen() {
         setError(response.error || 'Login failed. Please try again.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'An error occurred. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -48,13 +61,13 @@ export default function LoginScreen() {
       className="flex-1 bg-[#171616]"
     >
       <ScrollView
-        contentContainerStyle={{ 
-          flexGrow: 1, 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          paddingHorizontal: 24, 
+        contentContainerStyle={{
+          flexGrow: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 24,
           paddingVertical: 48,
-          paddingBottom: 48 + insets.bottom
+          paddingBottom: 48 + insets.bottom,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -144,7 +157,9 @@ export default function LoginScreen() {
           onPress={() => router.push('/(auth)/register' as any)}
           className="w-full max-w-sm bg-[#2c2c2c] rounded-lg px-4 py-4"
         >
-          <Text className="text-white text-center font-medium">Opret konto</Text>
+          <Text className="text-white text-center font-medium">
+            Opret konto
+          </Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

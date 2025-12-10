@@ -12,7 +12,7 @@ export default function FriendsLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        headerShown: false // Un-commented to hide the default stack header
+        headerShown: false, // Un-commented to hide the default stack header
       }}
     />
   );

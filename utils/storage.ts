@@ -1,5 +1,10 @@
 import { storage } from '@/firebase';
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from 'firebase/storage';
 
 /**
  * Uploads an image from a local URI to Firebase Storage
@@ -7,7 +12,10 @@ import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage
  * @param userId Unique ID to namespace the file
  * @returns The public download URL of the uploaded image
  */
-export const uploadProfilePicture = async (uri: string, userId?: string | number): Promise<string> => {
+export const uploadProfilePicture = async (
+  uri: string,
+  userId?: string | number
+): Promise<string> => {
   try {
     // 1. Fetch the file from the local URI
     const response = await fetch(uri);

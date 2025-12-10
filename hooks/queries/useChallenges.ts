@@ -1,4 +1,10 @@
-import { createChallenge, getChallenge, getChallenges, joinChallenge, leaveChallenge } from '@/api/challenges';
+import {
+  createChallenge,
+  getChallenge,
+  getChallenges,
+  joinChallenge,
+  leaveChallenge,
+} from '@/api/challenges';
 import { queryKeys } from '@/lib/queryClient';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -38,13 +44,15 @@ export const useCreateChallenge = () => {
     onSuccess: () => {
       // Invalidate challenges list - this marks queries as stale
       // With staleTime: 0, this will trigger immediate refetch when queries become active
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: queryKeys.challenges.lists(),
       });
       showSuccessToast('Udfordringen er oprettet!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved oprettelse af udfordringen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved oprettelse af udfordringen'
+      );
     },
   });
 };
@@ -59,13 +67,15 @@ export const useJoinChallenge = () => {
     mutationFn: joinChallenge,
     onSuccess: () => {
       // Invalidate challenges list to refresh the UI
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: queryKeys.challenges.lists(),
       });
       showSuccessToast('Du har deltaget i udfordringen');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved deltagelse i udfordringen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved deltagelse i udfordringen'
+      );
     },
   });
 };
@@ -80,14 +90,15 @@ export const useLeaveChallenge = () => {
     mutationFn: leaveChallenge,
     onSuccess: () => {
       // Invalidate challenges list to refresh the UI
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: queryKeys.challenges.lists(),
       });
       showSuccessToast('Du har forladt udfordringen');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved forladelse af udfordringen');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved forladelse af udfordringen'
+      );
     },
   });
 };
-

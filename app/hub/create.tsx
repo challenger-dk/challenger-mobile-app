@@ -2,9 +2,30 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BooleanToggle, ErrorScreen, FormFieldButton, HorizontalPicker, LoadingScreen, LocationSearch, ScreenHeader, SubmitButton, TabNavigation, TeamSizeSelector } from '../../components/common';
+import {
+  BooleanToggle,
+  ErrorScreen,
+  FormFieldButton,
+  HorizontalPicker,
+  LoadingScreen,
+  LocationSearch,
+  ScreenHeader,
+  SubmitButton,
+  TabNavigation,
+  TeamSizeSelector,
+} from '../../components/common';
 import { useCreateChallenge, useTeams, useUsers } from '../../hooks/queries';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { CreateChallenge } from '../../types/challenge';
@@ -33,12 +54,16 @@ export default function CreateChallengeScreen() {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
   const commentInputRef = useRef<TextInput>(null);
-  const [challengeType, setChallengeType] = useState<'public' | 'friends'>('public');
+  const [challengeType, setChallengeType] = useState<'public' | 'friends'>(
+    'public'
+  );
   const [participants, setParticipants] = useState<User[]>([]);
   const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
   const [teamSize, setTeamSize] = useState<number | null>(null);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
-  const [participantModalTab, setParticipantModalTab] = useState<'friends' | 'teams'>('friends');
+  const [participantModalTab, setParticipantModalTab] = useState<
+    'friends' | 'teams'
+  >('friends');
   const [showTeamSizePicker, setShowTeamSizePicker] = useState(false);
   const [sport, setSport] = useState<string>('');
   const [location, setLocation] = useState<Location | null>(null);
@@ -59,11 +84,12 @@ export default function CreateChallengeScreen() {
   const [showSportPicker, setShowSportPicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showPlayForPicker, setShowPlayForPicker] = useState(false);
-  const TEAM_SIZES = [1, 2,3, 4, 5, 7, 8, 10, 11];
+  const TEAM_SIZES = [1, 2, 3, 4, 5, 7, 8, 10, 11];
 
   // React Query hooks for data fetching
   const { data: availableUsersData = [] } = useUsers();
-  const { data: availableTeamsData = [], isLoading: teamsQueryLoading } = useTeams();
+  const { data: availableTeamsData = [], isLoading: teamsQueryLoading } =
+    useTeams();
   const createChallengeMutation = useCreateChallenge();
 
   // Use the data directly - React Query handles caching and updates
@@ -77,7 +103,15 @@ export default function CreateChallengeScreen() {
       return;
     }
 
-    if (!sport || !location || !date || !startTime || !endTime || isIndoor === null || hasCosts === null) {
+    if (
+      !sport ||
+      !location ||
+      !date ||
+      !startTime ||
+      !endTime ||
+      isIndoor === null ||
+      hasCosts === null
+    ) {
       showErrorToast('Udfyld venligst alle påkrævede felter');
       return;
     }
@@ -91,7 +125,10 @@ export default function CreateChallengeScreen() {
         date.getFullYear(),
         date.getMonth(),
         date.getDate(),
-        0, 0, 0, 0
+        0,
+        0,
+        0,
+        0
       );
       const dateISO = dateAtMidnight.toISOString();
 
@@ -129,8 +166,12 @@ export default function CreateChallengeScreen() {
         play_for: playFor.trim(),
         has_costs: hasCosts,
         comment: comment.trim(),
-        users: participants.map(p => typeof p.id === 'string' ? parseInt(p.id, 10) : p.id),
-        teams: selectedTeams.map(t => typeof t.id === 'string' ? parseInt(t.id, 10) : t.id),
+        users: participants.map((p) =>
+          typeof p.id === 'string' ? parseInt(p.id, 10) : p.id
+        ),
+        teams: selectedTeams.map((t) =>
+          typeof t.id === 'string' ? parseInt(t.id, 10) : t.id
+        ),
         date: dateISO,
         start_time: startDateTimeISO,
         end_time: endDateTimeISO,
@@ -165,9 +206,9 @@ export default function CreateChallengeScreen() {
     >
       <ScrollView
         ref={scrollViewRef}
-        contentContainerStyle={{ 
-          paddingHorizontal: 24, 
-          paddingBottom: 24 + insets.bottom 
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingBottom: 24 + insets.bottom,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -202,7 +243,7 @@ export default function CreateChallengeScreen() {
                 <Ionicons name="add" size={16} color="#ffffff" />
               </View>
             </Pressable>
-            
+
             {/* Middle Team Size Selector Button */}
             <TeamSizeSelector
               teamSize={teamSize}
@@ -231,12 +272,12 @@ export default function CreateChallengeScreen() {
             <View className="ml-12 mb-2">
               {selectedTeams.map((team, index) => (
                 <View key={index} className="flex-row items-center mb-1">
-                  <Text className="text-white text-sm">
-                    {team.name}
-                  </Text>
+                  <Text className="text-white text-sm">{team.name}</Text>
                   <Pressable
                     onPress={() => {
-                      setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
+                      setSelectedTeams(
+                        selectedTeams.filter((t) => t.id !== team.id)
+                      );
                     }}
                     className="ml-2"
                   >
@@ -257,7 +298,9 @@ export default function CreateChallengeScreen() {
                   </Text>
                   <Pressable
                     onPress={() => {
-                      setParticipants(participants.filter(p => p.id !== participant.id));
+                      setParticipants(
+                        participants.filter((p) => p.id !== participant.id)
+                      );
                     }}
                     className="ml-2"
                   >
@@ -290,7 +333,9 @@ export default function CreateChallengeScreen() {
                     }}
                     className={`px-6 py-3 rounded-full ${isSelected ? 'bg-white' : 'bg-[#575757]'}`}
                   >
-                    <Text className={`text-base font-bold ${isSelected ? 'text-black' : 'text-white'}`}>
+                    <Text
+                      className={`text-base font-bold ${isSelected ? 'text-black' : 'text-white'}`}
+                    >
                       {option.label}
                     </Text>
                   </Pressable>
@@ -308,15 +353,15 @@ export default function CreateChallengeScreen() {
           onRequestClose={() => setShowParticipantModal(false)}
         >
           <View className="flex-1 bg-black/50 justify-end">
-            <Pressable 
-              className="flex-1" 
+            <Pressable
+              className="flex-1"
               onPress={() => setShowParticipantModal(false)}
             />
-            <View 
+            <View
               className="bg-[#171616] rounded-t-3xl"
               style={{
                 maxHeight: Dimensions.get('window').height * 0.85,
-                minHeight: Dimensions.get('window').height * 0.5
+                minHeight: Dimensions.get('window').height * 0.5,
               }}
             >
               <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
@@ -324,10 +369,14 @@ export default function CreateChallengeScreen() {
                   <Text className="text-white text-base">Annuller</Text>
                 </Pressable>
                 <Text className="text-white text-lg font-bold">
-                  {participantModalTab === 'teams' ? 'Vælg teams' : 'Vælg venner'}
+                  {participantModalTab === 'teams'
+                    ? 'Vælg teams'
+                    : 'Vælg venner'}
                 </Text>
                 <Pressable onPress={() => setShowParticipantModal(false)}>
-                  <Text className="text-white text-base font-medium">Færdig</Text>
+                  <Text className="text-white text-base font-medium">
+                    Færdig
+                  </Text>
                 </Pressable>
               </View>
 
@@ -339,91 +388,126 @@ export default function CreateChallengeScreen() {
                     { key: 'teams', label: 'Teams' },
                   ]}
                   activeTab={participantModalTab}
-                  onTabChange={(key) => setParticipantModalTab(key as 'friends' | 'teams')}
+                  onTabChange={(key) =>
+                    setParticipantModalTab(key as 'friends' | 'teams')
+                  }
                 />
               </View>
 
               {/* Content */}
               <View className="flex-1">
-                <ScrollView 
+                <ScrollView
                   className="px-6 pt-4 pb-8"
                   contentContainerStyle={{ paddingBottom: 32 }}
                 >
-                {participantModalTab === 'teams' ? (
-                  loadingTeams ? (
-                    <View className="py-8 items-center">
-                      <Text className="text-white">Indlæser teams...</Text>
-                    </View>
-                  ) : availableTeams.length === 0 ? (
-                    <View className="py-8 items-center">
-                      <Text className="text-white text-center">Ingen teams tilgængelige</Text>
-                    </View>
+                  {participantModalTab === 'teams' ? (
+                    loadingTeams ? (
+                      <View className="py-8 items-center">
+                        <Text className="text-white">Indlæser teams...</Text>
+                      </View>
+                    ) : availableTeams.length === 0 ? (
+                      <View className="py-8 items-center">
+                        <Text className="text-white text-center">
+                          Ingen teams tilgængelige
+                        </Text>
+                      </View>
+                    ) : (
+                      <View className="gap-2">
+                        {availableTeams.map((team: Team) => {
+                          const isSelected = selectedTeams.some(
+                            (t) => t.id === team.id
+                          );
+                          return (
+                            <Pressable
+                              key={team.id}
+                              onPress={() => {
+                                if (isSelected) {
+                                  setSelectedTeams(
+                                    selectedTeams.filter(
+                                      (t) => t.id !== team.id
+                                    )
+                                  );
+                                } else {
+                                  setSelectedTeams([...selectedTeams, team]);
+                                }
+                              }}
+                              className={`flex-row items-center justify-between p-4 rounded-lg border ${
+                                isSelected
+                                  ? 'bg-white border-white'
+                                  : 'bg-[#272626] border-[#575757]'
+                              }`}
+                            >
+                              <Text
+                                className={`text-base font-medium ${isSelected ? 'text-black' : 'text-white'}`}
+                              >
+                                {team.name}
+                              </Text>
+                              {isSelected && (
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={24}
+                                  color="#000000"
+                                />
+                              )}
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    )
                   ) : (
                     <View className="gap-2">
-                      {availableTeams.map((team: Team) => {
-                        const isSelected = selectedTeams.some(t => t.id === team.id);
-                        return (
-                          <Pressable
-                            key={team.id}
-                            onPress={() => {
-                              if (isSelected) {
-                                setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
-                              } else {
-                                setSelectedTeams([...selectedTeams, team]);
-                              }
-                            }}
-                            className={`flex-row items-center justify-between p-4 rounded-lg border ${
-                              isSelected ? 'bg-white border-white' : 'bg-[#272626] border-[#575757]'
-                            }`}
-                          >
-                            <Text className={`text-base font-medium ${isSelected ? 'text-black' : 'text-white'}`}>
-                              {team.name}
-                            </Text>
-                            {isSelected && (
-                              <Ionicons name="checkmark-circle" size={24} color="#000000" />
-                            )}
-                          </Pressable>
-                        );
-                      })}
+                      {availableUsers
+                        .filter((u: User) => u.id !== user?.id)
+                        .map((friend: User) => {
+                          const isSelected = participants.some(
+                            (p) => p.id === friend.id
+                          );
+                          return (
+                            <Pressable
+                              key={friend.id}
+                              onPress={() => {
+                                if (isSelected) {
+                                  setParticipants(
+                                    participants.filter(
+                                      (p) => p.id !== friend.id
+                                    )
+                                  );
+                                } else {
+                                  setParticipants([...participants, friend]);
+                                }
+                              }}
+                              className={`flex-row items-center justify-between p-4 rounded-lg border ${
+                                isSelected
+                                  ? 'bg-white border-white'
+                                  : 'bg-[#272626] border-[#575757]'
+                              }`}
+                            >
+                              <Text
+                                className={`text-base font-medium ${isSelected ? 'text-black' : 'text-white'}`}
+                              >
+                                {friend.first_name} {friend.last_name || ''}
+                              </Text>
+                              {isSelected && (
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={24}
+                                  color="#000000"
+                                />
+                              )}
+                            </Pressable>
+                          );
+                        })}
+                      {availableUsers.filter((u: User) => u.id !== user?.id)
+                        .length === 0 && (
+                        <View className="py-8 items-center">
+                          <Text className="text-white text-center">
+                            Ingen venner tilgængelige
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                  )
-                ) : (
-                  <View className="gap-2">
-                    {availableUsers
-                      .filter((u: User) => u.id !== user?.id)
-                      .map((friend: User) => {
-                        const isSelected = participants.some(p => p.id === friend.id);
-                        return (
-                          <Pressable
-                            key={friend.id}
-                            onPress={() => {
-                              if (isSelected) {
-                                setParticipants(participants.filter(p => p.id !== friend.id));
-                              } else {
-                                setParticipants([...participants, friend]);
-                              }
-                            }}
-                            className={`flex-row items-center justify-between p-4 rounded-lg border ${
-                              isSelected ? 'bg-white border-white' : 'bg-[#272626] border-[#575757]'
-                            }`}
-                          >
-                            <Text className={`text-base font-medium ${isSelected ? 'text-black' : 'text-white'}`}>
-                              {friend.first_name} {friend.last_name || ''}
-                            </Text>
-                            {isSelected && (
-                              <Ionicons name="checkmark-circle" size={24} color="#000000" />
-                            )}
-                          </Pressable>
-                        );
-                      })}
-                    {availableUsers.filter((u: User) => u.id !== user?.id).length === 0 && (
-                      <View className="py-8 items-center">
-                        <Text className="text-white text-center">Ingen venner tilgængelige</Text>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </ScrollView>
+                  )}
+                </ScrollView>
               </View>
             </View>
           </View>
@@ -474,31 +558,33 @@ export default function CreateChallengeScreen() {
             onRequestClose={() => setShowLocationPicker(false)}
           >
             <View className="flex-1 bg-black/50 justify-end">
-              <Pressable 
-                className="absolute inset-0" 
+              <Pressable
+                className="absolute inset-0"
                 onPress={() => setShowLocationPicker(false)}
               />
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'position' : 'height'}
                 keyboardVerticalOffset={0}
               >
-                <View 
+                <View
                   className="bg-[#171616] rounded-t-3xl"
-                  style={{ 
+                  style={{
                     maxHeight: Dimensions.get('window').height * 0.85,
                     minHeight: Dimensions.get('window').height * 0.5,
-                    paddingBottom: insets.bottom
+                    paddingBottom: insets.bottom,
                   }}
                 >
                   <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
                     <Pressable onPress={() => setShowLocationPicker(false)}>
                       <Text className="text-white text-base">Annuller</Text>
                     </Pressable>
-                    <Text className="text-white text-lg font-bold">Søg efter lokation</Text>
-                    <Pressable
-                      onPress={() => setShowLocationPicker(false)}
-                    >
-                      <Text className="text-white text-base font-medium">Færdig</Text>
+                    <Text className="text-white text-lg font-bold">
+                      Søg efter lokation
+                    </Text>
+                    <Pressable onPress={() => setShowLocationPicker(false)}>
+                      <Text className="text-white text-base font-medium">
+                        Færdig
+                      </Text>
                     </Pressable>
                   </View>
                   <View className="flex-1 px-6 pt-4 pb-8">
@@ -523,9 +609,15 @@ export default function CreateChallengeScreen() {
           {/* Date */}
           <FormFieldButton
             label="Dato"
-            value={date
-              ? date.toLocaleDateString('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' })
-              : ''}
+            value={
+              date
+                ? date.toLocaleDateString('da-DK', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })
+                : ''
+            }
             placeholder="Vælg dato"
             onPress={() => {
               setTempDate(date || new Date());
@@ -543,8 +635,8 @@ export default function CreateChallengeScreen() {
               onRequestClose={() => setShowDatePicker(false)}
             >
               <View className="flex-1 bg-black/50 justify-end">
-                <Pressable 
-                  className="flex-1" 
+                <Pressable
+                  className="flex-1"
                   onPress={() => setShowDatePicker(false)}
                 />
                 <View className="bg-[#171616] rounded-t-3xl pb-8">
@@ -552,17 +644,24 @@ export default function CreateChallengeScreen() {
                     <Pressable onPress={() => setShowDatePicker(false)}>
                       <Text className="text-white text-base">Annuller</Text>
                     </Pressable>
-                    <Text className="text-white text-lg font-bold">Vælg dato</Text>
+                    <Text className="text-white text-lg font-bold">
+                      Vælg dato
+                    </Text>
                     <Pressable
                       onPress={() => {
                         setDate(tempDate);
                         setShowDatePicker(false);
                       }}
                     >
-                      <Text className="text-white text-base font-medium">Færdig</Text>
+                      <Text className="text-white text-base font-medium">
+                        Færdig
+                      </Text>
                     </Pressable>
                   </View>
-                  <View className="py-4 w-full items-center" style={{ backgroundColor: '#171616' }}>
+                  <View
+                    className="py-4 w-full items-center"
+                    style={{ backgroundColor: '#171616' }}
+                  >
                     <DateTimePicker
                       value={tempDate}
                       mode="date"
@@ -601,9 +700,14 @@ export default function CreateChallengeScreen() {
           {/* Start Time */}
           <FormFieldButton
             label="Start tid"
-            value={startTime
-              ? startTime.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
-              : ''}
+            value={
+              startTime
+                ? startTime.toLocaleTimeString('da-DK', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : ''
+            }
             placeholder="Vælg start tid"
             onPress={() => {
               const timeToSet = startTime || new Date();
@@ -622,8 +726,8 @@ export default function CreateChallengeScreen() {
               onRequestClose={() => setShowStartTimePicker(false)}
             >
               <View className="flex-1 bg-black/50 justify-end">
-                <Pressable 
-                  className="flex-1" 
+                <Pressable
+                  className="flex-1"
                   onPress={() => setShowStartTimePicker(false)}
                 />
                 <View className="bg-[#171616] rounded-t-3xl pb-8">
@@ -631,17 +735,24 @@ export default function CreateChallengeScreen() {
                     <Pressable onPress={() => setShowStartTimePicker(false)}>
                       <Text className="text-white text-base">Annuller</Text>
                     </Pressable>
-                    <Text className="text-white text-lg font-bold">Vælg start tid</Text>
+                    <Text className="text-white text-lg font-bold">
+                      Vælg start tid
+                    </Text>
                     <Pressable
                       onPress={() => {
                         setStartTime(roundToNearest15Minutes(tempStartTime));
                         setShowStartTimePicker(false);
                       }}
                     >
-                      <Text className="text-white text-base font-medium">Færdig</Text>
+                      <Text className="text-white text-base font-medium">
+                        Færdig
+                      </Text>
                     </Pressable>
                   </View>
-                  <View className="py-4 w-full items-center" style={{ backgroundColor: '#171616' }}>
+                  <View
+                    className="py-4 w-full items-center"
+                    style={{ backgroundColor: '#171616' }}
+                  >
                     <DateTimePicker
                       value={tempStartTime}
                       mode="time"
@@ -680,9 +791,14 @@ export default function CreateChallengeScreen() {
           {/* End Time */}
           <FormFieldButton
             label="Slut tid"
-            value={endTime
-              ? endTime.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
-              : ''}
+            value={
+              endTime
+                ? endTime.toLocaleTimeString('da-DK', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : ''
+            }
             placeholder="Vælg slut tid"
             onPress={() => {
               const timeToSet = endTime || new Date();
@@ -701,8 +817,8 @@ export default function CreateChallengeScreen() {
               onRequestClose={() => setShowEndTimePicker(false)}
             >
               <View className="flex-1 bg-black/50 justify-end">
-                <Pressable 
-                  className="flex-1" 
+                <Pressable
+                  className="flex-1"
                   onPress={() => setShowEndTimePicker(false)}
                 />
                 <View className="bg-[#171616] rounded-t-3xl pb-8">
@@ -710,17 +826,24 @@ export default function CreateChallengeScreen() {
                     <Pressable onPress={() => setShowEndTimePicker(false)}>
                       <Text className="text-white text-base">Annuller</Text>
                     </Pressable>
-                    <Text className="text-white text-lg font-bold">Vælg slut tid</Text>
+                    <Text className="text-white text-lg font-bold">
+                      Vælg slut tid
+                    </Text>
                     <Pressable
                       onPress={() => {
                         setEndTime(roundToNearest15Minutes(tempEndTime));
                         setShowEndTimePicker(false);
                       }}
                     >
-                      <Text className="text-white text-base font-medium">Færdig</Text>
+                      <Text className="text-white text-base font-medium">
+                        Færdig
+                      </Text>
                     </Pressable>
                   </View>
-                  <View className="py-4 w-full items-center" style={{ backgroundColor: '#171616' }}>
+                  <View
+                    className="py-4 w-full items-center"
+                    style={{ backgroundColor: '#171616' }}
+                  >
                     <DateTimePicker
                       value={tempEndTime}
                       mode="time"
@@ -783,24 +906,29 @@ export default function CreateChallengeScreen() {
             onRequestClose={() => setShowPlayForPicker(false)}
           >
             <View className="flex-1 bg-black/50 justify-end">
-              <Pressable 
-                className="flex-1" 
+              <Pressable
+                className="flex-1"
                 onPress={() => setShowPlayForPicker(false)}
               />
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'position' : 'height'}
                 keyboardVerticalOffset={0}
               >
-                <View className="bg-[#171616] rounded-t-3xl" style={{ paddingBottom: 8 + insets.bottom }}>
+                <View
+                  className="bg-[#171616] rounded-t-3xl"
+                  style={{ paddingBottom: 8 + insets.bottom }}
+                >
                   <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
                     <Pressable onPress={() => setShowPlayForPicker(false)}>
                       <Text className="text-white text-base">Annuller</Text>
                     </Pressable>
-                    <Text className="text-white text-lg font-bold">Hvad spiller I om?</Text>
-                    <Pressable
-                      onPress={() => setShowPlayForPicker(false)}
-                    >
-                      <Text className="text-white text-base font-medium">Færdig</Text>
+                    <Text className="text-white text-lg font-bold">
+                      Hvad spiller I om?
+                    </Text>
+                    <Pressable onPress={() => setShowPlayForPicker(false)}>
+                      <Text className="text-white text-base font-medium">
+                        Færdig
+                      </Text>
                     </Pressable>
                   </View>
                   <View className="px-6 pt-4">
@@ -864,7 +992,16 @@ export default function CreateChallengeScreen() {
           label="Opret Challenge"
           loadingLabel="Opretter..."
           onPress={handleSubmit}
-          disabled={!sport || !location || !date || !startTime || !endTime || isIndoor === null || hasCosts === null || isSubmitting}
+          disabled={
+            !sport ||
+            !location ||
+            !date ||
+            !startTime ||
+            !endTime ||
+            isIndoor === null ||
+            hasCosts === null ||
+            isSubmitting
+          }
           isLoading={isSubmitting}
         />
       </ScrollView>

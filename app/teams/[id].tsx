@@ -98,7 +98,8 @@ export default function TeamDetailScreen() {
     );
   }
 
-  const isCreator = currentUser && String(team.creator.id) === String(currentUser.id);
+  const isCreator =
+    currentUser && String(team.creator.id) === String(currentUser.id);
 
   const menuActions: MenuAction[] = [
     {
@@ -112,7 +113,7 @@ export default function TeamDetailScreen() {
       icon: 'flag-outline',
       onPress: () => setReportModalVisible(true),
       variant: 'destructive',
-    }
+    },
   ];
 
   return (
@@ -126,10 +127,7 @@ export default function TeamDetailScreen() {
 
       {/* Header */}
       <View className="flex-row items-center justify-between mb-6">
-        <Pressable
-          onPress={() => router.back()}
-          className="p-2"
-        >
+        <Pressable onPress={() => router.back()} className="p-2">
           <Text className="text-gray-400 text-lg">←</Text>
         </Pressable>
         <Text className="text-lg font-semibold text-white">Hold</Text>
@@ -140,7 +138,9 @@ export default function TeamDetailScreen() {
       {/* Team info */}
       <View className="bg-[#2c2c2c] p-5 rounded-2xl mb-6 flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="text-xl font-semibold mb-1 text-white">{team.name}</Text>
+          <Text className="text-xl font-semibold mb-1 text-white">
+            {team.name}
+          </Text>
         </View>
         <View className="bg-blue-900 rounded-2xl p-3">
           <Ionicons name="shield" size={40} color="#ffffff" />
@@ -149,7 +149,9 @@ export default function TeamDetailScreen() {
 
       {/* Upcoming Events */}
       <View className="mb-6">
-        <Text className="text-gray-300 text-sm mb-3">Kommende begivenheder</Text>
+        <Text className="text-gray-300 text-sm mb-3">
+          Kommende begivenheder
+        </Text>
         <View className="flex-row gap-3">
           <View className="flex-1 bg-[#2c2c2c] p-4 rounded-xl">
             <Text className="text-sm text-gray-300 font-semibold">
@@ -184,8 +186,11 @@ export default function TeamDetailScreen() {
           <Ionicons name="people" size={24} color="#ffffff" />
           <Text className="text-sm text-gray-300">Medlemmer</Text>
         </Pressable>
-        <Pressable className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2"
-                   onPress={() => router.push(`/chat/${team.id}?type=team&name=${team.name}` as any)}
+        <Pressable
+          className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2"
+          onPress={() =>
+            router.push(`/chat/${team.id}?type=team&name=${team.name}` as any)
+          }
         >
           <Ionicons name="chatbubble" size={24} color="#ffffff" />
           <Text className="text-sm text-gray-300">Chat</Text>
@@ -198,7 +203,9 @@ export default function TeamDetailScreen() {
 
       {/* Invitations / Suggestions */}
       <View>
-        <Text className="text-gray-300 text-sm mb-3">Invitationer / Forslag</Text>
+        <Text className="text-gray-300 text-sm mb-3">
+          Invitationer / Forslag
+        </Text>
         <View className="bg-[#2c2c2c] rounded-2xl overflow-hidden">
           <View className="flex-row justify-between items-center p-4 border-b border-gray-700">
             <View className="flex-1">

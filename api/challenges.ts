@@ -10,7 +10,9 @@ export const getChallenges = async () => {
 };
 
 export const getChallenge = async (challengeId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/${challengeId}`));
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/${challengeId}`)
+  );
   return response.json();
 };
 
@@ -28,31 +30,36 @@ export const createChallenge = async (challenge: CreateChallenge) => {
 
 // POST - Join challenge
 export const joinChallenge = async (challengeId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/${challengeId}/join`), {
-    method: 'POST',
-  });
-  
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/${challengeId}/join`),
+    {
+      method: 'POST',
+    }
+  );
+
   // Handle empty responses (e.g., 204 No Content or empty 200)
   const text = await response.text();
   if (!text || text.trim().length === 0) {
     return {};
   }
-  
+
   return JSON.parse(text);
 };
 
 // POST - Leave challenge
 export const leaveChallenge = async (challengeId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/${challengeId}/leave`), {
-    method: 'POST',
-  });
-  
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/${challengeId}/leave`),
+    {
+      method: 'POST',
+    }
+  );
+
   // Handle empty responses (e.g., 204 No Content or empty 200)
   const text = await response.text();
   if (!text || text.trim().length === 0) {
     return {};
   }
-  
+
   return JSON.parse(text);
 };
-

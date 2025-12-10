@@ -2,9 +2,15 @@ import type { PublicUser } from './user';
 
 export type NotificationType =
   | 'system'
-  | 'team_invite' | 'team_accept' | 'team_decline'
-  | 'friend_request' | 'friend_accept' | 'friend_decline'
-  | 'challenge_request' | 'challenge_accept' | 'challenge_decline';
+  | 'team_invite'
+  | 'team_accept'
+  | 'team_decline'
+  | 'friend_request'
+  | 'friend_accept'
+  | 'friend_decline'
+  | 'challenge_request'
+  | 'challenge_accept'
+  | 'challenge_decline';
 
 export interface Notification {
   id: number;

@@ -24,7 +24,9 @@ export const HorizontalPicker = ({
       onPress={() => onSelect(option.key)}
       className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-[#575757]'}`}
     >
-      <Text className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-white'}`}>
+      <Text
+        className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-white'}`}
+      >
         {option.label}
       </Text>
     </Pressable>
@@ -45,4 +47,3 @@ export const HorizontalPicker = ({
     </View>
   );
 };
-

@@ -5,7 +5,14 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 import { ChallengeCard } from '../../components/challenges';
-import { EmptyState, ErrorScreen, LoadingScreen, ScreenContainer, TabNavigation, TopActionBar } from '../../components/common';
+import {
+  EmptyState,
+  ErrorScreen,
+  LoadingScreen,
+  ScreenContainer,
+  TabNavigation,
+  TopActionBar,
+} from '../../components/common';
 import { useChallenges } from '../../hooks/queries';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { Challenge } from '../../types/challenge';
@@ -21,9 +28,15 @@ export default function HubScreen() {
   const { user } = useCurrentUser();
   const [viewMode, setViewMode] = useState<ViewMode>('default');
   const [activeTab, setActiveTab] = useState<TabType>('public');
-  const [activePersonalTab, setActivePersonalTab] = useState<PersonalTabType>('mine');
+  const [activePersonalTab, setActivePersonalTab] =
+    useState<PersonalTabType>('mine');
 
-  const { data: challenges = [], isLoading: loading, error, refetch } = useChallenges();
+  const {
+    data: challenges = [],
+    isLoading: loading,
+    error,
+    refetch,
+  } = useChallenges();
 
   useFocusEffect(
     useCallback(() => {
@@ -44,11 +57,11 @@ export default function HubScreen() {
     } else {
       // Personal view: My challenges and Registered tabs
       if (!user) return [];
-      
+
       if (activePersonalTab === 'mine') {
         // My challenges: challenges created by the current user
-        return challenges.filter((challenge: Challenge) =>
-          challenge.creator.id === user.id
+        return challenges.filter(
+          (challenge: Challenge) => challenge.creator.id === user.id
         );
       } else {
         // Registered: challenges where user has joined (but not created)
@@ -58,9 +71,11 @@ export default function HubScreen() {
             return false;
           }
           // Include challenges where user is participating
-          const isParticipating = 
+          const isParticipating =
             challenge.users.some((u: User) => u.id === user.id) ||
-            challenge.teams.some((team: Team) => team.users?.some((u: User) => u.id === user.id));
+            challenge.teams.some((team: Team) =>
+              team.users?.some((u: User) => u.id === user.id)
+            );
           return isParticipating;
         });
       }
@@ -72,7 +87,15 @@ export default function HubScreen() {
   }
 
   if (error) {
-    return <ErrorScreen error={error instanceof Error ? error : new Error('Failed to fetch challenges')} />;
+    return (
+      <ErrorScreen
+        error={
+          error instanceof Error
+            ? error
+            : new Error('Failed to fetch challenges')
+        }
+      />
+    );
   }
 
   return (
@@ -80,7 +103,11 @@ export default function HubScreen() {
       <TopActionBar
         title="Hub"
         leftAction={
-          <Pressable onPress={() => setViewMode(viewMode === 'default' ? 'personal' : 'default')}>
+          <Pressable
+            onPress={() =>
+              setViewMode(viewMode === 'default' ? 'personal' : 'default')
+            }
+          >
             <Image
               source={require('../../assets/VS-Icon-button.svg')}
               style={{ width: 40, height: 40 }}

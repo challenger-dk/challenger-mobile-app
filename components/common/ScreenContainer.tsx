@@ -1,5 +1,8 @@
 import { View, ViewProps } from 'react-native';
-import { SafeAreaView, SafeAreaViewProps } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  SafeAreaViewProps,
+} from 'react-native-safe-area-context';
 
 interface ScreenContainerProps extends ViewProps {
   safeArea?: boolean;
@@ -7,13 +10,13 @@ interface ScreenContainerProps extends ViewProps {
 }
 
 export const ScreenContainer = ({
-    children,
-    safeArea = false,
-    edges = ['top'],
-    style,
-    className = "",
-    ...props
-  }: ScreenContainerProps) => {
+  children,
+  safeArea = false,
+  edges = ['top'],
+  style,
+  className = '',
+  ...props
+}: ScreenContainerProps) => {
   const Container = safeArea ? SafeAreaView : View;
 
   return (
@@ -23,9 +26,7 @@ export const ScreenContainer = ({
       style={style}
       {...props}
     >
-      <View className="flex-1 w-full">
-        {children}
-      </View>
+      <View className="flex-1 w-full">{children}</View>
     </Container>
   );
 };

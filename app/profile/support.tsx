@@ -1,14 +1,26 @@
-import { ScreenContainer, ScreenHeader, SubmitButton } from '@/components/common';
+import {
+  ScreenContainer,
+  ScreenHeader,
+  SubmitButton,
+} from '@/components/common';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 type SupportType = 'BUG' | 'CONTACT' | 'OTHER';
 
 const TypeSelector = ({
-                        selected,
-                        onSelect,
-                      }: {
+  selected,
+  onSelect,
+}: {
   selected: SupportType;
   onSelect: (t: SupportType) => void;
 }) => {
@@ -77,8 +89,13 @@ export default function SupportScreen() {
   return (
     <ScreenContainer>
       <ScreenHeader title="Support" />
-      <ScrollView className="flex-1 px-6 pt-4" keyboardShouldPersistTaps="handled">
-        <Text className="text-white text-base mb-2 font-medium">Hvad drejer det sig om?</Text>
+      <ScrollView
+        className="flex-1 px-6 pt-4"
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text className="text-white text-base mb-2 font-medium">
+          Hvad drejer det sig om?
+        </Text>
         <TypeSelector selected={type} onSelect={setType} />
 
         <Text className="text-white text-base mb-2 font-medium">Emne</Text>
@@ -105,10 +122,7 @@ export default function SupportScreen() {
           />
         </View>
 
-        <SubmitButton
-          label="Åben Email"
-          onPress={handleSend}
-        />
+        <SubmitButton label="Åben Email" onPress={handleSend} />
         <View className="h-10" />
       </ScrollView>
     </ScreenContainer>

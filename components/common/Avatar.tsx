@@ -11,12 +11,12 @@ interface AvatarProps {
 }
 
 export const Avatar = ({
-                         uri,
-                         size = 48,
-                         showBorder = false,
-                         placeholderIcon = 'person',
-                         className = ''
-                       }: AvatarProps) => {
+  uri,
+  size = 48,
+  showBorder = false,
+  placeholderIcon = 'person',
+  className = '',
+}: AvatarProps) => {
   const borderRadius = size / 2;
   const iconSize = size * 0.5;
 

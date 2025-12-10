@@ -1,4 +1,14 @@
-import { createTeam, deleteTeam, getMyTeams, getTeam, getTeams, getTeamsByUser, leaveTeam, removeUserFromTeam, updateTeam } from '@/api/teams';
+import {
+  createTeam,
+  deleteTeam,
+  getMyTeams,
+  getTeam,
+  getTeams,
+  getTeamsByUser,
+  leaveTeam,
+  removeUserFromTeam,
+  updateTeam,
+} from '@/api/teams';
 import { queryKeys } from '@/lib/queryClient';
 import type { UpdateTeam } from '@/types/team';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -59,13 +69,17 @@ export const useCreateTeam = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
       if (data?.users) {
         data.users.forEach((user: { id: string | number }) => {
-          queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(user.id) });
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.teams.byUser(user.id),
+          });
         });
       }
       showSuccessToast('Holdet er oprettet!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved oprettelse af holdet');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved oprettelse af holdet'
+      );
     },
   });
 };
@@ -80,18 +94,24 @@ export const useUpdateTeam = () => {
     mutationFn: ({ teamId, team }: { teamId: string; team: UpdateTeam }) =>
       updateTeam(teamId, team),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.teams.detail(variables.teamId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.teams.detail(variables.teamId),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
       if (data?.users) {
         data.users.forEach((user: { id: string | number }) => {
-          queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(user.id) });
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.teams.byUser(user.id),
+          });
         });
       }
       showSuccessToast('Holdet er opdateret!');
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || 'Der opstod en fejl ved opdatering af holdet');
+      showErrorToast(
+        error.message || 'Der opstod en fejl ved opdatering af holdet'
+      );
     },
   });
 };
@@ -106,8 +126,12 @@ export const useRemoveUserFromTeam = () => {
     mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) =>
       removeUserFromTeam(teamId, userId),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.teams.detail(variables.teamId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser(variables.userId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.teams.detail(variables.teamId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.teams.byUser(variables.userId),
+      });
       showSuccessToast('Bruger fjernet fra holdet');
     },
     onError: (error: Error) => {
@@ -128,7 +152,9 @@ export const useLeaveTeam = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.teams.byUser('me') });
       // Invalidate the team detail as well since the user is no longer part of it
-      queryClient.invalidateQueries({ queryKey: queryKeys.teams.detail(teamId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.teams.detail(teamId),
+      });
       showSuccessToast('Du har forladt holdet');
     },
     onError: (error: Error) => {

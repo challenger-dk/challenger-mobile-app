@@ -13,8 +13,16 @@ export const toastConfig = {
         <Ionicons name="checkmark-circle" size={24} color={colors.success} />
       </View>
       <View className="flex-1">
-        {text1 && <Text className="text-[15px] font-semibold text-white mb-0.5">{text1}</Text>}
-        {text2 && <Text className="text-[13px] font-normal text-[#575757] leading-[18px]">{text2}</Text>}
+        {text1 && (
+          <Text className="text-[15px] font-semibold text-white mb-0.5">
+            {text1}
+          </Text>
+        )}
+        {text2 && (
+          <Text className="text-[13px] font-normal text-[#575757] leading-[18px]">
+            {text2}
+          </Text>
+        )}
       </View>
     </View>
   ),
@@ -25,8 +33,16 @@ export const toastConfig = {
         <Ionicons name="close-circle" size={24} color={colors.error} />
       </View>
       <View className="flex-1">
-        {text1 && <Text className="text-[15px] font-semibold text-white mb-0.5">{text1}</Text>}
-        {text2 && <Text className="text-[13px] font-normal text-[#575757] leading-[18px]">{text2}</Text>}
+        {text1 && (
+          <Text className="text-[15px] font-semibold text-white mb-0.5">
+            {text1}
+          </Text>
+        )}
+        {text2 && (
+          <Text className="text-[13px] font-normal text-[#575757] leading-[18px]">
+            {text2}
+          </Text>
+        )}
       </View>
     </View>
   ),
@@ -37,10 +53,17 @@ export const toastConfig = {
         <Ionicons name="information-circle" size={24} color={colors.info} />
       </View>
       <View className="flex-1">
-        {text1 && <Text className="text-[15px] font-semibold text-white mb-0.5">{text1}</Text>}
-        {text2 && <Text className="text-[13px] font-normal text-[#575757] leading-[18px]">{text2}</Text>}
+        {text1 && (
+          <Text className="text-[15px] font-semibold text-white mb-0.5">
+            {text1}
+          </Text>
+        )}
+        {text2 && (
+          <Text className="text-[13px] font-normal text-[#575757] leading-[18px]">
+            {text2}
+          </Text>
+        )}
       </View>
     </View>
   ),
 };
-

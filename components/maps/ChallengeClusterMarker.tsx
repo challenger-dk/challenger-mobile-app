@@ -7,12 +7,15 @@ interface ChallengeClusterMarkerProps {
   onPress: (cluster: Cluster) => void;
 }
 
-export const ChallengeClusterMarker = ({ cluster, onPress }: ChallengeClusterMarkerProps) => {
+export const ChallengeClusterMarker = ({
+  cluster,
+  onPress,
+}: ChallengeClusterMarkerProps) => {
   // Calculate marker dimensions:
   // Circle size varies based on count
   const size = cluster.count < 10 ? 40 : cluster.count < 100 ? 50 : 60;
   const fontSize = cluster.count < 10 ? 14 : cluster.count < 100 ? 16 : 18;
-  
+
   // Center the circle on the coordinate (no offset needed for circle-only design)
   const centerOffsetY = -size / 2;
 
@@ -37,10 +40,7 @@ export const ChallengeClusterMarker = ({ cluster, onPress }: ChallengeClusterMar
             height: size,
           }}
         >
-          <Text
-            className="text-white font-bold"
-            style={{ fontSize }}
-          >
+          <Text className="text-white font-bold" style={{ fontSize }}>
             {cluster.count}
           </Text>
         </View>
@@ -48,4 +48,3 @@ export const ChallengeClusterMarker = ({ cluster, onPress }: ChallengeClusterMar
     </Marker>
   );
 };
-

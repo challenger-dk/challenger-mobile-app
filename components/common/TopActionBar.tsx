@@ -57,7 +57,10 @@ export const TopActionBar = ({
   const useAbsoluteCentering = shouldCenterTitle;
 
   return (
-    <View className="flex-row items-center px-6 py-3 w-full" style={{ zIndex: 100 }}>
+    <View
+      className="flex-row items-center px-6 py-3 w-full"
+      style={{ zIndex: 100 }}
+    >
       {leftAction ? (
         <View className="flex-1 items-start">{leftAction}</View>
       ) : shouldCenterTitle ? (

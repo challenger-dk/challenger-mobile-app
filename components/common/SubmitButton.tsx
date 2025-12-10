@@ -18,7 +18,7 @@ export const SubmitButton = ({
   className = '',
 }: SubmitButtonProps) => {
   const isDisabled = disabled || isLoading;
-  const displayText = isLoading ? (loadingLabel || 'Loading...') : label;
+  const displayText = isLoading ? loadingLabel || 'Loading...' : label;
 
   return (
     <View className={`w-full flex-row gap-4 mt-auto ${className}`}>
@@ -40,4 +40,3 @@ export const SubmitButton = ({
     </View>
   );
 };
-

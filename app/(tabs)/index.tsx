@@ -1,19 +1,22 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { ScreenContainer, TabNavigation, TopActionBar } from '../../components/common';
+import {
+  ScreenContainer,
+  TabNavigation,
+  TopActionBar,
+} from '../../components/common';
 import { Clubs } from '../../components/home/Clubs';
 import { Tournaments } from '../../components/home/Tournaments';
 
 export default function HomeScreen() {
-  const [activeTab, setActiveTab] = useState<'turneringer' | 'klubber'>('turneringer');
+  const [activeTab, setActiveTab] = useState<'turneringer' | 'klubber'>(
+    'turneringer'
+  );
 
   return (
-    <ScreenContainer className='pt-1'>
+    <ScreenContainer className="pt-1">
       {/* Header Section */}
-      <TopActionBar
-        title="Home"
-        settingsRoute="/profile/settings"
-      />
+      <TopActionBar title="Home" settingsRoute="/profile/settings" />
 
       {/* Navigation Tab Bar */}
       <TabNavigation

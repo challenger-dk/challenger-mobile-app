@@ -8,7 +8,16 @@ import { uploadProfilePicture } from '@/utils/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TOTAL_STEPS = 4;
@@ -33,8 +42,8 @@ export default function RegisterScreen() {
   const [age, setAge] = useState<number>(0);
 
   const toggleSport = (sport: string) => {
-    setFavoriteSports(prev =>
-      prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]
+    setFavoriteSports((prev) =>
+      prev.includes(sport) ? prev.filter((s) => s !== sport) : [...prev, sport]
     );
   };
 
@@ -71,11 +80,15 @@ export default function RegisterScreen() {
             'Fejl ved billede',
             'Kunne ikke uploade profilbillede. Vil du fortsætte uden?',
             [
-              { text: 'Nej', style: 'cancel', onPress: () => setIsSubmitting(false) },
+              {
+                text: 'Nej',
+                style: 'cancel',
+                onPress: () => setIsSubmitting(false),
+              },
               {
                 text: 'Ja',
-                onPress: async () => await proceedWithRegistration(undefined)
-              }
+                onPress: async () => await proceedWithRegistration(undefined),
+              },
             ]
           );
           return;
@@ -83,7 +96,6 @@ export default function RegisterScreen() {
       }
 
       await proceedWithRegistration(finalProfilePictureUrl);
-
     } catch (error) {
       console.error('Registration error:', error);
       Alert.alert('Fejl', 'Der opstod en fejl ved registrering');
@@ -91,7 +103,9 @@ export default function RegisterScreen() {
     }
   };
 
-  const proceedWithRegistration = async (profilePictureUrl: string | undefined) => {
+  const proceedWithRegistration = async (
+    profilePictureUrl: string | undefined
+  ) => {
     try {
       const registerResponse = await register({
         email,
@@ -105,7 +119,10 @@ export default function RegisterScreen() {
       } as CreateUser);
 
       if (registerResponse.error) {
-        Alert.alert('Fejl', registerResponse.error || 'Der opstod en fejl ved registrering');
+        Alert.alert(
+          'Fejl',
+          registerResponse.error || 'Der opstod en fejl ved registrering'
+        );
         setIsSubmitting(false);
         return;
       }
@@ -123,11 +140,23 @@ export default function RegisterScreen() {
 
   const canProceedToNextStep = () => {
     switch (currentStep) {
-      case 1: return firstName.trim() !== '' && lastName.trim() !== '' && age !== null;
-      case 2: return true;
-      case 3: return favoriteSports.length > 0;
-      case 4: return email.trim() !== '' && password.trim() !== '' && confirmPassword.trim() !== '' && password === confirmPassword;
-      default: return false;
+      case 1:
+        return (
+          firstName.trim() !== '' && lastName.trim() !== '' && age !== null
+        );
+      case 2:
+        return true;
+      case 3:
+        return favoriteSports.length > 0;
+      case 4:
+        return (
+          email.trim() !== '' &&
+          password.trim() !== '' &&
+          confirmPassword.trim() !== '' &&
+          password === confirmPassword
+        );
+      default:
+        return false;
     }
   };
 
@@ -136,12 +165,21 @@ export default function RegisterScreen() {
       case 1:
         return (
           <>
-            <Text className="text-text text-xl font-bold mb-4">Tilføj Profilbillede</Text>
-            <Text className="text-text text-center text-sm mb-8">Sørg for at man tydeligt kan se ansigt er klart og tydeligt.</Text>
+            <Text className="text-text text-xl font-bold mb-4">
+              Tilføj Profilbillede
+            </Text>
+            <Text className="text-text text-center text-sm mb-8">
+              Sørg for at man tydeligt kan se ansigt er klart og tydeligt.
+            </Text>
 
             <View className="mb-8">
               <Pressable onPress={pickImage}>
-                <Avatar uri={imageUri} size={192} className="bg-surface" placeholderIcon="person" />
+                <Avatar
+                  uri={imageUri}
+                  size={192}
+                  className="bg-surface"
+                  placeholderIcon="person"
+                />
               </Pressable>
             </View>
 
@@ -176,7 +214,9 @@ export default function RegisterScreen() {
         return (
           <>
             <Text className="text-text text-xl font-bold mb-4">Tilføj Bio</Text>
-            <Text className="text-text text-center text-sm mb-8">Fortæl lidt om dig selv</Text>
+            <Text className="text-text text-center text-sm mb-8">
+              Fortæl lidt om dig selv
+            </Text>
             <TextInput
               placeholder="Skriv din bio her..."
               placeholderTextColor="#9CA3AF"
@@ -192,9 +232,16 @@ export default function RegisterScreen() {
       case 3:
         return (
           <>
-            <Text className="text-text text-xl font-bold mb-4">Vælg Dine Favoritsports</Text>
-            <Text className="text-text text-center text-sm mb-8">Vælg de sportsgrene du er interesseret i</Text>
-            <ScrollView className="w-full max-w-sm" showsVerticalScrollIndicator={false}>
+            <Text className="text-text text-xl font-bold mb-4">
+              Vælg Dine Favoritsports
+            </Text>
+            <Text className="text-text text-center text-sm mb-8">
+              Vælg de sportsgrene du er interesseret i
+            </Text>
+            <ScrollView
+              className="w-full max-w-sm"
+              showsVerticalScrollIndicator={false}
+            >
               <View className="flex-row flex-wrap gap-3 justify-center">
                 {Object.keys(SPORTS_TRANSLATION_EN_TO_DK).map((sport) => (
                   <Pressable
@@ -202,7 +249,9 @@ export default function RegisterScreen() {
                     onPress={() => toggleSport(sport)}
                     className={`px-4 py-2 rounded-full ${favoriteSports.includes(sport) ? 'bg-white' : 'bg-surface'}`}
                   >
-                    <Text className={`text-sm font-medium ${favoriteSports.includes(sport) ? 'text-black' : 'text-white'}`}>
+                    <Text
+                      className={`text-sm font-medium ${favoriteSports.includes(sport) ? 'text-black' : 'text-white'}`}
+                    >
                       {SPORTS_TRANSLATION_EN_TO_DK[sport] || sport}
                     </Text>
                   </Pressable>
@@ -214,8 +263,12 @@ export default function RegisterScreen() {
       case 4:
         return (
           <>
-            <Text className="text-text text-xl font-bold mb-4">Opret Konto</Text>
-            <Text className="text-text text-center text-sm mb-8">Indtast din e-mail og adgangskode</Text>
+            <Text className="text-text text-xl font-bold mb-4">
+              Opret Konto
+            </Text>
+            <Text className="text-text text-center text-sm mb-8">
+              Indtast din e-mail og adgangskode
+            </Text>
             <TextInput
               placeholder="E-mail"
               placeholderTextColor="#9CA3AF"
@@ -228,7 +281,7 @@ export default function RegisterScreen() {
             <View className="w-full max-w-sm relative mb-4">
               <TextInput
                 placeholder="Adgangskode"
-                testID='password'
+                testID="password"
                 placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
@@ -243,13 +296,17 @@ export default function RegisterScreen() {
                 onPress={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-2.5"
               >
-                <Ionicons name={showPassword ? "eye-off" : "eye"} size={18} color="#9CA3AF" />
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={18}
+                  color="#9CA3AF"
+                />
               </Pressable>
             </View>
             <View className="w-full max-w-sm relative mb-4">
               <TextInput
                 placeholder="Bekræft adgangskode"
-                testID='confirmPassword'
+                testID="confirmPassword"
                 placeholderTextColor="#9CA3AF"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -264,15 +321,22 @@ export default function RegisterScreen() {
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-2.5"
               >
-                <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={18} color="#9CA3AF" />
+                <Ionicons
+                  name={showConfirmPassword ? 'eye-off' : 'eye'}
+                  size={18}
+                  color="#9CA3AF"
+                />
               </Pressable>
             </View>
             {password && confirmPassword && password !== confirmPassword && (
-              <Text className="text-danger text-sm mb-4">Adgangskoderne matcher ikke</Text>
+              <Text className="text-danger text-sm mb-4">
+                Adgangskoderne matcher ikke
+              </Text>
             )}
           </>
         );
-      default: return null;
+      default:
+        return null;
     }
   };
 
@@ -283,12 +347,19 @@ export default function RegisterScreen() {
       className="flex-1 bg-background"
     >
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 72, paddingBottom: 48 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 72,
+          paddingBottom: 48,
+        }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View className="absolute top-4 left-4 z-10">
-          <Pressable onPress={() => router.push('/(auth)/login' as any)} className="p-2">
+          <Pressable
+            onPress={() => router.push('/(auth)/login' as any)}
+            className="p-2"
+          >
             <Ionicons name="chevron-back-outline" size={24} color="#9CA3AF" />
           </Pressable>
         </View>
@@ -299,11 +370,16 @@ export default function RegisterScreen() {
 
         <StepIndicator totalSteps={TOTAL_STEPS} currentStep={currentStep} />
 
-        <View className="flex-1 w-full items-center">{renderStepContent()}</View>
+        <View className="flex-1 w-full items-center">
+          {renderStepContent()}
+        </View>
 
         <View className="w-full max-w-sm flex-row gap-4 mt-8">
           {currentStep > 1 && (
-            <Pressable onPress={handleBack} className="flex-1 bg-surface rounded-lg px-4 py-4">
+            <Pressable
+              onPress={handleBack}
+              className="flex-1 bg-surface rounded-lg px-4 py-4"
+            >
               <Text className="text-text text-center font-medium">Tilbage</Text>
             </Pressable>
           )}
@@ -313,16 +389,22 @@ export default function RegisterScreen() {
               disabled={!canProceedToNextStep()}
               className={`flex-1 rounded-lg px-4 py-4 ${canProceedToNextStep() ? 'bg-white' : 'bg-surface'}`}
             >
-              <Text className={`text-center font-medium ${canProceedToNextStep() ? 'text-black' : 'text-gray-400'}`}>Fortsæt</Text>
+              <Text
+                className={`text-center font-medium ${canProceedToNextStep() ? 'text-black' : 'text-gray-400'}`}
+              >
+                Fortsæt
+              </Text>
             </Pressable>
           ) : (
             <Pressable
               onPress={handleSubmit}
               disabled={!canProceedToNextStep() || isSubmitting}
               className={`flex-1 rounded-lg px-4 py-4 ${canProceedToNextStep() && !isSubmitting ? 'bg-white' : 'bg-surface'}`}
-              testID='submitButton'
+              testID="submitButton"
             >
-              <Text className={`text-center font-medium ${canProceedToNextStep() && !isSubmitting ? 'text-black' : 'text-gray-400'}`}>
+              <Text
+                className={`text-center font-medium ${canProceedToNextStep() && !isSubmitting ? 'text-black' : 'text-gray-400'}`}
+              >
                 {isSubmitting ? 'Opretter...' : 'Opret konto'}
               </Text>
             </Pressable>

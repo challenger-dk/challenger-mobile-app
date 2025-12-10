@@ -1,7 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SendInvitation, getMyInvitations } from '../../api/invitations';
 import { getCurrentUser, getUsers } from '../../api/users';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -28,7 +35,7 @@ export function FriendsContent() {
       const [freshUser, allUsers, myInvitations] = await Promise.all([
         getCurrentUser(),
         getUsers(),
-        getMyInvitations()
+        getMyInvitations(),
       ]);
 
       const myFriends: User[] = freshUser.friends || [];
@@ -38,9 +45,10 @@ export function FriendsContent() {
       const others = allUsers.filter((u: User) => !myFriendIds.has(u.id));
 
       const pendingInvitations = Array.isArray(myInvitations)
-        ? myInvitations.filter((inv: Invitation) =>
-          inv.resource_type === 'friend' && inv.status === 'pending'
-        )
+        ? myInvitations.filter(
+            (inv: Invitation) =>
+              inv.resource_type === 'friend' && inv.status === 'pending'
+          )
         : [];
 
       setFriends(myFriends);
@@ -71,15 +79,17 @@ export function FriendsContent() {
   const handleAddFriend = async (inviteeId: number | string) => {
     if (!user) return;
 
-    const numericInviterId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
-    const numericInviteeId = typeof inviteeId === 'string' ? parseInt(inviteeId, 10) : inviteeId;
+    const numericInviterId =
+      typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+    const numericInviteeId =
+      typeof inviteeId === 'string' ? parseInt(inviteeId, 10) : inviteeId;
 
     try {
       const invitation: CreateInvitation = {
         inviter_id: numericInviterId,
         invitee_id: numericInviteeId,
         note: `${user.first_name} har sendt der en venneanmodning`,
-        resource_type: 'friend'
+        resource_type: 'friend',
       };
 
       await SendInvitation(invitation);
@@ -93,7 +103,9 @@ export function FriendsContent() {
 
   const filterUsers = (users: User[]) =>
     users.filter((u) =>
-      `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase())
+      `${u.first_name} ${u.last_name}`
+        .toLowerCase()
+        .includes(search.toLowerCase())
     );
 
   const renderFriendCard = (friend: User) => (
@@ -103,7 +115,11 @@ export function FriendsContent() {
       className="flex-row items-center justify-between bg-surface rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center gap-3">
-        <Avatar uri={friend.profile_picture} size={40} placeholderIcon="person" />
+        <Avatar
+          uri={friend.profile_picture}
+          size={40}
+          placeholderIcon="person"
+        />
         <View>
           <Text className="text-text text-base font-semibold">
             {friend.first_name} {friend.last_name}
@@ -121,7 +137,11 @@ export function FriendsContent() {
       className="flex-row items-center justify-between bg-surface rounded-2xl p-4 mb-3"
     >
       <View className="flex-row items-center gap-3">
-        <Avatar uri={otherUser.profile_picture} size={40} placeholderIcon="person" />
+        <Avatar
+          uri={otherUser.profile_picture}
+          size={40}
+          placeholderIcon="person"
+        />
         <View>
           <Text className="text-text text-base font-semibold">
             {otherUser.first_name} {otherUser.last_name}
@@ -155,7 +175,13 @@ export function FriendsContent() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#fff"
+        />
+      }
     >
       <View className="px-6 py-4">
         <View className="mb-5">
@@ -187,7 +213,9 @@ export function FriendsContent() {
           <Text className="text-text-muted text-sm mb-3">Find nye venner</Text>
           {filterUsers(otherUsers).map(renderOtherUserCard)}
           {filterUsers(otherUsers).length === 0 && search.length > 0 && (
-            <Text className="text-text-muted text-sm">Ingen brugere fundet.</Text>
+            <Text className="text-text-muted text-sm">
+              Ingen brugere fundet.
+            </Text>
           )}
         </View>
 
@@ -207,4 +235,3 @@ export function FriendsContent() {
     </ScrollView>
   );
 }
-

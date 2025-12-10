@@ -15,7 +15,9 @@ export const getTeam = async (teamId: string) => {
 };
 
 export const getTeamsByUser = async (userId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/user/${userId}`));
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/user/${userId}`)
+  );
   return response.json();
 };
 
@@ -54,30 +56,36 @@ export const deleteTeam = async (teamId: string) => {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-    }
+    },
   });
   const text = await response.text();
   return text ? JSON.parse(text) : {};
-}
+};
 
 export const leaveTeam = async (teamId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/${teamId}/leave`), {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/${teamId}/leave`),
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
-  });
+  );
   const text = await response.text();
   return text ? JSON.parse(text) : {};
-}
+};
 
 export const removeUserFromTeam = async (teamId: string, rmvUserId: string) => {
-  const response = await authenticatedFetch(getApiUrl(`/${type}/${teamId}/user/${rmvUserId}`), {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await authenticatedFetch(
+    getApiUrl(`/${type}/${teamId}/user/${rmvUserId}`),
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
-  });
+  );
   const text = await response.text();
   return text ? JSON.parse(text) : {};
 };

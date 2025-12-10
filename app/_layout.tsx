@@ -23,7 +23,10 @@ export default function RootLayout() {
           <AuthProvider>
             {/* WebSocketProvider must be INSIDE AuthProvider */}
             <WebSocketProvider>
-              <Stack screenOptions={{ headerShown: false }} initialRouteName="(auth)">
+              <Stack
+                screenOptions={{ headerShown: false }}
+                initialRouteName="(auth)"
+              >
                 <Stack.Screen name="(auth)" />
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="profile" />

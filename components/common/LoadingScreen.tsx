@@ -4,7 +4,9 @@ interface LoadingScreenProps {
   message?: string;
 }
 
-export const LoadingScreen = ({ message = 'Loading...' }: LoadingScreenProps) => {
+export const LoadingScreen = ({
+  message = 'Loading...',
+}: LoadingScreenProps) => {
   return (
     <View className="flex-1 bg-[#171616] justify-center items-center">
       <ActivityIndicator size="large" color="#ffffff" />
@@ -12,4 +14,3 @@ export const LoadingScreen = ({ message = 'Loading...' }: LoadingScreenProps) =>
     </View>
   );
 };
-

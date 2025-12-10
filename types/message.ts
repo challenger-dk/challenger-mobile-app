@@ -1,4 +1,4 @@
-import type { PublicUser } from "./user";
+import type { PublicUser } from './user';
 
 export type ConversationType = 'user' | 'team';
 

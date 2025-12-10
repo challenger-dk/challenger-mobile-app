@@ -1,5 +1,11 @@
 import * as SecureStore from 'expo-secure-store';
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 interface AuthContextType {
@@ -76,7 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }}
     >
       {isLoading ? (
-        <View style={{ flex: 1, backgroundColor: '#171616', justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: '#171616',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <ActivityIndicator size="large" color="#ffffff" />
         </View>
       ) : (
@@ -93,4 +106,3 @@ export function useAuth() {
   }
   return context;
 }
-

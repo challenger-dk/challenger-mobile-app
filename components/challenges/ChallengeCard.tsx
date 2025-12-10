@@ -13,18 +13,23 @@ export interface ChallengeCardProps {
   type: 'open' | 'closed';
 }
 
-export const ChallengeCard = ({ challenge, onPress, type }: ChallengeCardProps) => {
+export const ChallengeCard = ({
+  challenge,
+  onPress,
+  type,
+}: ChallengeCardProps) => {
   // Calculate joined participants (sum of all users in all teams);
   const joinedParticipants = challenge.users?.length || 0;
-  
+
   // Calculate total possible participants (team_size * number_of_teams)
-  const totalParticipants = challenge.team_size * (challenge.teams?.length || 2);
+  const totalParticipants =
+    challenge.team_size * (challenge.teams?.length || 2);
 
   // Determine tabs and active tab state based on type
   const isOpen = type === 'open';
-  const [activeTab, setActiveTab] = useState<'open' | 'participants' | 'info' | 'teams'>(
-    isOpen ? 'open' : 'info'
-  );
+  const [activeTab, setActiveTab] = useState<
+    'open' | 'participants' | 'info' | 'teams'
+  >(isOpen ? 'open' : 'info');
 
   const tabs = isOpen
     ? [
@@ -52,7 +57,9 @@ export const ChallengeCard = ({ challenge, onPress, type }: ChallengeCardProps) 
               onPress={() => setActiveTab(tab.key)}
               className="bg-surface rounded-xl p-2"
             >
-              <Text className={`text-xs font-medium ${activeTab === tab.key ? 'text-white' : 'text-gray-500'}`}>
+              <Text
+                className={`text-xs font-medium ${activeTab === tab.key ? 'text-white' : 'text-gray-500'}`}
+              >
                 {tab.label}
               </Text>
             </Pressable>
@@ -60,21 +67,19 @@ export const ChallengeCard = ({ challenge, onPress, type }: ChallengeCardProps) 
         </View>
       </View>
 
-      <Pressable onPress={() => onPress?.(challenge.id)} className="bg-surface rounded-xl p-3 max-w-[370px]" style={{ height: 136 }}>
+      <Pressable
+        onPress={() => onPress?.(challenge.id)}
+        className="bg-surface rounded-xl p-3 max-w-[370px]"
+        style={{ height: 136 }}
+      >
         <View className="mt-2 flex-row flex-1">
           <View className="flex-1 pr-4 border-r border-black/40 self-stretch">
-            {activeTab === 'open' && (
-              <OpenView {...viewProps} />
-            )}
+            {activeTab === 'open' && <OpenView {...viewProps} />}
             {activeTab === 'participants' && (
               <ParticipantsView {...viewProps} />
             )}
-            {activeTab === 'info' && (
-              <InfoView {...viewProps} />
-            )}
-            {activeTab === 'teams' && (
-              <TeamsView {...viewProps} />
-            )}
+            {activeTab === 'info' && <InfoView {...viewProps} />}
+            {activeTab === 'teams' && <TeamsView {...viewProps} />}
           </View>
 
           <ParticipantCountDisplay

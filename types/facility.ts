@@ -1,4 +1,4 @@
-import type { Location } from "./location";
+import type { Location } from './location';
 
 export type Facility = {
   id: string;
@@ -13,4 +13,3 @@ export type Facility = {
   indoor: boolean;
   notes?: string;
 };
-

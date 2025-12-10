@@ -12,9 +12,15 @@ export interface MiniChallengeCardProps {
   onPress: (challengeId: number) => void;
 }
 
-export const MiniChallengeCard = ({ challenge, joinedParticipants, totalParticipants, onPress }: MiniChallengeCardProps) => {
-  const sportName = SPORTS_TRANSLATION_EN_TO_DK[challenge.sport] || challenge.sport;
-  
+export const MiniChallengeCard = ({
+  challenge,
+  joinedParticipants,
+  totalParticipants,
+  onPress,
+}: MiniChallengeCardProps) => {
+  const sportName =
+    SPORTS_TRANSLATION_EN_TO_DK[challenge.sport] || challenge.sport;
+
   const creatorName = challenge.creator
     ? challenge.creator.last_name
       ? `${challenge.creator.first_name} ${challenge.creator.last_name}`
@@ -22,7 +28,10 @@ export const MiniChallengeCard = ({ challenge, joinedParticipants, totalParticip
     : 'Unknown';
 
   const formattedDate = formatDate(challenge.date);
-  const formattedTimeRange = formatTimeRange(challenge.start_time, challenge.end_time);
+  const formattedTimeRange = formatTimeRange(
+    challenge.start_time,
+    challenge.end_time
+  );
 
   return (
     <Pressable onPress={() => onPress(challenge.id)}>
@@ -31,10 +40,19 @@ export const MiniChallengeCard = ({ challenge, joinedParticipants, totalParticip
           <SportIcon sport={challenge.sport} size={32} color="#ffffff" />
           <View className="ml-2 flex-1">
             <View className="flex-row items-center">
-              <Text className="text-text text-sm font-semibold flex-1" numberOfLines={1}>{sportName}</Text>
-              <Text className="text-text text-xs ml-2 italic">{challenge.is_indoor ? 'INT' : 'EXT'}</Text>
+              <Text
+                className="text-text text-sm font-semibold flex-1"
+                numberOfLines={1}
+              >
+                {sportName}
+              </Text>
+              <Text className="text-text text-xs ml-2 italic">
+                {challenge.is_indoor ? 'INT' : 'EXT'}
+              </Text>
             </View>
-            <Text className="text-text-disabled text-xs" numberOfLines={1}>{creatorName}</Text>
+            <Text className="text-text-disabled text-xs" numberOfLines={1}>
+              {creatorName}
+            </Text>
           </View>
         </View>
 
@@ -49,15 +67,18 @@ export const MiniChallengeCard = ({ challenge, joinedParticipants, totalParticip
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center flex-1">
             <Ionicons name="location-outline" size={14} color="#ffffff" />
-            <Text className="text-text text-xs ml-1 flex-1" numberOfLines={1}>{challenge.location.address}</Text>
+            <Text className="text-text text-xs ml-1 flex-1" numberOfLines={1}>
+              {challenge.location.address}
+            </Text>
           </View>
           <View className="flex-row items-center ml-2">
             <Ionicons name="people-outline" size={14} color="#ffffff" />
-            <Text className="text-text text-xs ml-1">{joinedParticipants}/{totalParticipants}</Text>
+            <Text className="text-text text-xs ml-1">
+              {joinedParticipants}/{totalParticipants}
+            </Text>
           </View>
         </View>
       </View>
     </Pressable>
   );
 };
-

@@ -30,11 +30,11 @@ See [tests/README.md](./tests/README.md) for detailed test structure overview.
    ```bash
    # macOS/Linux
    curl -Ls "https://get.maestro.mobile.dev" | bash
-   
+
    # Or using Homebrew
    brew tap mobile-dev-inc/tap
    brew install maestro
-   
+
    # Verify installation
    maestro --version
    ```
@@ -44,7 +44,7 @@ See [tests/README.md](./tests/README.md) for detailed test structure overview.
    ```bash
    # For iOS Simulator
    npm run ios
-   
+
    # For Android Emulator
    npm run android
    ```

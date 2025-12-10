@@ -13,12 +13,12 @@ type UseCurrentUserResult =
  * Custom hook that fetches and returns the current logged-in user.
  * Uses discriminated union types to ensure type safety - when loading is false
  * and error is null, user is guaranteed to be non-null.
- * 
+ *
  * @returns {UseCurrentUserResult} Discriminated union ensuring user is not null when ready
- * 
+ *
  * @example
  * const { user, loading, error } = useCurrentUser();
- * 
+ *
  * if (loading) return <div>Loading...</div>;
  * if (error) return <div>Error: {error.message}</div>;
  * // TypeScript knows user is not null here
@@ -45,7 +45,6 @@ export const useCurrentUser = (): UseCurrentUserResult => {
         setError(null);
         const currentUser = await getCurrentUser();
 
-
         if (!currentUser) {
           throw new Error('User not found. Please log in again.');
         }
@@ -61,9 +60,8 @@ export const useCurrentUser = (): UseCurrentUserResult => {
           return;
         }
 
-        const errorMessage = err instanceof Error
-          ? err.message
-          : 'Failed to fetch current user';
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to fetch current user';
         setError(new Error(errorMessage));
         setUser(null);
       } finally {
@@ -86,4 +84,3 @@ export const useCurrentUser = (): UseCurrentUserResult => {
   // TypeScript now knows user is not null here
   return { user: user as User, loading: false, error: null };
 };
-

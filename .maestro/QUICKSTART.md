@@ -24,7 +24,7 @@ Make sure your app is running on a simulator or device:
 # iOS Simulator
 npm run ios
 
-# Android Emulator  
+# Android Emulator
 npm run android
 ```
 
@@ -67,7 +67,7 @@ This will:
 </Pressable>
 
 // Example: Email input
-<TextInput 
+<TextInput
   testID="email-input"
   placeholder="E-mail"
   value={email}

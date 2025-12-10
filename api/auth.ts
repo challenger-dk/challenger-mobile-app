@@ -4,7 +4,7 @@ import { getApiUrl } from '../utils/api';
 export const login = async (email: string, password: string) => {
   const url = getApiUrl('/auth/login');
   console.log('Login request to:', url);
-  
+
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -15,15 +15,21 @@ export const login = async (email: string, password: string) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
-      return { success: false, error: errorData.message || `HTTP ${response.status}: Login failed` };
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: 'Login failed' }));
+      return {
+        success: false,
+        error: errorData.message || `HTTP ${response.status}: Login failed`,
+      };
     }
 
     const data = await response.json();
     return { success: true, token: data.token };
   } catch (error) {
     console.error('Login error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Network error occurred';
     return { success: false, error: errorMessage };
   }
 };
@@ -67,9 +73,11 @@ export const register = async (data: CreateUser) => {
   const responseData = await response.json();
 
   if (!response.ok) {
-    return { error: responseData.message || responseData.error || 'Registration failed' };
+    return {
+      error:
+        responseData.message || responseData.error || 'Registration failed',
+    };
   }
 
   return responseData;
 };
-

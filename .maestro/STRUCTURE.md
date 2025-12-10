@@ -141,4 +141,4 @@ maestro test .maestro/tests/maps/ --env APP_ID=com.daniellorenzen.challenger
 ✅ **Scalable**: Easy to add new tests without cluttering  
 ✅ **Clear organization**: Know exactly where to find or add tests  
 ✅ **Test suites**: Group related tests for easy execution  
-✅ **Maintainable**: Changes to one feature don't affect others  
+✅ **Maintainable**: Changes to one feature don't affect others

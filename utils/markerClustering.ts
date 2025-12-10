@@ -101,7 +101,7 @@ export function clusterChallenges(
   // Higher latitudeDelta = more zoomed out = larger clustering distance
   // We'll cluster markers that are within ~3% of the visible area (more aggressive)
   const clusteringDistance = region.latitudeDelta * 111000 * 0.05; // Convert degrees to meters, then 3% of visible area
-  
+
   // If zoomed in enough (latitudeDelta < 0.005), don't cluster (lower threshold = cluster even when more zoomed in)
   if (region.latitudeDelta < 0.001) {
     return {
@@ -143,15 +143,11 @@ export function clusterChallenges(
     if (nearbyChallenges.length > 1) {
       // Calculate cluster center (average of all challenge locations)
       const avgLat =
-        nearbyChallenges.reduce(
-          (sum, c) => sum + c.location.latitude,
-          0
-        ) / nearbyChallenges.length;
+        nearbyChallenges.reduce((sum, c) => sum + c.location.latitude, 0) /
+        nearbyChallenges.length;
       const avgLon =
-        nearbyChallenges.reduce(
-          (sum, c) => sum + c.location.longitude,
-          0
-        ) / nearbyChallenges.length;
+        nearbyChallenges.reduce((sum, c) => sum + c.location.longitude, 0) /
+        nearbyChallenges.length;
 
       clusters.push({
         id: `cluster-${challenge.id}`,
@@ -203,7 +199,7 @@ export function clusterFacilities(
   // Calculate clustering threshold based on zoom level
   // Higher latitudeDelta = more zoomed out = larger clustering distance
   const clusteringDistance = region.latitudeDelta * 111000 * 0.05; // Convert degrees to meters, then 5% of visible area
-  
+
   // If zoomed in enough (latitudeDelta < 0.001), don't cluster
   if (region.latitudeDelta < 0.001) {
     return {
@@ -274,15 +270,11 @@ export function clusterFacilities(
     if (nearbyFacilities.length > 1) {
       // Calculate cluster center (average of all facility locations)
       const avgLat =
-        nearbyFacilities.reduce(
-          (sum, f) => sum + f.location.latitude,
-          0
-        ) / nearbyFacilities.length;
+        nearbyFacilities.reduce((sum, f) => sum + f.location.latitude, 0) /
+        nearbyFacilities.length;
       const avgLon =
-        nearbyFacilities.reduce(
-          (sum, f) => sum + f.location.longitude,
-          0
-        ) / nearbyFacilities.length;
+        nearbyFacilities.reduce((sum, f) => sum + f.location.longitude, 0) /
+        nearbyFacilities.length;
 
       clusters.push({
         id: `facility-cluster-${facility.id}`,
@@ -299,4 +291,3 @@ export function clusterFacilities(
 
   return { clusters, individualFacilities };
 }
-

@@ -35,7 +35,8 @@ export default function TabLayout() {
           fontSize: 11,
           lineHeight: 11,
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -59,7 +60,11 @@ export default function TabLayout() {
         options={{
           title: 'Hub',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="soccer-field" size={size || 28} color={color} />
+            <MaterialCommunityIcons
+              name="soccer-field"
+              size={size || 28}
+              color={color}
+            />
           ),
         }}
       />

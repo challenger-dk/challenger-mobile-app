@@ -10,7 +10,10 @@ interface AddFriendButtonProps {
   onInvitationSent: () => void;
 }
 
-export function AddFriendButton({ inviteeId, onInvitationSent }: AddFriendButtonProps) {
+export function AddFriendButton({
+  inviteeId,
+  onInvitationSent,
+}: AddFriendButtonProps) {
   const { user } = useCurrentUser();
   const [loading, setLoading] = useState(false);
 
@@ -22,9 +25,11 @@ export function AddFriendButton({ inviteeId, onInvitationSent }: AddFriendButton
 
     setLoading(true);
 
-    const inviterId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+    const inviterId =
+      typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
     // Use the inviteeId prop directly
-    const numericInviteeId = typeof inviteeId === 'string' ? parseInt(inviteeId, 10) : inviteeId;
+    const numericInviteeId =
+      typeof inviteeId === 'string' ? parseInt(inviteeId, 10) : inviteeId;
 
     if (isNaN(inviterId) || isNaN(numericInviteeId)) {
       showErrorToast('Bruger ID er ugyldigt.');
@@ -33,7 +38,8 @@ export function AddFriendButton({ inviteeId, onInvitationSent }: AddFriendButton
     }
 
     try {
-      const note = `${user.first_name} ${user.last_name || ''} har sendt der en venneanmodning`.trim();
+      const note =
+        `${user.first_name} ${user.last_name || ''} har sendt der en venneanmodning`.trim();
 
       await SendInvitation({
         inviter_id: inviterId,
