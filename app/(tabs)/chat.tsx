@@ -1,3 +1,4 @@
+// File: app/(tabs)/chat.tsx
 import {
   Avatar,
   EmptyState,
@@ -16,6 +17,8 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 export default function ChatListScreen() {
   const router = useRouter();
   const { user } = useCurrentUser();
+
+  // Pass current user id to the hook so it fetches the correct teams for the logged-in user
   const { data: myTeams = [], isLoading: teamsLoading } = useMyTeams();
 
   const [activeTab, setActiveTab] = useState<'teams' | 'friends'>('teams');
@@ -35,10 +38,19 @@ export default function ChatListScreen() {
     return (
       <Pressable
         onPress={() => {
-          router.push({
-            pathname: '/chat/[id]',
-            params: { id: id, type: isTeam ? 'team' : 'user', name: name },
-          } as any);
+          if (isTeam) {
+            // Navigate to the team profile page instead of directly opening chat
+            router.push({
+              pathname: '/teams/[id]',
+              params: { id },
+            } as any);
+          } else {
+            // Friends still open a direct 1:1 chat
+            router.push({
+              pathname: '/chat/[id]',
+              params: { id, type: 'user', name },
+            } as any);
+          }
         }}
         className="flex-row items-center p-4 border-b border-surface"
       >
@@ -52,7 +64,9 @@ export default function ChatListScreen() {
         </View>
         <View className="flex-1">
           <Text className="text-text text-base font-medium">{name}</Text>
-          <Text className="text-text-disabled text-sm">Tryk for at chatte</Text>
+          <Text className="text-text-disabled text-sm">
+            {isTeam ? 'Gå til holdets profil' : 'Tryk for at chatte'}
+          </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#575757" />
       </Pressable>
