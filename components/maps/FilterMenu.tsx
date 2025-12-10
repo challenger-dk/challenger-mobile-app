@@ -14,22 +14,33 @@ import {
 import Animated, { useSharedValue, withSpring } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { SPORTS_TRANSLATION_EN_TO_DK } from '../../types/sports';
-import { BooleanToggle, FormFieldButton } from '../common';
+import { BooleanToggle } from '../common';
+
+export interface ChallengeFilters {
+  selectedSports: string[];
+  startTime: Date;
+  endTime: Date;
+  isIndoor: boolean | null;
+  hasCosts: boolean; // true = show both with and without costs, false = only without costs
+  isOpen: boolean; // true = show both open and closed, false = only closed (not completed)
+  isTeamChallenge: boolean; // true = show both team and individual, false = only individual
+}
 
 interface FilterMenuProps {
   visible: boolean;
   onClose: () => void;
   onResetFilters: () => void;
+  onFiltersChange?: (filters: ChallengeFilters) => void;
 }
 
 export const FilterMenu = ({
   visible,
   onClose,
   onResetFilters,
+  onFiltersChange,
 }: FilterMenuProps) => {
   // Filter state
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
-  const [selectedArea, setSelectedArea] = useState<string>('');
   const [startTime, setStartTime] = useState<Date>(
     new Date(new Date().setHours(0, 0, 0, 0))
   );
@@ -37,11 +48,11 @@ export const FilterMenu = ({
     new Date(new Date().setHours(23, 30, 0, 0))
   );
   const [isIndoor, setIsIndoor] = useState<boolean | null>(null);
+  // Switches act as "also show []" - true means show both with and without, false means only show without
   const [hasCosts, setHasCosts] = useState<boolean>(true);
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [isTeamChallenge, setIsTeamChallenge] = useState<boolean>(true);
   const [showSportChips, setShowSportChips] = useState(false);
-  const [showAreaPicker, setShowAreaPicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
@@ -90,8 +101,29 @@ export const FilterMenu = ({
     });
   };
 
-  // Area options (placeholder - can be expanded later)
-  const areaOptions = ['København', 'Aarhus', 'Odense', 'Aalborg', 'Esbjerg'];
+  // Notify parent of filter changes
+  useEffect(() => {
+    if (onFiltersChange) {
+      onFiltersChange({
+        selectedSports,
+        startTime,
+        endTime,
+        isIndoor,
+        hasCosts,
+        isOpen,
+        isTeamChallenge,
+      });
+    }
+  }, [
+    selectedSports,
+    startTime,
+    endTime,
+    isIndoor,
+    hasCosts,
+    isOpen,
+    isTeamChallenge,
+    onFiltersChange,
+  ]);
 
   if (!visible) {
     return null;
@@ -129,7 +161,19 @@ export const FilterMenu = ({
                 Challenges
               </Text>
             </View>
-            <Pressable onPress={onResetFilters} className="p-1">
+            <Pressable
+              onPress={() => {
+                setSelectedSports([]);
+                setStartTime(new Date(new Date().setHours(0, 0, 0, 0)));
+                setEndTime(new Date(new Date().setHours(23, 30, 0, 0)));
+                setIsIndoor(null);
+                setHasCosts(true);
+                setIsOpen(true);
+                setIsTeamChallenge(true);
+                onResetFilters();
+              }}
+              className="p-1"
+            >
               <Ionicons name="refresh" size={24} color="#9CA3AF" />
             </Pressable>
           </View>
@@ -148,18 +192,12 @@ export const FilterMenu = ({
                     <Text className="text-white text-sm">Vælg sportsgrene</Text>
                   </Pressable>
                 ) : (
-                  <View className="flex-row items-center gap-2 flex-1">
-                    <Pressable
-                      onPress={() => setShowSportChips((prev) => !prev)}
-                      className="px-4 py-2 rounded-full max-w-10 max-h-10 bg-[#575757]"
-                    >
-                      <Text className="text-sm font-medium text-white">+</Text>
-                    </Pressable>
+                  <View className="flex-row items-center gap-2 flex-1 justify-end">
                     <ScrollView
                       horizontal
                       showsHorizontalScrollIndicator={false}
-                      className="flex-1"
-                      contentContainerStyle={{ flexDirection: 'row', gap: 8 }}
+                      style={{ flexGrow: 0, flexShrink: 1 }}
+                      contentContainerStyle={{ flexDirection: 'row', gap: 8, justifyContent: 'flex-end', flexGrow: 0 }}
                     >
                       {selectedSports.map((sportKey) => (
                         <Pressable
@@ -186,6 +224,12 @@ export const FilterMenu = ({
                         </Pressable>
                       ))}
                     </ScrollView>
+                    <Pressable
+                      onPress={() => setShowSportChips((prev) => !prev)}
+                      className="px-4 py-2 rounded-full max-w-10 max-h-10 bg-[#575757]"
+                    >
+                      <Text className="text-sm font-medium text-white">+</Text>
+                    </Pressable>
                   </View>
                 )}
               </View>
@@ -207,14 +251,6 @@ export const FilterMenu = ({
                 </View>
               )}
             </View>
-
-            {/* Område */}
-            <FormFieldButton
-              label="Område"
-              value={selectedArea}
-              placeholder="Vælg område"
-              onPress={() => setShowAreaPicker(true)}
-            />
 
             {/* Tidsrum */}
             <View className="flex-row items-center justify-between">
@@ -286,42 +322,6 @@ export const FilterMenu = ({
           </View>
         </ScrollView>
       </Animated.View>
-
-      {/* Area Picker Modal */}
-      <Modal
-        visible={showAreaPicker}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowAreaPicker(false)}
-      >
-        <Pressable
-          className="flex-1 bg-black/60 justify-end"
-          onPress={() => setShowAreaPicker(false)}
-        >
-          <View className="bg-[#1E1E1E] rounded-t-3xl p-5 max-h-[70%]">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-white text-lg font-bold">Vælg område</Text>
-              <Pressable onPress={() => setShowAreaPicker(false)}>
-                <Ionicons name="close" size={24} color="#9CA3AF" />
-              </Pressable>
-            </View>
-            <ScrollView>
-              {areaOptions.map((area) => (
-                <Pressable
-                  key={area}
-                  onPress={() => {
-                    setSelectedArea(area);
-                    setShowAreaPicker(false);
-                  }}
-                  className="py-3 border-b border-[#333]"
-                >
-                  <Text className="text-white text-base">{area}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </Pressable>
-      </Modal>
 
       {/* Start Time Picker Modal */}
       {showStartTimePicker && (

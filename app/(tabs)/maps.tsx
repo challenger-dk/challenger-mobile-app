@@ -27,6 +27,7 @@ import {
   FacilityInfoModal,
   FacilityMarker,
   FilterMenu,
+  type ChallengeFilters,
 } from '../../components/maps';
 import { useChallenges } from '../../hooks/queries';
 import { useFacilities } from '../../hooks/useFacilities';
@@ -65,6 +66,7 @@ export default function MapsScreen() {
   const shouldCenterOnLocationRef = useRef(false);
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [filters, setFilters] = useState<ChallengeFilters | null>(null);
 
   // Get user's current location
   const {
@@ -140,10 +142,27 @@ export default function MapsScreen() {
     await refreshLocation();
   }, [permissionGranted, requestPermission, refreshLocation]);
 
-  // Filter for public challenges with valid coordinates
+  // Helper function to parse time string (HH:mm) to minutes since midnight
+  const parseTimeToMinutes = (timeString: string): number => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + (minutes || 0);
+  };
+
+  // Helper function to convert Date to minutes since midnight
+  const dateToMinutes = (date: Date): number => {
+    return date.getHours() * 60 + date.getMinutes();
+  };
+
+  // Filter for public challenges with valid coordinates and apply filters
   const publicChallenges = useMemo(
-    () =>
-      challenges.filter(
+    () => {
+      // Helper to check if time range is the default (00:00 to 23:30)
+      const isDefaultTimeRange = (startTime: Date, endTime: Date): boolean => {
+        const startMinutes = dateToMinutes(startTime);
+        const endMinutes = dateToMinutes(endTime);
+        return startMinutes === 0 && endMinutes === 1410; // 23:30 = 23*60 + 30 = 1410
+      };
+      let filtered = challenges.filter(
         (challenge: Challenge) =>
           challenge.is_public &&
           challenge.location &&
@@ -151,8 +170,67 @@ export default function MapsScreen() {
           typeof challenge.location.longitude === 'number' &&
           !isNaN(challenge.location.latitude) &&
           !isNaN(challenge.location.longitude)
-      ),
-    [challenges]
+      );
+
+      // Only apply filters if they exist and are not at default values
+      if (filters) {
+        // Filter by sports (only if sports are selected)
+        if (filters.selectedSports.length > 0) {
+          filtered = filtered.filter((challenge: Challenge) =>
+            filters.selectedSports.includes(challenge.sport)
+          );
+        }
+
+        // Filter by indoor/outdoor (only if explicitly set)
+        if (filters.isIndoor !== null) {
+          filtered = filtered.filter(
+            (challenge: Challenge) => challenge.is_indoor === filters.isIndoor
+          );
+        }
+
+        // Filter by costs (hasCosts: true = show both, false = only without costs)
+        // Only apply if hasCosts is false (meaning user wants to filter out challenges with costs)
+        if (!filters.hasCosts) {
+          filtered = filtered.filter((challenge: Challenge) => !challenge.has_costs);
+        }
+
+        // Filter by open status (isOpen: true = show both, false = only closed/not completed)
+        // Only apply if isOpen is false (meaning user wants to filter out open challenges)
+        if (!filters.isOpen) {
+          filtered = filtered.filter((challenge: Challenge) => challenge.is_completed);
+        }
+
+        // Filter by team challenge (isTeamChallenge: true = show both, false = only individual)
+        // Only apply if isTeamChallenge is false (meaning user wants to filter out team challenges)
+        if (!filters.isTeamChallenge) {
+          filtered = filtered.filter(
+            (challenge: Challenge) => !challenge.teams || challenge.teams.length === 0
+          );
+        }
+
+        // Filter by time range (only if not default range)
+        if (!isDefaultTimeRange(filters.startTime, filters.endTime)) {
+          const filterStartMinutes = dateToMinutes(filters.startTime);
+          const filterEndMinutes = dateToMinutes(filters.endTime);
+
+          filtered = filtered.filter((challenge: Challenge) => {
+            const challengeStartMinutes = parseTimeToMinutes(challenge.start_time);
+            const challengeEndMinutes = parseTimeToMinutes(challenge.end_time);
+
+            // Check if challenge time overlaps with filter time range
+            // Challenge overlaps if:
+            // - Challenge starts before filter ends AND challenge ends after filter starts
+            return (
+              challengeStartMinutes < filterEndMinutes &&
+              challengeEndMinutes > filterStartMinutes
+            );
+          });
+        }
+      }
+
+      return filtered;
+    },
+    [challenges, filters]
   );
 
   // Cluster challenges based on zoom level
@@ -512,7 +590,9 @@ export default function MapsScreen() {
         onClose={() => setFilterMenuVisible(false)}
         onResetFilters={() => {
           setSearchQuery('');
+          setFilters(null);
         }}
+        onFiltersChange={setFilters}
       />
 
       {/* Center on Location Button */}

@@ -3,4 +3,5 @@ export { ChallengeMarker } from './ChallengeMarker';
 export { FacilityClusterMarker } from './FacilityClusterMarker';
 export { FacilityInfoModal } from './FacilityInfoModal';
 export { FacilityMarker } from './FacilityMarker';
-export { FilterMenu } from './FilterMenu';
+export { FilterMenu, type ChallengeFilters } from './FilterMenu';
+
