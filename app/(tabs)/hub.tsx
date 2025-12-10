@@ -9,6 +9,8 @@ import { EmptyState, ErrorScreen, LoadingScreen, ScreenContainer, TabNavigation,
 import { useChallenges } from '../../hooks/queries';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { Challenge } from '../../types/challenge';
+import type { Team } from '../../types/team';
+import type { User } from '../../types/user';
 
 type TabType = 'public' | 'friends';
 type PersonalTabType = 'mine' | 'tilmeldte';
@@ -28,10 +30,6 @@ export default function HubScreen() {
       refetch();
     }, [refetch])
   );
-
-  const handleParticipate = (challengeId: number) => {
-    router.push(`/teams/${challengeId}` as any);
-  };
 
   const handleChallengePress = (challengeId: number) => {
     router.push(`/hub/${challengeId}` as any);
@@ -61,8 +59,8 @@ export default function HubScreen() {
           }
           // Include challenges where user is participating
           const isParticipating = 
-            challenge.users.some(u => u.id === user.id) ||
-            challenge.teams.some(team => team.users?.some(u => u.id === user.id));
+            challenge.users.some((u: User) => u.id === user.id) ||
+            challenge.teams.some((team: Team) => team.users?.some((u: User) => u.id === user.id));
           return isParticipating;
         });
       }
@@ -122,7 +120,6 @@ export default function HubScreen() {
           <View className="px-6">
             <ChallengeCard
               challenge={item}
-              onParticipate={handleParticipate}
               onPress={handleChallengePress}
               type={item.is_completed ? 'closed' : 'open'}
             />

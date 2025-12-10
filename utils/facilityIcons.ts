@@ -1,79 +1,107 @@
-import type { SportIconConfig } from './sportIcons';
+export type FacilityCategory = 'Boldspil' | 'Ketchersport' | 'Andet' | 'Sportshaller' | 'Open area';
+
+export interface FacilityCategoryConfig {
+  category: FacilityCategory;
+  iconLibrary: 'ionicons' | 'material-community' | 'fontawesome6';
+  iconName: string;
+  color: string;
+}
 
 /**
- * Map facility types to sport icons
+ * Categorize facility types into 5 main categories
  */
-export const getFacilityTypeIcon = (facilityType: string): SportIconConfig => {
+export const getFacilityCategory = (facilityType: string): FacilityCategory => {
   const typeLower = facilityType.toLowerCase();
   
-  // Map facility types to sports/icons
-  const facilityTypeMap: Record<string, SportIconConfig> = {
-    // Direct sport mappings
-    'fodboldanlæg': { library: 'ionicons', name: 'football' },
-    'tennisanlæg': { library: 'material-community', name: 'tennis' },
-    'padelbaner': { library: 'material-community', name: 'tennis' },
-    'badmintonhaller': { library: 'material-community', name: 'badminton' },
-    'squashbaner': { library: 'material-community', name: 'squash' },
-    'golfanlæg': { library: 'ionicons', name: 'golf' },
-    'svømmeanlæg': { library: 'material-community', name: 'swim' },
-    'klatreanlæg': { library: 'material-community', name: 'hiking' },
-    'skatefaciliteter': { library: 'material-community', name: 'skateboard' },
-    'fitnesscentre': { library: 'material-community', name: 'dumbbell' },
-    'atletikanlæg': { library: 'material-community', name: 'run' },
-    'bowlingcentre': { library: 'material-community', name: 'bowling' },
-    'is- og skøjteanlæg': { library: 'material-community', name: 'ice-skate' },
-    'mtb-spor og cykelanlæg': { library: 'ionicons', name: 'bicycle' },
-    'motorsportsanlæg': { library: 'material-community', name: 'motorbike' },
-    'parkouranlæg': { library: 'material-community', name: 'run-fast' },
-    'orienteeringsbaner': { library: 'material-community', name: 'map-marker' },
-    'kabelbaner': { library: 'material-community', name: 'water-ski' },
-    'alpine skianlæg': { library: 'material-community', name: 'ski' },
-    'skydeanlæg': { library: 'material-community', name: 'target' },
-    
-    // Generic sports halls - use a generic icon
-    'store idrætshaller (>800 m2)': { library: 'material-community', name: 'stadium' },
-    'små idrætshaller (300-799 m2)': { library: 'material-community', name: 'stadium' },
-    'idrætslokaler/sale (<300 m2)': { library: 'material-community', name: 'dumbbell' },
-  };
-  
-  // Try exact match first
-  if (facilityTypeMap[typeLower]) {
-    return facilityTypeMap[typeLower];
+  // Boldspil - football/soccer facilities
+  if (
+    typeLower.includes('fodbold') ||
+    typeLower.includes('fodboldanlæg')
+  ) {
+    return 'Boldspil';
   }
   
-  // Try partial matches
-  if (typeLower.includes('fodbold')) {
-    return { library: 'ionicons', name: 'football' };
-  }
-  if (typeLower.includes('tennis') || typeLower.includes('padel')) {
-    return { library: 'material-community', name: 'tennis' };
-  }
-  if (typeLower.includes('badminton')) {
-    return { library: 'material-community', name: 'badminton' };
-  }
-  if (typeLower.includes('squash')) {
-    return { library: 'material-community', name: 'squash' };
-  }
-  if (typeLower.includes('golf')) {
-    return { library: 'ionicons', name: 'golf' };
-  }
-  if (typeLower.includes('svømme') || typeLower.includes('bad')) {
-    return { library: 'material-community', name: 'swim' };
-  }
-  if (typeLower.includes('fitness') || typeLower.includes('træning')) {
-    return { library: 'material-community', name: 'dumbbell' };
-  }
-  if (typeLower.includes('klatre')) {
-    return { library: 'material-community', name: 'hiking' };
-  }
-  if (typeLower.includes('skate')) {
-    return { library: 'material-community', name: 'skateboard' };
-  }
-  if (typeLower.includes('idræt') || typeLower.includes('sport')) {
-    return { library: 'material-community', name: 'stadium' };
+  // Ketchersport - racket sports
+  if (
+    typeLower.includes('tennis') ||
+    typeLower.includes('padel') ||
+    typeLower.includes('badminton') ||
+    typeLower.includes('squash')
+  ) {
+    return 'Ketchersport';
   }
   
-  // Default fallback
-  return { library: 'ionicons', name: 'location' };
+  // Sportshaller - sports halls
+  if (
+    typeLower.includes('idræt') ||
+    typeLower.includes('sportshal') ||
+    typeLower.includes('idrætshal') ||
+    typeLower.includes('sportshaller') ||
+    typeLower.includes('store idrætshaller') ||
+    typeLower.includes('små idrætshaller') ||
+    typeLower.includes('idrætslokaler')
+  ) {
+    return 'Sportshaller';
+  }
+  
+  // Open area - outdoor/open spaces
+  if (
+    typeLower.includes('åbent område') ||
+    typeLower.includes('open area') ||
+    typeLower.includes('åben plads') ||
+    typeLower.includes('græs') ||
+    typeLower.includes('mark')
+  ) {
+    return 'Open area';
+  }
+  
+  // Default to "Andet" for everything else
+  return 'Andet';
+};
+
+/**
+ * Get icon and color configuration for a facility category
+ */
+export const getFacilityCategoryConfig = (facilityType: string): FacilityCategoryConfig => {
+  const category = getFacilityCategory(facilityType);
+  
+  switch (category) {
+    case 'Boldspil':
+      return {
+        category: 'Boldspil',
+        iconLibrary: 'ionicons',
+        iconName: 'football',
+        color: 'softGreen',
+      };
+    case 'Ketchersport':
+      return {
+        category: 'Ketchersport',
+        iconLibrary: 'ionicons',
+        iconName: 'tennisball',
+        color: 'softBlue',
+      };
+    case 'Sportshaller':
+      return {
+        category: 'Sportshaller',
+        iconLibrary: 'fontawesome6',
+        iconName: 'school-flag',
+        color: 'softPurple',
+      };
+    case 'Open area':
+      return {
+        category: 'Open area',
+        iconLibrary: 'material-community',
+        iconName: 'land-fields',
+        color: 'darkBrown',
+      };
+    case 'Andet':
+    default:
+      return {
+        category: 'Andet',
+        iconLibrary: 'ionicons',
+        iconName: 'location', // placeholder icon
+        color: '#262626', // same as Challenge Markers
+      };
+  }
 };
 

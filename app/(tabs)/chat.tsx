@@ -1,4 +1,4 @@
-import { Avatar, EmptyState, LoadingScreen, ScreenContainer, TabNavigation } from '@/components/common';
+import { Avatar, EmptyState, LoadingScreen, ScreenContainer, TabNavigation, TopActionBar } from '@/components/common';
 import { useMyTeams } from '@/hooks/queries/useTeams';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,9 +51,14 @@ export default function ChatListScreen() {
   };
 
   return (
-    <ScreenContainer safeArea edges={['top']}>
+    <ScreenContainer className='pt-5'>
+      <TopActionBar
+        title="Beskeder"
+        showNotifications={false}
+        showCalendar={false}
+        showSettings={false}
+      />
       <View className="px-5 pb-2">
-        <Text className="text-text text-xl font-bold mb-4">Beskeder</Text>
         <TabNavigation
           tabs={[
             { key: 'teams', label: 'Hold' },

@@ -31,7 +31,7 @@ export const FacilityClusterMarker = ({ cluster, onPress }: FacilityClusterMarke
       <View className="items-center">
         {/* Circular cluster marker with blue background to match FacilityMarker */}
         <View
-          className="rounded-full bg-blue-600 items-center justify-center shadow-lg border-2 border-white"
+          className="rounded-full bg-softBlue items-center justify-center shadow-lg border-2 border-white"
           style={{
             width: size,
             height: size,

@@ -41,6 +41,48 @@ function getDistance(
 }
 
 /**
+ * Fast approximate distance calculation using equirectangular projection
+ * Much faster than Haversine, good enough for filtering and clustering
+ */
+function getApproximateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+  const x = Δλ * Math.cos((φ1 + φ2) / 2);
+  const y = Δφ;
+  return R * Math.sqrt(x * x + y * y);
+}
+
+/**
+ * Check if a point is within the visible map region (with buffer)
+ */
+function isInVisibleRegion(
+  lat: number,
+  lon: number,
+  region: {
+    latitude: number;
+    longitude: number;
+    latitudeDelta: number;
+    longitudeDelta: number;
+  },
+  buffer: number = 0.1 // 10% buffer for panning
+): boolean {
+  const minLat = region.latitude - region.latitudeDelta * (0.5 + buffer);
+  const maxLat = region.latitude + region.latitudeDelta * (0.5 + buffer);
+  const minLon = region.longitude - region.longitudeDelta * (0.5 + buffer);
+  const maxLon = region.longitude + region.longitudeDelta * (0.5 + buffer);
+
+  return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
+}
+
+/**
  * Cluster challenges based on zoom level and distance
  * @param challenges Array of challenges to cluster
  * @param region Current map region
@@ -129,6 +171,7 @@ export function clusterChallenges(
 
 /**
  * Cluster facilities based on zoom level and distance
+ * Optimized for large datasets with spatial filtering and efficient clustering
  * @param facilities Array of facilities to cluster
  * @param region Current map region
  * @returns Array of clusters and individual facilities
@@ -142,45 +185,88 @@ export function clusterFacilities(
     longitudeDelta: number;
   }
 ): { clusters: FacilityCluster[]; individualFacilities: Facility[] } {
+  // Step 1: Filter facilities to only those in visible region (with buffer for panning)
+  // This dramatically reduces the number of facilities we need to process
+  const visibleFacilities = facilities.filter((facility) =>
+    isInVisibleRegion(
+      facility.location.latitude,
+      facility.location.longitude,
+      region,
+      0.2 // 20% buffer to handle panning smoothly
+    )
+  );
+
+  // Limit maximum facilities to process (safety limit for very zoomed out views)
+  const MAX_FACILITIES = 2000;
+  const facilitiesToProcess = visibleFacilities.slice(0, MAX_FACILITIES);
+
   // Calculate clustering threshold based on zoom level
   // Higher latitudeDelta = more zoomed out = larger clustering distance
-  // We'll cluster markers that are within ~20% of the visible area (more aggressive)
-  const clusteringDistance = region.latitudeDelta * 111000 * 0.05; // Convert degrees to meters, then 20% of visible area
+  const clusteringDistance = region.latitudeDelta * 111000 * 0.05; // Convert degrees to meters, then 5% of visible area
   
-  // If zoomed in enough (latitudeDelta < 0.001), don't cluster (lower threshold = cluster even when more zoomed in)
+  // If zoomed in enough (latitudeDelta < 0.001), don't cluster
   if (region.latitudeDelta < 0.001) {
     return {
       clusters: [],
-      individualFacilities: facilities,
+      individualFacilities: facilitiesToProcess,
     };
+  }
+
+  // Step 2: Use grid-based clustering for better performance
+  // Create a grid to group nearby facilities - this reduces comparisons from O(n²) to O(n)
+  const gridSize = clusteringDistance * 2; // Grid cells are 2x the clustering distance
+  const grid = new Map<string, Facility[]>();
+
+  // Assign facilities to grid cells
+  for (const facility of facilitiesToProcess) {
+    const gridX = Math.floor(facility.location.latitude / (gridSize / 111000));
+    const gridY = Math.floor(facility.location.longitude / (gridSize / 111000));
+    const gridKey = `${gridX},${gridY}`;
+
+    if (!grid.has(gridKey)) {
+      grid.set(gridKey, []);
+    }
+    grid.get(gridKey)!.push(facility);
   }
 
   const clusters: FacilityCluster[] = [];
   const processed = new Set<string>();
   const individualFacilities: Facility[] = [];
 
-  for (let i = 0; i < facilities.length; i++) {
-    if (processed.has(facilities[i].id)) continue;
+  // Step 3: Cluster facilities using grid-based approach
+  // Only check facilities in the same or adjacent grid cells
+  for (const facility of facilitiesToProcess) {
+    if (processed.has(facility.id)) continue;
 
-    const facility = facilities[i];
+    const gridX = Math.floor(facility.location.latitude / (gridSize / 111000));
+    const gridY = Math.floor(facility.location.longitude / (gridSize / 111000));
+
     const nearbyFacilities: Facility[] = [facility];
     processed.add(facility.id);
 
-    // Find all nearby facilities
-    for (let j = i + 1; j < facilities.length; j++) {
-      if (processed.has(facilities[j].id)) continue;
+    // Check facilities in current cell and 8 adjacent cells (3x3 grid)
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const neighborKey = `${gridX + dx},${gridY + dy}`;
+        const neighborFacilities = grid.get(neighborKey) || [];
 
-      const otherFacility = facilities[j];
-      const distance = getDistance(
-        facility.location.latitude,
-        facility.location.longitude,
-        otherFacility.location.latitude,
-        otherFacility.location.longitude
-      );
+        for (const otherFacility of neighborFacilities) {
+          if (processed.has(otherFacility.id)) continue;
+          if (facility.id === otherFacility.id) continue;
 
-      if (distance <= clusteringDistance) {
-        nearbyFacilities.push(otherFacility);
-        processed.add(otherFacility.id);
+          // Use faster approximate distance for clustering
+          const distance = getApproximateDistance(
+            facility.location.latitude,
+            facility.location.longitude,
+            otherFacility.location.latitude,
+            otherFacility.location.longitude
+          );
+
+          if (distance <= clusteringDistance) {
+            nearbyFacilities.push(otherFacility);
+            processed.add(otherFacility.id);
+          }
+        }
       }
     }
 

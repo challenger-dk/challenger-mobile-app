@@ -7,13 +7,13 @@ interface ScreenContainerProps extends ViewProps {
 }
 
 export const ScreenContainer = ({
-                                  children,
-                                  safeArea = false,
-                                  edges = ['top'],
-                                  style,
-                                  className = "",
-                                  ...props
-                                }: ScreenContainerProps) => {
+    children,
+    safeArea = false,
+    edges = ['top'],
+    style,
+    className = "",
+    ...props
+  }: ScreenContainerProps) => {
   const Container = safeArea ? SafeAreaView : View;
 
   return (
@@ -23,7 +23,9 @@ export const ScreenContainer = ({
       style={style}
       {...props}
     >
-      {children}
+      <View className="flex-1 w-full">
+        {children}
+      </View>
     </Container>
   );
 };
