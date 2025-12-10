@@ -19,7 +19,15 @@ export type User = {
   settings: UserSettings;
   completed_challenges?: number;
   next_challenges?: Challenge[];
+  emergency_contacts?: EmergencyContact[];
 };
+
+export type EmergencyContact = {
+  id: string | number;
+  name: string;
+  phone_number: string;
+  relationship: string;
+}
 
 export type PublicUser = {
   id: string | number;

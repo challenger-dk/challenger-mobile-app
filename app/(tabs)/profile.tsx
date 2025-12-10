@@ -152,7 +152,7 @@ export default function ProfileScreen() {
             {/* Nødinfo */}
             <Pressable
               className="items-center"
-              onPress={() => router.push("/profile/emergency-info" as any)}
+              onPress={() => router.push("/profile/emergencyContacts" as any)}
             >
               <View className="w-9 h-9 rounded-xl bg-[#943d40]/12 border border-[#943d40]/25 items-center justify-center mb-1">
                 <View className="w-6 h-6 rounded-full bg-[#943d40] items-center justify-center">

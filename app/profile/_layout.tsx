@@ -8,6 +8,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="notificationSettings" />
       <Stack.Screen name="friends" />
       <Stack.Screen name="teams" />
+      <Stack.Screen name="emergencyContacts" />
     </Stack>
   );
 }
