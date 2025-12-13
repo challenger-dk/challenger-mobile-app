@@ -144,6 +144,9 @@ export default function ProfileScreen() {
                 <Text className="text-sm text-gray-300 mt-1">
                   {user.age ? `${user.age} år` : ''}
                 </Text>
+                <Text className="text-sm text-gray-300 mt-1">
+                  {user.city ? `${user.city}` : ''}
+                </Text>
               </View>
             </View>
 

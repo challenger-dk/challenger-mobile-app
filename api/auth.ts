@@ -58,6 +58,10 @@ export const register = async (data: CreateUser) => {
     payload.favorite_sports = data.favorite_sports;
   }
 
+  if (data.city && data.city.trim()) {
+    payload.city = data.city.trim();
+  }
+
   if (data.age !== undefined) {
     payload.age = data.age;
   }

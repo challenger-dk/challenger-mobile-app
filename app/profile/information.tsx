@@ -61,6 +61,9 @@ export default function ProfileInformationScreen() {
   const [lastName, setLastName] = useState('');
   const [bio, setBio] = useState('');
   const [favoriteSports, setFavoriteSports] = useState<Sport[]>([]);
+  const [city, setCity] = useState('');
+  const [age, setAge] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -70,6 +73,11 @@ export default function ProfileInformationScreen() {
       setFirstName(user.first_name || '');
       setLastName(user.last_name || '');
       setBio(user.bio || '');
+      setCity((user as any)?.city || ''); // remove "as any" once user type includes city
+      setAge(
+        typeof (user as any)?.age === 'number' ? String((user as any).age) : ''
+      );
+
       setFavoriteSports(
         (user.favorite_sports || []).map((sport) => ({
           ...sport,
@@ -86,6 +94,11 @@ export default function ProfileInformationScreen() {
       const hasFirstNameChanged = firstName !== (user.first_name || '');
       const hasLastNameChanged = lastName !== (user.last_name || '');
       const hasBioChanged = bio !== (user.bio || '');
+      const hasCityChanged = city !== ((user as any)?.city || '');
+      const hasAgeChanged =
+        age !==
+        (typeof (user as any)?.age === 'number' ? String((user as any).age) : '');
+
       const userSportNames = (user.favorite_sports || [])
         .map((s) => normalizeSportNameForComparison(s.name))
         .sort();
@@ -97,13 +110,15 @@ export default function ProfileInformationScreen() {
 
       setHasChanges(
         hasImageChanged ||
-          hasFirstNameChanged ||
-          hasLastNameChanged ||
-          hasBioChanged ||
-          hasSportsChanged
+        hasFirstNameChanged ||
+        hasLastNameChanged ||
+        hasBioChanged ||
+        hasCityChanged ||
+        hasAgeChanged ||
+        hasSportsChanged
       );
     }
-  }, [imageUri, firstName, lastName, bio, favoriteSports, user]);
+  }, [imageUri, firstName, lastName, bio, city, age, favoriteSports, user]);
 
   const toggleSport = (sportName: string) => {
     setFavoriteSports((prev) => {
@@ -137,6 +152,13 @@ export default function ProfileInformationScreen() {
       return;
     }
 
+    const ageNumber =
+      age.trim() === '' ? undefined : parseInt(age.trim(), 10);
+    if (age.trim() !== '' && (!Number.isFinite(ageNumber) || (ageNumber ?? 0) <= 0)) {
+      showErrorToast('Indtast en gyldig alder');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       let finalProfilePictureUrl = user.profile_picture;
@@ -144,10 +166,7 @@ export default function ProfileInformationScreen() {
       // 1. Upload new image if changed
       if (imageUri && imageUri !== user.profile_picture) {
         try {
-          finalProfilePictureUrl = await uploadProfilePicture(
-            imageUri,
-            user.id
-          );
+          finalProfilePictureUrl = await uploadProfilePicture(imageUri, user.id);
 
           // 2. Delete old image if it existed
           if (user.profile_picture) {
@@ -175,6 +194,8 @@ export default function ProfileInformationScreen() {
         profile_picture: finalProfilePictureUrl || undefined,
         bio: bio.trim() || undefined,
         favorite_sports: sportNames.length > 0 ? sportNames : undefined,
+        city: city.trim() || undefined,
+        age: ageNumber,
       };
 
       const response = await updateUser(updateData);
@@ -220,6 +241,7 @@ export default function ProfileInformationScreen() {
         showsVerticalScrollIndicator={false}
       >
         <ScreenHeader title="Rediger Profil" />
+
         <View className="mb-8 items-center">
           <Pressable onPress={pickImage} testID="pickImage">
             <Avatar
@@ -230,6 +252,7 @@ export default function ProfileInformationScreen() {
             />
           </Pressable>
         </View>
+
         <View className="w-full max-w-sm mb-6">
           <Text className="text-text text-xl font-bold mb-4">Navn</Text>
           <TextInput
@@ -249,6 +272,33 @@ export default function ProfileInformationScreen() {
             className="w-full bg-surface text-text rounded-lg px-4 py-3 border border-text-disabled"
           />
         </View>
+
+        <View className="w-full max-w-sm mb-6">
+          <Text className="text-text text-xl font-bold mb-4">Information</Text>
+
+          <TextInput
+            placeholder="By"
+            placeholderTextColor="#9CA3AF"
+            value={city}
+            onChangeText={setCity}
+            testID="city"
+            className="w-full bg-surface text-text rounded-lg px-4 py-3 mb-4 border border-text-disabled"
+          />
+
+          <TextInput
+            placeholder="Alder"
+            placeholderTextColor="#9CA3AF"
+            value={age}
+            onChangeText={(text) => {
+              const digitsOnly = text.replace(/\D/g, '');
+              setAge(digitsOnly);
+            }}
+            keyboardType="number-pad"
+            testID="age"
+            className="w-full bg-surface text-text rounded-lg px-4 py-3 border border-text-disabled"
+          />
+        </View>
+
         <View className="w-full max-w-sm mb-6">
           <Text className="text-text text-xl font-bold mb-4">Bio</Text>
           <TextInput
@@ -263,6 +313,7 @@ export default function ProfileInformationScreen() {
             className="w-full bg-surface text-text rounded-lg px-4 py-3 border border-text-disabled min-h-24"
           />
         </View>
+
         <View className="w-full max-w-sm mb-8">
           <Text className="text-text text-xl font-bold mb-4">
             Favoritsportsgrene
@@ -289,10 +340,16 @@ export default function ProfileInformationScreen() {
                     <Pressable
                       key={sportName}
                       onPress={() => toggleSport(sportName)}
-                      className={`px-4 py-2 rounded-full ${isSelected ? 'bg-white' : 'bg-surface border border-text-disabled'}`}
+                      className={`px-4 py-2 rounded-full ${
+                        isSelected
+                          ? 'bg-white'
+                          : 'bg-surface border border-text-disabled'
+                      }`}
                     >
                       <Text
-                        className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-text'}`}
+                        className={`text-sm font-medium ${
+                          isSelected ? 'text-black' : 'text-text'
+                        }`}
                       >
                         {toDanishSportName(sportName)}
                       </Text>
@@ -302,6 +359,7 @@ export default function ProfileInformationScreen() {
             </View>
           </ScrollView>
         </View>
+
         <SubmitButton
           label="Gem ændringer"
           loadingLabel="Gemmer..."

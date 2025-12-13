@@ -16,7 +16,7 @@ export default function HomeScreen() {
   return (
     <ScreenContainer className="pt-1">
       {/* Header Section */}
-      <TopActionBar title="Home" settingsRoute="/profile/settings" />
+      <TopActionBar title="Home" showSettings={false} />
 
       {/* Navigation Tab Bar */}
       <TabNavigation

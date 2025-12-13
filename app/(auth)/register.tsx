@@ -27,8 +27,9 @@ export default function RegisterScreen() {
   const { setToken } = useAuth();
   const insets = useSafeAreaInsets();
   const { imageUri, pickImage } = useImagePicker();
-
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [bio, setBio] = useState('');
@@ -39,7 +40,8 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [age, setAge] = useState<number>(0);
+  const [age, setAge] = useState('');
+  const [city, setCity] = useState<string>('');
 
   const toggleSport = (sport: string) => {
     setFavoriteSports((prev) =>
@@ -68,7 +70,7 @@ export default function RegisterScreen() {
     setIsSubmitting(true);
 
     try {
-      let finalProfilePictureUrl = undefined;
+      let finalProfilePictureUrl: string | undefined = undefined;
 
       // Upload image to Firebase if one exists
       if (imageUri) {
@@ -107,15 +109,18 @@ export default function RegisterScreen() {
     profilePictureUrl: string | undefined
   ) => {
     try {
+      const ageNumber = age.trim() === '' ? undefined : parseInt(age, 10);
+
       const registerResponse = await register({
-        email,
+        email: email.trim(),
         password,
-        first_name: firstName,
-        last_name: lastName || undefined,
+        first_name: firstName.trim(),
+        last_name: lastName.trim() || undefined,
         profile_picture: profilePictureUrl,
         bio: bio.trim() || undefined,
         favorite_sports: favoriteSports.length > 0 ? favoriteSports : undefined,
-        age: age !== null ? age : 1,
+        age: ageNumber ?? 1,
+        city: city.trim() || undefined,
       } as CreateUser);
 
       if (registerResponse.error) {
@@ -140,10 +145,15 @@ export default function RegisterScreen() {
 
   const canProceedToNextStep = () => {
     switch (currentStep) {
-      case 1:
+      case 1: {
+        const ageNumber = age.trim() === '' ? NaN : parseInt(age, 10);
         return (
-          firstName.trim() !== '' && lastName.trim() !== '' && age !== null
+          firstName.trim() !== '' &&
+          lastName.trim() !== '' &&
+          Number.isFinite(ageNumber) &&
+          ageNumber > 0
         );
+      }
       case 2:
         return true;
       case 3:
@@ -198,13 +208,21 @@ export default function RegisterScreen() {
               className="w-full max-w-sm bg-surface text-text rounded-lg px-4 py-3 mb-4"
             />
             <TextInput
+              placeholder="By"
+              placeholderTextColor="#9CA3AF"
+              value={city}
+              onChangeText={setCity}
+              className="w-full max-w-sm bg-surface text-text rounded-lg px-4 py-3 mb-4"
+            />
+
+            <TextInput
               placeholder="Alder"
               placeholderTextColor="#9CA3AF"
-              value={age.toString()}
-              keyboardType="numeric"
+              value={age}
+              keyboardType="number-pad"
               onChangeText={(text) => {
-                const parsed = parseInt(text, 10);
-                setAge(parsed);
+                const digitsOnly = text.replace(/\D/g, '');
+                setAge(digitsOnly);
               }}
               className="w-full max-w-sm bg-surface text-text rounded-lg px-4 py-3 mb-4"
             />
@@ -221,7 +239,7 @@ export default function RegisterScreen() {
               placeholder="Skriv din bio her..."
               placeholderTextColor="#9CA3AF"
               value={bio}
-              onChangeText={(text) => setBio(text.trim())}
+              onChangeText={setBio}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -247,10 +265,14 @@ export default function RegisterScreen() {
                   <Pressable
                     key={sport}
                     onPress={() => toggleSport(sport)}
-                    className={`px-4 py-2 rounded-full ${favoriteSports.includes(sport) ? 'bg-white' : 'bg-surface'}`}
+                    className={`px-4 py-2 rounded-full ${
+                      favoriteSports.includes(sport) ? 'bg-white' : 'bg-surface'
+                    }`}
                   >
                     <Text
-                      className={`text-sm font-medium ${favoriteSports.includes(sport) ? 'text-black' : 'text-white'}`}
+                      className={`text-sm font-medium ${
+                        favoriteSports.includes(sport) ? 'text-black' : 'text-white'
+                      }`}
                     >
                       {SPORTS_TRANSLATION_EN_TO_DK[sport] || sport}
                     </Text>
@@ -263,9 +285,7 @@ export default function RegisterScreen() {
       case 4:
         return (
           <>
-            <Text className="text-text text-xl font-bold mb-4">
-              Opret Konto
-            </Text>
+            <Text className="text-text text-xl font-bold mb-4">Opret Konto</Text>
             <Text className="text-text text-center text-sm mb-8">
               Indtast din e-mail og adgangskode
             </Text>
@@ -370,9 +390,7 @@ export default function RegisterScreen() {
 
         <StepIndicator totalSteps={TOTAL_STEPS} currentStep={currentStep} />
 
-        <View className="flex-1 w-full items-center">
-          {renderStepContent()}
-        </View>
+        <View className="flex-1 w-full items-center">{renderStepContent()}</View>
 
         <View className="w-full max-w-sm flex-row gap-4 mt-8">
           {currentStep > 1 && (
@@ -387,10 +405,14 @@ export default function RegisterScreen() {
             <Pressable
               onPress={handleNext}
               disabled={!canProceedToNextStep()}
-              className={`flex-1 rounded-lg px-4 py-4 ${canProceedToNextStep() ? 'bg-white' : 'bg-surface'}`}
+              className={`flex-1 rounded-lg px-4 py-4 ${
+                canProceedToNextStep() ? 'bg-white' : 'bg-surface'
+              }`}
             >
               <Text
-                className={`text-center font-medium ${canProceedToNextStep() ? 'text-black' : 'text-gray-400'}`}
+                className={`text-center font-medium ${
+                  canProceedToNextStep() ? 'text-black' : 'text-gray-400'
+                }`}
               >
                 Fortsæt
               </Text>
@@ -399,11 +421,17 @@ export default function RegisterScreen() {
             <Pressable
               onPress={handleSubmit}
               disabled={!canProceedToNextStep() || isSubmitting}
-              className={`flex-1 rounded-lg px-4 py-4 ${canProceedToNextStep() && !isSubmitting ? 'bg-white' : 'bg-surface'}`}
+              className={`flex-1 rounded-lg px-4 py-4 ${
+                canProceedToNextStep() && !isSubmitting ? 'bg-white' : 'bg-surface'
+              }`}
               testID="submitButton"
             >
               <Text
-                className={`text-center font-medium ${canProceedToNextStep() && !isSubmitting ? 'text-black' : 'text-gray-400'}`}
+                className={`text-center font-medium ${
+                  canProceedToNextStep() && !isSubmitting
+                    ? 'text-black'
+                    : 'text-gray-400'
+                }`}
               >
                 {isSubmitting ? 'Opretter...' : 'Opret konto'}
               </Text>

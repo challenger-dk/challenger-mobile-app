@@ -16,6 +16,7 @@ export type User = {
   updatedAt?: string;
   friends?: PublicUser[];
   age?: number;
+  city?: string;
   settings: UserSettings;
   completed_challenges?: number;
   next_challenges?: Challenge[];
@@ -36,6 +37,7 @@ export type PublicUser = {
   last_name?: string;
   profile_picture?: string;
   bio?: string;
+  city?: string;
   favorite_sports?: Sport[];
   age?: number;
 };
@@ -45,6 +47,7 @@ export type UpdateUser = {
   last_name?: string;
   profile_picture?: string;
   bio?: string;
+  city?: string;
   favorite_sports?: string[];
   age?: number;
 };
@@ -56,6 +59,7 @@ export type CreateUser = {
   last_name?: string;
   profile_picture?: string;
   bio?: string;
+  city?: string;
   favorite_sports?: string[];
   age?: number;
 };
