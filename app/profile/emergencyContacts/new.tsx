@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-import { ScreenContainer, TopActionBar } from "@/components/common";
+import { ScreenContainer, ScreenHeader } from "@/components/common";
 import { createEmergencyContact } from "@/api/users";
 import type { EmergencyContact } from "@/types/user";
 
@@ -53,34 +53,20 @@ export default function NewEmergencyContactScreen() {
   };
 
   return (
-    <ScreenContainer>
-      <TopActionBar
-        title="Nødinfo"
-        leftAction={
-          <Pressable
-            onPress={() => router.back()}
-            className="w-9 h-9 rounded-full bg-[#1C1C1E] items-center justify-center"
-          >
-            <Ionicons name="chevron-back" size={20} color="#ffffff" />
-          </Pressable>
-        }
-        showNotifications={false}
-        showCalendar={false}
-        showSettings={false}
-      />
+    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
+      <View className="px-6 flex-1">
+        <ScreenHeader title="Nødinfo" />
 
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={{
-            paddingBottom: 32,
-            paddingHorizontal: 24,
-            paddingTop: 16,
-          }}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
+          <ScrollView
+            contentContainerStyle={{
+              paddingBottom: 32,
+            }}
+            keyboardShouldPersistTaps="handled"
+          >
           {/* Avatar */}
           <View className="items-center mb-8">
             <View className="w-28 h-28 rounded-full bg-[#2C2C2E] items-center justify-center">
@@ -145,8 +131,9 @@ export default function NewEmergencyContactScreen() {
               </View>
             </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
     </ScreenContainer>
   );
 }

@@ -255,7 +255,7 @@ export default function ProfileInformationScreen() {
           </Pressable>
         </View>
 
-        <View className="w-full max-w-sm mb-6">
+        <View className="w-full mb-6">
           <Text className="text-text text-xl font-bold mb-4">Navn</Text>
           <TextInput
             placeholder="Fornavn"
@@ -275,7 +275,7 @@ export default function ProfileInformationScreen() {
           />
         </View>
 
-        <View className="w-full max-w-sm mb-6">
+        <View className="w-full mb-6">
           <Text className="text-text text-xl font-bold mb-4">Information</Text>
 
           <TextInput
@@ -301,7 +301,7 @@ export default function ProfileInformationScreen() {
           />
         </View>
 
-        <View className="w-full max-w-sm mb-6">
+        <View className="w-full mb-6">
           <Text className="text-text text-xl font-bold mb-4">Bio</Text>
           <TextInput
             placeholder="Skriv din bio her..."
@@ -316,7 +316,7 @@ export default function ProfileInformationScreen() {
           />
         </View>
 
-        <View className="w-full max-w-sm mb-8">
+        <View className="w-full mb-8">
           <Text className="text-text text-xl font-bold mb-4">
             Favoritsportsgrene
           </Text>
@@ -368,7 +368,6 @@ export default function ProfileInformationScreen() {
               onPress={handleSubmit}
               disabled={!hasChanges || firstName.trim() === ''}
               isLoading={isSubmitting}
-              className="max-w-sm"
             />
           </ScrollView>
         </View>

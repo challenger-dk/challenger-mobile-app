@@ -14,7 +14,7 @@ import {
   ErrorScreen,
   LoadingScreen,
   ScreenContainer,
-  TopActionBar,
+  ScreenHeader,
 } from "@/components/common";
 import { deleteEmergencyContact } from "@/api/users";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -67,24 +67,12 @@ export default function EmergencyContactsListScreen() {
   );
 
   return (
-    <ScreenContainer>
-      <TopActionBar
-        title="Nødinfo"
-        leftAction={
-          <Pressable
-            onPress={() => router.back()}
-            className="w-9 h-9 rounded-full bg-[#1C1C1E] items-center justify-center"
-          >
-            <Ionicons name="chevron-back" size={20} color="#ffffff" />
-          </Pressable>
-        }
-        showNotifications={false}
-        showCalendar={false}
-        showSettings={false}
-      />
+    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
+      <View className="px-6 flex-1">
+        <ScreenHeader title="Nødinfo" />
 
-      {/* Search + plus button row */}
-      <View className="px-6 mt-2 mb-3 flex-row items-center gap-3">
+        {/* Search + plus button row */}
+        <View className="mb-3 flex-row items-center gap-3">
         <View className="flex-1 flex-row items-center bg-[#1C1C1E] rounded-2xl px-3 py-2">
           <Ionicons name="search" size={16} color="#9CA3AF" />
           <TextInput
@@ -160,6 +148,7 @@ export default function EmergencyContactsListScreen() {
           </View>
         )}
       </ScrollView>
+      </View>
     </ScreenContainer>
   );
 }

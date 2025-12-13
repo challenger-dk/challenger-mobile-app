@@ -16,27 +16,21 @@ export const ScreenHeader = ({
   const router = useRouter();
 
   return (
-    <View
-      className="w-full flex-row items-center mb-6 mt-8"
-      style={{ maxWidth: 384 }}
-    >
+    <View className="w-full flex-row items-center justify-between mb-6 mt-4">
       {showBackButton ? (
-        <Pressable onPress={() => router.back()} style={{ flex: 1 }}>
-          <Ionicons name="chevron-back-outline" size={24} color="#9CA3AF" />
+        <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+          <Ionicons name="chevron-back" size={28} color="#ffffff" />
         </Pressable>
       ) : (
-        <View style={{ flex: 1 }} />
+        <View style={{ width: 44 }} />
       )}
-      <Text
-        className="text-white text-2xl font-bold text-center"
-        style={{ flex: 4 }}
-      >
+      <Text className="text-white text-2xl font-bold flex-1 text-center">
         {title}
       </Text>
       {rightAction ? (
-        <View style={{ flex: 1 }}>{rightAction}</View>
+        <View className="items-end">{rightAction}</View>
       ) : (
-        <View style={{ flex: 1 }} />
+        <View style={{ width: 44 }} />
       )}
     </View>
   );
