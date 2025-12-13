@@ -151,24 +151,21 @@ export default function TeamDetailScreen() {
       {/* Same outer padding style as SettingsScreen */}
       <View className="px-6 flex-1">
         {/* ✅ Use ScreenHeader for consistent back button placement */}
-        <ScreenHeader title={team.name || 'Hold'} />
+        <ScreenHeader
+          title={team.name || 'Hold'}
+          rightAction={<ActionMenu actions={menuActions} />}
+        />
 
-        {/* Tabs + action menu row */}
-        <View className="mt-2 pb-2 flex-row items-center">
-          <View className="flex-1">
-            <TabNavigation
-              tabs={[
-                { key: 'profile', label: 'Profil' },
-                { key: 'chat', label: 'Chat' },
-              ]}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-            />
-          </View>
-
-          <View className="ml-3">
-            <ActionMenu actions={menuActions} />
-          </View>
+        {/* Tabs */}
+        <View className="mt-2 pb-2">
+          <TabNavigation
+            tabs={[
+              { key: 'profile', label: 'Profil' },
+              { key: 'chat', label: 'Chat' },
+            ]}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
         </View>
 
         {/* Content */}

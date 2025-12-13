@@ -283,24 +283,25 @@ export default function UserProfileScreen() {
 
   return (
     <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
-      <ScreenHeader
-        title="Profil"
-        rightAction={<ActionMenu actions={menuActions} />}
-      />
+      <View className="px-6 flex-1">
+        <ScreenHeader
+          title="Profil"
+          rightAction={<ActionMenu actions={menuActions} />}
+        />
 
-      <ReportModal
-        visible={reportModalVisible}
-        onClose={() => setReportModalVisible(false)}
-        targetId={Number(id)}
-        targetType="USER"
-      />
+        <ReportModal
+          visible={reportModalVisible}
+          onClose={() => setReportModalVisible(false)}
+          targetId={Number(id)}
+          targetType="USER"
+        />
 
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 32 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="px-6 pt-4">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 32 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="pt-4">
           <View className="rounded-2xl px-5 py-4 flex-row items-center justify-between">
             <View className="flex-row items-center gap-4 flex-1">
               <Avatar
@@ -399,12 +400,13 @@ export default function UserProfileScreen() {
           />
         </View>
 
-        <View className="px-6 mt-10 items-center">
+        <View className="mt-10 items-center">
           <Text className="text-text-muted text-sm text-center">
             {bottomMessage}
           </Text>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </ScreenContainer>
   );
 }

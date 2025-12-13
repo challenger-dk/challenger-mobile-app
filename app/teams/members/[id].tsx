@@ -116,25 +116,26 @@ export default function TeamMembersScreen() {
   const isCreator = String(team.creator.id) === String(currentUser.id);
 
   return (
-    <ScreenContainer safeArea edges={['top']}>
-      <ScreenHeader
-        title={team.name}
-        rightAction={
-          isCreator ? (
-            <Pressable
-              onPress={() => {
-                setSearchQuery('');
-                setShowInviteModal(true);
-              }}
-              className="bg-surface p-2 rounded-full"
-            >
-              <Ionicons name="person-add" size={22} color="#0A84FF" />
-            </Pressable>
-          ) : null
-        }
-      />
+    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
+      <View className="px-6 flex-1">
+        <ScreenHeader
+          title={team.name}
+          rightAction={
+            isCreator ? (
+              <Pressable
+                onPress={() => {
+                  setSearchQuery('');
+                  setShowInviteModal(true);
+                }}
+                className="bg-surface p-2 rounded-full"
+              >
+                <Ionicons name="person-add" size={22} color="#0A84FF" />
+              </Pressable>
+            ) : null
+          }
+        />
 
-      <ScrollView className="flex-1 px-5 pb-20">
+        <ScrollView className="flex-1 pb-20">
         <Text className="text-text-muted text-sm mb-3">
           Medlemmer ({team.users?.length ?? 0})
         </Text>
@@ -182,7 +183,8 @@ export default function TeamMembersScreen() {
             icon="people-outline"
           />
         )}
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       <Modal
         visible={showInviteModal}
