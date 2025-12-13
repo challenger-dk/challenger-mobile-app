@@ -256,7 +256,7 @@ export default function ProfileInformationScreen() {
         </View>
 
         <View className="w-full mb-6">
-          <Text className="text-text text-xl font-bold mb-4">Navn</Text>
+          <Text className="text-text text-xl font-bold mb-4">Fornavn</Text>
           <TextInput
             placeholder="Fornavn"
             placeholderTextColor="#9CA3AF"
@@ -265,6 +265,7 @@ export default function ProfileInformationScreen() {
             testID="firstName"
             className="w-full bg-surface text-text rounded-lg px-4 py-3 mb-4 border border-text-disabled"
           />
+          <Text className="text-text text-xl font-bold mb-4">Efternavn</Text>
           <TextInput
             placeholder="Efternavn"
             placeholderTextColor="#9CA3AF"
@@ -276,7 +277,7 @@ export default function ProfileInformationScreen() {
         </View>
 
         <View className="w-full mb-6">
-          <Text className="text-text text-xl font-bold mb-4">Information</Text>
+          <Text className="text-text text-xl font-bold mb-4">By</Text>
 
           <TextInput
             placeholder="By"
@@ -286,7 +287,7 @@ export default function ProfileInformationScreen() {
             testID="city"
             className="w-full bg-surface text-text rounded-lg px-4 py-3 mb-4 border border-text-disabled"
           />
-
+          <Text className="text-text text-xl font-bold mb-4">Alder</Text>
           <TextInput
             placeholder="Alder"
             placeholderTextColor="#9CA3AF"
