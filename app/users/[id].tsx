@@ -23,12 +23,11 @@ import {
 
 const SEPARATOR_COLOR = 'bg-[#3A3A3C]';
 
-// ---- Helpers (similar to ProfileScreen) ----
 const StatItem = ({
-  label,
-  value,
-  secondaryValue,
-}: {
+                    label,
+                    value,
+                    secondaryValue,
+                  }: {
   label: string;
   value: number | string;
   secondaryValue?: number | string;
@@ -52,7 +51,6 @@ const StatItem = ({
   </View>
 );
 
-// we’ll now use this to render *common* sports as interests
 const getSportIcon = (sportName: string) => {
   const name = sportName.toLowerCase();
   if (name.includes('fodbold') || name.includes('soccer')) return 'football';
@@ -70,10 +68,8 @@ const InterestIcons = ({ sports }: { sports?: { name: string }[] }) => {
   return (
     <View className="mt-2">
       <View className="flex-row items-center">
-        {/* Left separator */}
         <View className={`w-[1px] h-12 ${SEPARATOR_COLOR} mr-3`} />
 
-        {/* Label + icons */}
         <View className="flex-row items-center gap-3 flex-shrink">
           <Text className="text-xs uppercase tracking-[1px] text-gray-400">
             Interesser
@@ -93,7 +89,6 @@ const InterestIcons = ({ sports }: { sports?: { name: string }[] }) => {
           ))}
         </View>
 
-        {/* Right separator */}
         <View className={`w-[1px] h-12 ${SEPARATOR_COLOR} ml-3`} />
       </View>
     </View>
@@ -107,7 +102,6 @@ export default function UserProfileScreen() {
   const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
 
-  // Mutations
   const blockUserMutation = useBlockUser();
   const unblockUserMutation = useUnblockUser();
 
@@ -116,7 +110,6 @@ export default function UserProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
 
-  // UI State
   const [isBlocked, setIsBlocked] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
 
@@ -238,7 +231,7 @@ export default function UserProfileScreen() {
 
   if (loading) {
     return (
-      <ScreenContainer className="justify-center items-center">
+      <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']} className="justify-center items-center">
         <ActivityIndicator size="large" color="#ffffff" />
       </ScreenContainer>
     );
@@ -246,7 +239,7 @@ export default function UserProfileScreen() {
 
   if (!user) {
     return (
-      <ScreenContainer className="justify-center items-center">
+      <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']} className="justify-center items-center">
         <Text className="text-text">Bruger ikke fundet</Text>
       </ScreenContainer>
     );
@@ -273,7 +266,6 @@ export default function UserProfileScreen() {
     },
   ];
 
-  // main stats (fallback to 0 if not present on PublicUser)
   const friendsCount = (user as any).friends_count ?? 0;
   const teamsCount = (user as any).teams_count ?? 0;
   const completedChallenges = (user as any).completed_challenges ?? 0;
@@ -290,7 +282,7 @@ export default function UserProfileScreen() {
     : 'Tilføj ven for at se informationer';
 
   return (
-    <ScreenContainer>
+    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
       <ScreenHeader
         title="Profil"
         rightAction={<ActionMenu actions={menuActions} />}
@@ -308,9 +300,7 @@ export default function UserProfileScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header + stats + interests – align with own profile */}
         <View className="px-6 pt-4">
-          {/* Header card */}
           <View className="rounded-2xl px-5 py-4 flex-row items-center justify-between">
             <View className="flex-row items-center gap-4 flex-1">
               <Avatar
@@ -326,10 +316,12 @@ export default function UserProfileScreen() {
                 <Text className="text-sm text-gray-300 mt-1">
                   {(user as any).age ? `${(user as any).age} år` : ''}
                 </Text>
+                <Text className="text-sm text-gray-300 mt-1">
+                  {(user as any).city || ''}
+                </Text>
               </View>
             </View>
 
-            {/* Chat icon */}
             <View className="items-center">
               <View className="w-9 h-9 rounded-xl bg-surface items-center justify-center mb-1">
                 <Ionicons
@@ -342,14 +334,10 @@ export default function UserProfileScreen() {
             </View>
           </View>
 
-          {/* Stats + Interests – with “in common” values */}
           <View className="mt-3 rounded-2xl px-5 py-3">
-            {/* Stats row */}
             <View className="flex-row items-center mb-3">
-              {/* Left separator */}
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
-              {/* Venner */}
               <View
                 style={{ flex: 1 }}
                 className="items-center justify-center px-2"
@@ -361,10 +349,8 @@ export default function UserProfileScreen() {
                 />
               </View>
 
-              {/* Separator */}
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
-              {/* Hold */}
               <View
                 style={{ flex: 1 }}
                 className="items-center justify-center px-2"
@@ -376,10 +362,8 @@ export default function UserProfileScreen() {
                 />
               </View>
 
-              {/* Separator */}
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
 
-              {/* Fuldførte Challenges */}
               <View
                 style={{ flex: 3 }}
                 className="items-center justify-center px-1"
@@ -391,23 +375,19 @@ export default function UserProfileScreen() {
                 />
               </View>
 
-              {/* Right separator */}
               <View className={`w-[1px] h-12 ${SEPARATOR_COLOR}`} />
             </View>
 
-            {/* Interesser: *common* favorite sports */}
             <InterestIcons sports={commonStats?.common_sports} />
           </View>
         </View>
 
-        {/* Single “home” tab like in design */}
         <View className="px-6 mt-6 items-center">
           <View className="px-4 py-1.5 rounded-full border border-white bg-white/10">
             <Ionicons name="home" size={16} color="#ffffff" />
           </View>
         </View>
 
-        {/* Optional baseline highlight (centered) */}
         <View className="mt-3 h-[1px] bg-gray-700 w-full relative">
           <View
             className="absolute h-[2px] bg-white"
@@ -419,7 +399,6 @@ export default function UserProfileScreen() {
           />
         </View>
 
-        {/* Empty state text underneath */}
         <View className="px-6 mt-10 items-center">
           <Text className="text-text-muted text-sm text-center">
             {bottomMessage}

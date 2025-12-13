@@ -6,7 +6,8 @@ import { queryClient } from '@/lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { LogBox, StyleSheet, View } from 'react-native';
+import { LogBox, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import '../global.css';
 
@@ -18,40 +19,33 @@ LogBox.ignoreAllLogs(true);
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <View style={styles.container}>
-          <AuthProvider>
-            {/* WebSocketProvider must be INSIDE AuthProvider */}
-            <WebSocketProvider>
-              <Stack
-                screenOptions={{ headerShown: false }}
-                initialRouteName="(auth)"
-              >
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="profile" />
-                <Stack.Screen name="teams" />
-                <Stack.Screen name="hub" />
-                <Stack.Screen name="friends" />
-                <Stack.Screen name="users" />
-                <Stack.Screen name="chat/[id]" />
-                <Stack.Screen name="user-settings" />
-              </Stack>
-              <StatusBar style="light" />
-            </WebSocketProvider>
-          </AuthProvider>
-        </View>
-      </QueryClientProvider>
-      <Toast config={toastConfig} />
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <View className="flex-1 bg-background">
+            <AuthProvider>
+              {/* WebSocketProvider must be INSIDE AuthProvider */}
+              <WebSocketProvider>
+                <Stack
+                  screenOptions={{ headerShown: false }}
+                  initialRouteName="(auth)"
+                >
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="profile" />
+                  <Stack.Screen name="teams" />
+                  <Stack.Screen name="hub" />
+                  <Stack.Screen name="friends" />
+                  <Stack.Screen name="users" />
+                  <Stack.Screen name="chat/[id]" />
+                  <Stack.Screen name="user-settings" />
+                </Stack>
+                <StatusBar style="light" />
+              </WebSocketProvider>
+            </AuthProvider>
+          </View>
+        </QueryClientProvider>
+        <Toast config={toastConfig} />
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 50,
-    backgroundColor: '#171616',
-    alignContent: 'center',
-  },
-});

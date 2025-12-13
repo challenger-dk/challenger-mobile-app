@@ -1,3 +1,4 @@
+// app/profile/support.tsx
 import {
   ScreenContainer,
   ScreenHeader,
@@ -18,9 +19,9 @@ import {
 type SupportType = 'BUG' | 'CONTACT' | 'OTHER';
 
 const TypeSelector = ({
-  selected,
-  onSelect,
-}: {
+                        selected,
+                        onSelect,
+                      }: {
   selected: SupportType;
   onSelect: (t: SupportType) => void;
 }) => {
@@ -66,7 +67,6 @@ export default function SupportScreen() {
     }
 
     const email = 'support@challenger.dk';
-    // Pre-pend the type to the subject line for easier filtering in your inbox
     const emailSubject = encodeURIComponent(`[${type}] ${subject}`);
     const emailBody = encodeURIComponent(message);
     const url = `mailto:${email}?subject=${emailSubject}&body=${emailBody}`;
@@ -87,44 +87,48 @@ export default function SupportScreen() {
   };
 
   return (
-    <ScreenContainer>
-      <ScreenHeader title="Support" />
-      <ScrollView
-        className="flex-1 px-6 pt-4"
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text className="text-white text-base mb-2 font-medium">
-          Hvad drejer det sig om?
-        </Text>
-        <TypeSelector selected={type} onSelect={setType} />
+    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
+      <View className="px-6 flex-1">
+        <ScreenHeader title="Support" />
 
-        <Text className="text-white text-base mb-2 font-medium">Emne</Text>
-        <View className="bg-[#2c2c2c] rounded-lg p-4 mb-6">
-          <TextInput
-            className="text-white text-base"
-            placeholder="Kort overskrift..."
-            placeholderTextColor="#6B7280"
-            value={subject}
-            onChangeText={setSubject}
-          />
-        </View>
+        <ScrollView
+          className="mt-2"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          <Text className="text-white text-base mb-2 font-medium">
+            Hvad drejer det sig om?
+          </Text>
+          <TypeSelector selected={type} onSelect={setType} />
 
-        <Text className="text-white text-base mb-2 font-medium">Besked</Text>
-        <View className="bg-[#2c2c2c] rounded-lg p-4 mb-8 min-h-[150px]">
-          <TextInput
-            className="text-white text-base flex-1"
-            placeholder="Beskriv problemet eller din henvendelse her..."
-            placeholderTextColor="#6B7280"
-            multiline
-            textAlignVertical="top"
-            value={message}
-            onChangeText={setMessage}
-          />
-        </View>
+          <Text className="text-white text-base mb-2 font-medium">Emne</Text>
+          <View className="bg-[#2c2c2c] rounded-lg p-4 mb-6">
+            <TextInput
+              className="text-white text-base"
+              placeholder="Kort overskrift..."
+              placeholderTextColor="#6B7280"
+              value={subject}
+              onChangeText={setSubject}
+            />
+          </View>
 
-        <SubmitButton label="Åben Email" onPress={handleSend} />
-        <View className="h-10" />
-      </ScrollView>
+          <Text className="text-white text-base mb-2 font-medium">Besked</Text>
+          <View className="bg-[#2c2c2c] rounded-lg p-4 mb-8 min-h-[150px]">
+            <TextInput
+              className="text-white text-base flex-1"
+              placeholder="Beskriv problemet eller din henvendelse her..."
+              placeholderTextColor="#6B7280"
+              multiline
+              textAlignVertical="top"
+              value={message}
+              onChangeText={setMessage}
+            />
+          </View>
+
+          <SubmitButton label="Åben Email" onPress={handleSend} />
+          <View className="h-10" />
+        </ScrollView>
+      </View>
     </ScreenContainer>
   );
 }

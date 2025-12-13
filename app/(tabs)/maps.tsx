@@ -426,7 +426,7 @@ export default function MapsScreen() {
   // Show fallback for web platform since react-native-maps doesn't fully support web
   if (Platform.OS === 'web') {
     return (
-      <View className="flex-1 bg-[#171616]">
+      <View className="flex-1 bg-background">
         <TopActionBar
           title="Kort"
           showNotifications={false}

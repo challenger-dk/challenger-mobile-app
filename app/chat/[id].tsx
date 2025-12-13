@@ -60,8 +60,8 @@ export default function ChatRoomScreen() {
   if (!user || !id) return <LoadingScreen />;
 
   return (
-    <ScreenContainer safeArea edges={['top']}>
-      <View className="px-4 py-3 border-b border-surface flex-row items-center justify-between">
+    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
+      <View className="px-6 py-3 border-b border-surface flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Pressable onPress={() => router.back()} className="mr-3">
             <Ionicons name="chevron-back" size={28} color="#ffffff" />

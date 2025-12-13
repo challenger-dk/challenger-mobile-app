@@ -25,7 +25,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SPORTS_TRANSLATION_DK_TO_EN: Record<string, string> = Object.fromEntries(
   Object.entries(SPORTS_TRANSLATION_EN_TO_DK).map(([en, dk]) => [dk, en])
@@ -227,20 +227,22 @@ export default function ProfileInformationScreen() {
   if (error) return <ErrorScreen error={error} />;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
-      className="flex-1 bg-background"
-    >
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingBottom: 24 + insets.bottom,
-        }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+        className="flex-1"
       >
-        <ScreenHeader title="Rediger Profil" />
+        <View className="px-6 flex-1">
+          <ScreenHeader title="Rediger Profil" />
+
+          <ScrollView
+            contentContainerStyle={{
+              paddingBottom: 24 + insets.bottom,
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
 
         <View className="mb-8 items-center">
           <Pressable onPress={pickImage} testID="pickImage">
@@ -360,15 +362,17 @@ export default function ProfileInformationScreen() {
           </ScrollView>
         </View>
 
-        <SubmitButton
-          label="Gem ændringer"
-          loadingLabel="Gemmer..."
-          onPress={handleSubmit}
-          disabled={!hasChanges || firstName.trim() === ''}
-          isLoading={isSubmitting}
-          className="max-w-sm"
-        />
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <SubmitButton
+              label="Gem ændringer"
+              loadingLabel="Gemmer..."
+              onPress={handleSubmit}
+              disabled={!hasChanges || firstName.trim() === ''}
+              isLoading={isSubmitting}
+              className="max-w-sm"
+            />
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

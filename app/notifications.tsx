@@ -178,7 +178,7 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <ScreenContainer safeArea edges={['top']}>
+    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
       <View className="px-6 flex-1">
         <ScreenHeader
           title="Notifikationer"

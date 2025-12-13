@@ -13,7 +13,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BooleanToggle,
   ErrorScreen,
@@ -199,22 +199,23 @@ export default function CreateChallengeScreen() {
   const selectedSportName = sport ? SPORTS_TRANSLATION_EN_TO_DK[sport] : '';
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
-      className="flex-1 bg-[#171616]"
-    >
-      <ScrollView
-        ref={scrollViewRef}
-        contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingBottom: 24 + insets.bottom,
-        }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+        className="flex-1"
       >
-        {/* Top bar with back button and header */}
-        <ScreenHeader title="Opret Challenge" />
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            paddingBottom: 24 + insets.bottom,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Top bar with back button and header */}
+          <ScreenHeader title="Opret Challenge" />
 
         {/* Header with Tabs */}
         <View className="w-full items-center mb-6">
@@ -987,24 +988,25 @@ export default function CreateChallengeScreen() {
           />
         </View>
 
-        {/* Submit Button */}
-        <SubmitButton
-          label="Opret Challenge"
-          loadingLabel="Opretter..."
-          onPress={handleSubmit}
-          disabled={
-            !sport ||
-            !location ||
-            !date ||
-            !startTime ||
-            !endTime ||
-            isIndoor === null ||
-            hasCosts === null ||
-            isSubmitting
-          }
-          isLoading={isSubmitting}
-        />
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* Submit Button */}
+          <SubmitButton
+            label="Opret Challenge"
+            loadingLabel="Opretter..."
+            onPress={handleSubmit}
+            disabled={
+              !sport ||
+              !location ||
+              !date ||
+              !startTime ||
+              !endTime ||
+              isIndoor === null ||
+              hasCosts === null ||
+              isSubmitting
+            }
+            isLoading={isSubmitting}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

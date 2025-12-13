@@ -15,12 +15,12 @@ interface NotificationItemProps {
 }
 
 const NotificationItem = ({
-  label,
-  description,
-  value,
-  onValueChange,
-  disabled,
-}: NotificationItemProps) => (
+                            label,
+                            description,
+                            value,
+                            onValueChange,
+                            disabled,
+                          }: NotificationItemProps) => (
   <View className="flex-row items-center justify-between py-4 border-b border-[#2c2c2c]">
     <View className="flex-1 mr-4">
       <Text className="text-white text-base font-medium">{label}</Text>
@@ -69,14 +69,11 @@ export default function NotificationsSettingsScreen() {
     setSettings(newSettings);
 
     // 2. API Update: Send ONLY the changed field
-    // Because we switched the type to snake_case, this will now send:
-    // { "notify_team_invite": false }
-    // instead of { "notifyTeamInvite": false }
     updateSettings({ [key]: value });
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right', 'bottom']}>
       <View className="px-6 flex-1">
         <ScreenHeader title="Notifikationer" />
 

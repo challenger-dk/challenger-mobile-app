@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useSegments } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type TabType = 'friends' | 'teams';
 
@@ -39,7 +40,7 @@ export default function SocialScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#171616]">
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right', 'bottom']}>
       {/* Header Section */}
       <View className="px-6 pt-4 pb-2">
         <View className="flex-row items-center justify-between mb-4">
@@ -64,6 +65,6 @@ export default function SocialScreen() {
 
       {/* Main Content Area */}
       {activeTab === 'friends' ? <FriendsContent /> : <TeamsContent />}
-    </View>
+    </SafeAreaView>
   );
 }

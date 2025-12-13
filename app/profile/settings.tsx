@@ -44,11 +44,15 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#171616]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right', 'bottom']}>
       <View className="px-6 flex-1">
         <ScreenHeader title="Indstillinger" />
 
-        <ScrollView className="mt-2" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          className="mt-2"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
           <SettingItem label="Sprog" value="Dansk" onPress={() => {}} />
 
           <SettingItem
@@ -60,14 +64,12 @@ export default function SettingsScreen() {
 
           <SettingItem label="Blokering" onPress={() => {}} />
 
-          {/* Spacer for visual separation */}
           <View className="h-8" />
 
           <SettingItem label="Privatindstillinger" onPress={() => {}} />
 
           <SettingItem label="Tilladelser" onPress={() => {}} />
 
-          {/* Spacer for visual separation */}
           <View className="h-8" />
 
           <SettingItem
@@ -79,15 +81,16 @@ export default function SettingsScreen() {
             label="Privatpolitik"
             onPress={() => router.push('/privacy-policy' as any)}
           />
-        </ScrollView>
 
-        {/* Logout */}
-        <Pressable
-          onPress={handleLogout}
-          className="bg-danger rounded-lg p-4 items-center justify-center"
-        >
-          <Text className="text-text text-base font-medium">Log ud</Text>
-        </Pressable>
+          <View className="h-8" />
+
+          <Pressable
+            onPress={handleLogout}
+            className="bg-danger rounded-lg p-4 items-center justify-center"
+          >
+            <Text className="text-text text-base font-medium">Log ud</Text>
+          </Pressable>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
