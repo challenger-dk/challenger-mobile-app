@@ -25,7 +25,44 @@ export const createChallenge = async (challenge: CreateChallenge) => {
     },
     body: JSON.stringify(challenge),
   });
-  return response.json();
+
+  // Check if response is successful
+  if (!response.ok) {
+    // Try to parse error message from response
+    let errorMessage = `Failed to create challenge: ${response.status} ${response.statusText}`;
+    try {
+      const text = await response.text();
+      if (text) {
+        try {
+          const errorData = JSON.parse(text);
+          // Handle different error response formats
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (typeof errorData === 'string') {
+            errorMessage = errorData;
+          }
+        } catch {
+          // If JSON parsing fails, use the text as error message
+          // This handles cases where backend returns plain text error messages
+          errorMessage = text;
+        }
+      }
+    } catch {
+      // If reading response fails, use the default error message
+    }
+    throw new Error(errorMessage);
+  }
+
+  // Parse successful response
+  const text = await response.text();
+  if (!text || text.trim().length === 0) {
+    return {};
+  }
+  return JSON.parse(text);
 };
 
 // POST - Join challenge

@@ -62,7 +62,7 @@ export default function ProfileInformationScreen() {
   const [bio, setBio] = useState('');
   const [favoriteSports, setFavoriteSports] = useState<Sport[]>([]);
   const [city, setCity] = useState('');
-  const [age, setAge] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -74,9 +74,16 @@ export default function ProfileInformationScreen() {
       setLastName(user.last_name || '');
       setBio(user.bio || '');
       setCity((user as any)?.city || ''); // remove "as any" once user type includes city
-      setAge(
-        typeof (user as any)?.age === 'number' ? String((user as any).age) : ''
-      );
+      
+      // Parse birth_date - handle both Date objects and string dates from API
+      if (user.birth_date) {
+        const parsedDate = typeof user.birth_date === 'string' 
+          ? new Date(user.birth_date) 
+          : user.birth_date;
+        setBirthDate(isNaN(parsedDate.getTime()) ? undefined : parsedDate);
+      } else {
+        setBirthDate(undefined);
+      }
 
       setFavoriteSports(
         (user.favorite_sports || []).map((sport) => ({
@@ -95,9 +102,18 @@ export default function ProfileInformationScreen() {
       const hasLastNameChanged = lastName !== (user.last_name || '');
       const hasBioChanged = bio !== (user.bio || '');
       const hasCityChanged = city !== ((user as any)?.city || '');
-      const hasAgeChanged =
-        age !==
-        (typeof (user as any)?.age === 'number' ? String((user as any).age) : '');
+      
+      // Compare birth_date - handle both Date objects and string dates
+      const userBirthDate = user.birth_date 
+        ? (typeof user.birth_date === 'string' ? new Date(user.birth_date) : user.birth_date)
+        : undefined;
+      const userBirthDateStr = userBirthDate && !isNaN(userBirthDate.getTime())
+        ? userBirthDate.toISOString().split('T')[0]
+        : '';
+      const currentBirthDateStr = birthDate && !isNaN(birthDate.getTime())
+        ? birthDate.toISOString().split('T')[0]
+        : '';
+      const hasBirthDateChanged = userBirthDateStr !== currentBirthDateStr;
 
       const userSportNames = (user.favorite_sports || [])
         .map((s) => normalizeSportNameForComparison(s.name))
@@ -114,11 +130,11 @@ export default function ProfileInformationScreen() {
         hasLastNameChanged ||
         hasBioChanged ||
         hasCityChanged ||
-        hasAgeChanged ||
+        hasBirthDateChanged ||
         hasSportsChanged
       );
     }
-  }, [imageUri, firstName, lastName, bio, city, age, favoriteSports, user]);
+  }, [imageUri, firstName, lastName, bio, city, birthDate, favoriteSports, user]);
 
   const toggleSport = (sportName: string) => {
     setFavoriteSports((prev) => {
@@ -152,10 +168,15 @@ export default function ProfileInformationScreen() {
       return;
     }
 
-    const ageNumber =
-      age.trim() === '' ? undefined : parseInt(age.trim(), 10);
-    if (age.trim() !== '' && (!Number.isFinite(ageNumber) || (ageNumber ?? 0) <= 0)) {
-      showErrorToast('Indtast en gyldig alder');
+    // Validate birthdate if provided
+    if (birthDate && isNaN(birthDate.getTime())) {
+      showErrorToast('Indtast en gyldig fødselsdato');
+      return;
+    }
+
+    // Check if birthdate is in the future
+    if (birthDate && birthDate > new Date()) {
+      showErrorToast('Fødselsdatoen kan ikke være i fremtiden');
       return;
     }
 
@@ -195,7 +216,7 @@ export default function ProfileInformationScreen() {
         bio: bio.trim() || undefined,
         favorite_sports: sportNames.length > 0 ? sportNames : undefined,
         city: city.trim() || undefined,
-        age: ageNumber,
+        birth_date: birthDate,
       };
 
       const response = await updateUser(updateData);
@@ -287,17 +308,37 @@ export default function ProfileInformationScreen() {
             testID="city"
             className="w-full bg-surface text-text rounded-lg px-4 py-3 mb-4 border border-text-disabled"
           />
-          <Text className="text-text text-xl font-bold mb-4">Alder</Text>
+          <Text className="text-text text-xl font-bold mb-4">Fødselsdato</Text>
           <TextInput
-            placeholder="Alder"
+            placeholder="YYYY-MM-DD"
             placeholderTextColor="#9CA3AF"
-            value={age}
+            value={birthDate ? birthDate.toISOString().split('T')[0] : ''}
             onChangeText={(text) => {
-              const digitsOnly = text.replace(/\D/g, '');
-              setAge(digitsOnly);
+              // Allow YYYY-MM-DD format
+              const cleaned = text.replace(/[^\d-]/g, '');
+              if (cleaned.length === 0) {
+                setBirthDate(undefined);
+                return;
+              }
+              
+              // Try to parse as date
+              const parsed = new Date(cleaned);
+              if (!isNaN(parsed.getTime())) {
+                setBirthDate(parsed);
+              } else if (cleaned.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // If format is correct but date is invalid, still try to set it
+                // The validation will catch it on submit
+                const parts = cleaned.split('-');
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                const day = parseInt(parts[2], 10);
+                const date = new Date(year, month, day);
+                if (date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+                  setBirthDate(date);
+                }
+              }
             }}
-            keyboardType="number-pad"
-            testID="age"
+            testID="birthDate"
             className="w-full bg-surface text-text rounded-lg px-4 py-3 border border-text-disabled"
           />
         </View>

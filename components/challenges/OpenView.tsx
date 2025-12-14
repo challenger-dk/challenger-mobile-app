@@ -4,7 +4,7 @@ import {
 } from '@/hooks/queries/useChallenges';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { queryKeys } from '@/lib/queryClient';
-import { formatDate, formatTimeRange } from '@/utils/date';
+import { formatDate } from '@/utils/date';
 import { SportIcon } from '@/utils/sportIcons';
 import { showErrorToast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,10 +75,28 @@ export const OpenView = ({ challenge }: ViewProps) => {
     : 'Unknown';
 
   const formattedDate = formatDate(challenge.date);
-  const formattedTimeRange = formatTimeRange(
-    challenge.start_time,
-    challenge.end_time
-  );
+  
+  const formatTimeWithMinutes = (startISO: string, endISO: string) => {
+    if (!startISO) return null;
+    
+    const getTimeParts = (iso: string) => {
+      const date = new Date(iso);
+      const hour = date.getHours().toString().padStart(2, '0');
+      const minute = date.getMinutes().toString().padStart(2, '0');
+      return { hour, minute };
+    };
+    
+    const start = getTimeParts(startISO);
+    
+    if (!endISO) {
+      return { startHour: start.hour, startMinute: start.minute, endHour: null, endMinute: null };
+    }
+    
+    const end = getTimeParts(endISO);
+    return { startHour: start.hour, startMinute: start.minute, endHour: end.hour, endMinute: end.minute };
+  };
+  
+  const timeParts = formatTimeWithMinutes(challenge.start_time, challenge.end_time);
 
   return (
     <View className="flex-1 justify-between">
@@ -104,7 +122,7 @@ export const OpenView = ({ challenge }: ViewProps) => {
             </View>
           </View>
         </View>
-        <View className="w-[43%] justify-center pl-4 relative">
+        <View className="w-[43%] justify-center relative">
           <View className="absolute -top-5 right-0 w-8 h-8 bg-black/20 rounded-bl-full items-center justify-center">
             <Ionicons
               className="absolute top-1 right-1"
@@ -113,9 +131,23 @@ export const OpenView = ({ challenge }: ViewProps) => {
               color="#ffffff"
             />
           </View>
-          <Text className="text-text text-lg text-center">
-            {formattedTimeRange}
-          </Text>
+          {timeParts && (
+            <View className="flex-row items-start justify-center">
+              <View className="flex-row items-start">
+                <Text className="text-text text-lg">{timeParts.startHour}</Text>
+                <Text className="text-text text-xs" style={{ marginTop: -2 }}>{timeParts.startMinute}</Text>
+              </View>
+              {timeParts.endHour && (
+                <>
+                  <Text className="text-text text-lg">-</Text>
+                  <View className="flex-row items-start">
+                    <Text className="text-text text-lg">{timeParts.endHour}</Text>
+                    <Text className="text-text text-xs" style={{ marginTop: -2 }}>{timeParts.endMinute}</Text>
+                  </View>
+                </>
+              )}
+            </View>
+          )}
           <Text className="text-text text-xs text-center">{formattedDate}</Text>
         </View>
       </View>
@@ -133,7 +165,6 @@ export const OpenView = ({ challenge }: ViewProps) => {
             />
           </View>
           <View className="flex-row items-center">
-            <Ionicons name="location-outline" size={16} color="#ffffff" />
             <Text className="text-text text-sm ml-2 flex-1" numberOfLines={2}>
               {challenge.location.address}
             </Text>

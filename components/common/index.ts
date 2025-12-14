@@ -1,5 +1,6 @@
 export { Avatar } from './Avatar';
 export { BooleanToggle } from './BooleanToggle';
+export { DateFilter } from './DateFilter';
 export { EmptyState } from './EmptyState';
 export { ErrorScreen } from './ErrorScreen';
 export { FormFieldButton } from './FormFieldButton';
@@ -15,3 +16,4 @@ export { TabNavigation } from './TabNavigation';
 export { TeamSizeSelector } from './TeamSizeSelector';
 export { toastConfig } from './ToastConfig';
 export { TopActionBar } from './TopActionBar';
+

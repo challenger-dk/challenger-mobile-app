@@ -6,6 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 interface TopActionBarProps {
   title?: string;
   leftAction?: React.ReactNode;
+  centerAction?: React.ReactNode;
   showNotifications?: boolean;
   showCalendar?: boolean;
   showSettings?: boolean;
@@ -18,6 +19,7 @@ interface TopActionBarProps {
 export const TopActionBar = ({
   title,
   leftAction,
+  centerAction,
   showNotifications = true,
   showCalendar = true,
   showSettings = true,
@@ -54,7 +56,7 @@ export const TopActionBar = ({
   // Title should be centered if there are NO right actions OR there IS a left action
   const shouldCenterTitle = !hasRightActions || !!leftAction;
   // Use absolute positioning for true centering when needed
-  const useAbsoluteCentering = shouldCenterTitle;
+  const useAbsoluteCentering = shouldCenterTitle && !centerAction;
 
   return (
     <View
@@ -63,11 +65,15 @@ export const TopActionBar = ({
     >
       {leftAction ? (
         <View className="flex-1 items-start">{leftAction}</View>
-      ) : shouldCenterTitle ? (
+      ) : shouldCenterTitle && !centerAction ? (
         <View className="flex-1" />
       ) : null}
 
-      {title && (
+      {centerAction ? (
+        <View className="absolute left-0 right-0 items-center">
+          {centerAction}
+        </View>
+      ) : title ? (
         <>
           {useAbsoluteCentering ? (
             <View className="absolute left-0 right-0 items-center">
@@ -79,7 +85,7 @@ export const TopActionBar = ({
             </View>
           )}
         </>
-      )}
+      ) : null}
 
       <View className="flex-1 flex-row items-center justify-end gap-2">
         {showNotifications && (

@@ -1,12 +1,13 @@
-import { getUserById, getUserCommonStats, removeFriend } from '@/api/users';
 import { SendInvitation } from '@/api/invitations';
+import { getUserById, getUserCommonStats, removeFriend } from '@/api/users';
 import { Avatar, ScreenContainer, ScreenHeader } from '@/components/common';
 import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
 import { ReportModal } from '@/components/common/ReportModal';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useBlockUser, useUnblockUser } from '@/hooks/queries/useUsers';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { queryKeys } from '@/lib/queryClient';
 import { CommonStats, PublicUser } from '@/types/user';
+import { calculateAge } from '@/utils/date';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -24,10 +25,10 @@ import {
 const SEPARATOR_COLOR = 'bg-[#3A3A3C]';
 
 const StatItem = ({
-                    label,
-                    value,
-                    secondaryValue,
-                  }: {
+  label,
+  value,
+  secondaryValue,
+}: {
   label: string;
   value: number | string;
   secondaryValue?: number | string;
@@ -315,7 +316,10 @@ export default function UserProfileScreen() {
                   {user.first_name} {user.last_name || ''}
                 </Text>
                 <Text className="text-sm text-gray-300 mt-1">
-                  {(user as any).age ? `${(user as any).age} år` : ''}
+                  {(() => {
+                    const age = calculateAge(user.birth_date);
+                    return age !== undefined ? `${age} år` : '';
+                  })()}
                 </Text>
                 <Text className="text-sm text-gray-300 mt-1">
                   {(user as any).city || ''}

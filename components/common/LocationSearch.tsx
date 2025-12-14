@@ -1,16 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,11 +19,12 @@ import { useLocation } from '../../hooks/useLocation';
 import type { Facility } from '../../types/facility';
 import type { Location } from '../../types/location';
 import {
-  formatLocationResult,
-  reverseGeocode,
-  searchLocation,
-  tomTomResultToLocation,
-  type TomTomSearchResult,
+    extractPostalCodeFromAddress,
+    formatLocationResult,
+    reverseGeocode,
+    searchLocation,
+    tomTomResultToLocation,
+    type TomTomSearchResult,
 } from '../../utils/tomtom';
 
 interface LocationSearchProps {
@@ -72,6 +73,16 @@ export const LocationSearch = ({
     }
   }, [value]);
 
+  // Helper function to check if a location has a postal code
+  const hasPostalCode = (location: Location): boolean => {
+    if (location.postal_code && location.postal_code.trim() !== '') {
+      return true;
+    }
+    // Check if we can extract postal code from address
+    const extractedPostalCode = extractPostalCodeFromAddress(location.address);
+    return extractedPostalCode !== '';
+  };
+
   // Search facilities locally (synchronous, instant)
   const facilityResults = useMemo(() => {
     if (!searchQuery || searchQuery.trim().length < 2) {
@@ -89,9 +100,11 @@ export const LocationSearch = ({
         const facilityTypeMatch = facility.facilityType
           .toLowerCase()
           .includes(query);
-        return (
-          nameMatch || detailedNameMatch || addressMatch || facilityTypeMatch
-        );
+        const matchesQuery =
+          nameMatch || detailedNameMatch || addressMatch || facilityTypeMatch;
+        
+        // Only include facilities that have a postal code
+        return matchesQuery && hasPostalCode(facility.location);
       })
       .slice(0, 10); // Limit to 10 facilities
   }, [searchQuery, facilities]);
@@ -134,12 +147,18 @@ export const LocationSearch = ({
         });
 
         // Combine facility results (first priority) with TomTom results (second priority)
-        const tomTomSearchResults: SearchResult[] = response.results.map(
-          (result) => ({
+        // Filter TomTom results to only include those with postal codes
+        const tomTomSearchResults: SearchResult[] = response.results
+          .filter((result) => {
+            // Check if TomTom result has postal code
+            const hasPostalCode =
+              result.address.postalCode && result.address.postalCode.trim() !== '';
+            return hasPostalCode;
+          })
+          .map((result) => ({
             type: 'tomtom',
             result,
-          })
-        );
+          }));
 
         const combinedResults = [
           ...facilitySearchResults,
@@ -170,7 +189,17 @@ export const LocationSearch = ({
     let formattedLocation: string;
 
     if (result.type === 'facility') {
-      location = result.facility.location;
+      // Extract postal code from address if missing
+      const facilityLocation = result.facility.location;
+      const postalCode =
+        facilityLocation.postal_code && facilityLocation.postal_code.trim() !== ''
+          ? facilityLocation.postal_code
+          : extractPostalCodeFromAddress(facilityLocation.address);
+      
+      location = {
+        ...facilityLocation,
+        postal_code: postalCode,
+      };
       formattedLocation = result.facility.detailedName
         ? `${result.facility.name} - ${result.facility.detailedName}`
         : result.facility.name;

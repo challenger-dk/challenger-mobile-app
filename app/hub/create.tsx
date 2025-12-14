@@ -116,6 +116,14 @@ export default function CreateChallengeScreen() {
       return;
     }
 
+    // Validate that location has postal_code (required by backend)
+    if (!location.postal_code || location.postal_code.trim() === '') {
+      showErrorToast(
+        'Lokationen mangler postnummer. Vælg venligst en lokation med et postnummer.'
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

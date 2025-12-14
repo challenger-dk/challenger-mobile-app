@@ -1,10 +1,20 @@
-import { storage } from '@/firebase';
-import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytes,
-} from 'firebase/storage';
+import { initializeApp } from 'firebase/app';
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyC_vYxzBtRJkV2w_QD0YC3oJMwzT4wYlpA",
+  authDomain: "challenger-app-236fc.firebaseapp.com",
+  projectId: "challenger-app-236fc",
+  storageBucket: "challenger-app-236fc.firebasestorage.app",
+  messagingSenderId: "380479685608",
+  appId: "1:380479685608:web:732f43473e345792efda5d",
+  measurementId: "G-1VV0V4PGH9"
+};
+
+// Initialize Firebase and get storage instance
+const app = initializeApp(firebaseConfig);
+const storage = getStorage(app);
 
 /**
  * Uploads an image from a local URI to Firebase Storage

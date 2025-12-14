@@ -11,6 +11,7 @@ import {
 import { FriendsContent } from '@/components/social';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { Challenge } from '@/types/challenge';
+import { calculateAge } from '@/utils/date';
 import { SportIcon } from '@/utils/sportIcons';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -142,7 +143,10 @@ export default function ProfileScreen() {
                   {user.first_name} {user.last_name}
                 </Text>
                 <Text className="text-sm text-gray-300 mt-1">
-                  {user.age ? `${user.age} år` : ''}
+                  {(() => {
+                    const age = calculateAge(user.birth_date);
+                    return age !== undefined ? `${age} år` : '';
+                  })()}
                 </Text>
                 <Text className="text-sm text-gray-300 mt-1">
                   {user.city ? `${user.city}` : ''}

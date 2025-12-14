@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 import { ChallengeCard } from '../../components/challenges';
 import {
+  DateFilter,
   EmptyState,
   ErrorScreen,
   LoadingScreen,
@@ -30,6 +31,13 @@ export default function HubScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('public');
   const [activePersonalTab, setActivePersonalTab] =
     useState<PersonalTabType>('mine');
+  
+  // Date filter state - default to today
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
 
   const {
     data: challenges = [],
@@ -48,10 +56,32 @@ export default function HubScreen() {
     router.push(`/hub/${challengeId}` as any);
   };
 
+  // Helper function to compare dates (ignoring time)
+  const isSameDate = (date1: Date, date2: Date): boolean => {
+    return (
+      date1.getDate() === date2.getDate() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getFullYear() === date2.getFullYear()
+    );
+  };
+
   const filteredChallenges = useMemo(() => {
+    let filtered = challenges;
+
+    console.log('filtered', filtered);
+
+    // Filter by date first
+    filtered = filtered.filter((challenge: Challenge) => {
+      if (!challenge.date) return false;
+      const challengeDate = new Date(challenge.date);
+      challengeDate.setHours(0, 0, 0, 0);
+      return isSameDate(challengeDate, selectedDate);
+    });
+
+    // Then filter by view mode and tabs
     if (viewMode === 'default') {
       // Default view: Public and Friends tabs
-      return challenges.filter((challenge: Challenge) =>
+      filtered = filtered.filter((challenge: Challenge) =>
         activeTab === 'public' ? challenge.is_public : !challenge.is_public
       );
     } else {
@@ -60,12 +90,12 @@ export default function HubScreen() {
 
       if (activePersonalTab === 'mine') {
         // My challenges: challenges created by the current user
-        return challenges.filter(
+        filtered = filtered.filter(
           (challenge: Challenge) => challenge.creator.id === user.id
         );
       } else {
         // Registered: challenges where user has joined (but not created)
-        return challenges.filter((challenge: Challenge) => {
+        filtered = filtered.filter((challenge: Challenge) => {
           // Exclude challenges created by the user
           if (challenge.creator.id === user.id) {
             return false;
@@ -80,7 +110,9 @@ export default function HubScreen() {
         });
       }
     }
-  }, [challenges, activeTab, activePersonalTab, viewMode, user]);
+
+    return filtered;
+  }, [challenges, activeTab, activePersonalTab, viewMode, user, selectedDate]);
 
   if (loading) {
     return <LoadingScreen message="Loading challenges..." />;
@@ -101,20 +133,42 @@ export default function HubScreen() {
   return (
     <ScreenContainer>
       <TopActionBar
-        title="Hub"
+        title={viewMode === 'default' ? 'Hub' : undefined}
         leftAction={
-          <Pressable
-            onPress={() =>
-              setViewMode(viewMode === 'default' ? 'personal' : 'default')
-            }
-          >
-            <Image
-              source={require('../../assets/VS-Icon-button.svg')}
-              style={{ width: 40, height: 40 }}
-              contentFit="contain"
-            />
-          </Pressable>
+          viewMode === 'personal' ? (
+            <Pressable
+              onPress={() => setViewMode('default')}
+              className="p-2 -ml-2"
+            >
+              <Ionicons name="chevron-back" size={28} color="#ffffff" />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() =>
+                setViewMode(viewMode === 'default' ? 'personal' : 'default')
+              }
+            >
+              <Image
+                source={require('../../assets/VS-Icon-button.svg')}
+                style={{ width: 40, height: 40 }}
+                contentFit="contain"
+              />
+            </Pressable>
+          )
         }
+        centerAction={
+          viewMode === 'personal' ? (
+            <Pressable onPress={() => setViewMode('default')}>
+              <Image
+                source={require('../../assets/VS-Icon-button.svg')}
+                style={{ width: 40, height: 40 }}
+                contentFit="contain"
+              />
+            </Pressable>
+          ) : undefined
+        }
+        showNotifications={viewMode === 'default'}
+        showCalendar={viewMode === 'default'}
         showSettings={false}
       />
 
@@ -139,6 +193,8 @@ export default function HubScreen() {
           />
         )}
       </View>
+
+      <DateFilter selectedDate={selectedDate} onDateSelect={setSelectedDate} />
 
       <FlatList
         data={filteredChallenges}

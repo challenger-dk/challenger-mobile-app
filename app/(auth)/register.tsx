@@ -6,11 +6,13 @@ import { SPORTS_TRANSLATION_EN_TO_DK } from '@/types/sports';
 import type { CreateUser } from '@/types/user';
 import { uploadProfilePicture } from '@/utils/storage';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -40,8 +42,10 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [age, setAge] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [city, setCity] = useState<string>('');
+  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
+  const [tempBirthDate, setTempBirthDate] = useState<Date>(new Date());
 
   const toggleSport = (sport: string) => {
     setFavoriteSports((prev) =>
@@ -109,7 +113,6 @@ export default function RegisterScreen() {
     profilePictureUrl: string | undefined
   ) => {
     try {
-      const ageNumber = age.trim() === '' ? undefined : parseInt(age, 10);
 
       const registerResponse = await register({
         email: email.trim(),
@@ -119,7 +122,7 @@ export default function RegisterScreen() {
         profile_picture: profilePictureUrl,
         bio: bio.trim() || undefined,
         favorite_sports: favoriteSports.length > 0 ? favoriteSports : undefined,
-        age: ageNumber ?? 1,
+        birth_date: birthDate,
         city: city.trim() || undefined,
       } as CreateUser);
 
@@ -146,12 +149,10 @@ export default function RegisterScreen() {
   const canProceedToNextStep = () => {
     switch (currentStep) {
       case 1: {
-        const ageNumber = age.trim() === '' ? NaN : parseInt(age, 10);
         return (
           firstName.trim() !== '' &&
           lastName.trim() !== '' &&
-          Number.isFinite(ageNumber) &&
-          ageNumber > 0
+          birthDate !== undefined
         );
       }
       case 2:
@@ -215,17 +216,98 @@ export default function RegisterScreen() {
               className="w-full max-w-sm bg-surface text-text rounded-lg px-4 py-3 mb-4"
             />
 
-            <TextInput
-              placeholder="Alder"
-              placeholderTextColor="#9CA3AF"
-              value={age}
-              keyboardType="number-pad"
-              onChangeText={(text) => {
-                const digitsOnly = text.replace(/\D/g, '');
-                setAge(digitsOnly);
+            <Pressable
+              onPress={() => {
+                setTempBirthDate(birthDate || new Date());
+                setShowBirthDatePicker(true);
               }}
               className="w-full max-w-sm bg-surface text-text rounded-lg px-4 py-3 mb-4"
-            />
+            >
+              <Text
+                className={`${
+                  birthDate ? 'text-text' : 'text-[#9CA3AF]'
+                } text-base`}
+              >
+                {birthDate
+                  ? birthDate.toLocaleDateString('da-DK', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
+                  : 'Fødselsdato'}
+              </Text>
+            </Pressable>
+
+            {/* Birth Date Picker */}
+            {Platform.OS === 'ios' ? (
+              <Modal
+                visible={showBirthDatePicker}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowBirthDatePicker(false)}
+              >
+                <View className="flex-1 bg-black/50 justify-end">
+                  <Pressable
+                    className="flex-1"
+                    onPress={() => setShowBirthDatePicker(false)}
+                  />
+                  <View className="bg-[#171616] rounded-t-3xl pb-8">
+                    <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#272626]">
+                      <Pressable onPress={() => setShowBirthDatePicker(false)}>
+                        <Text className="text-white text-base">Annuller</Text>
+                      </Pressable>
+                      <Text className="text-white text-lg font-bold">
+                        Vælg fødselsdato
+                      </Text>
+                      <Pressable
+                        onPress={() => {
+                          setBirthDate(tempBirthDate);
+                          setShowBirthDatePicker(false);
+                        }}
+                      >
+                        <Text className="text-white text-base font-medium">
+                          Færdig
+                        </Text>
+                      </Pressable>
+                    </View>
+                    <View
+                      className="py-4 w-full items-center"
+                      style={{ backgroundColor: '#171616' }}
+                    >
+                      <DateTimePicker
+                        value={tempBirthDate}
+                        mode="date"
+                        display="spinner"
+                        onChange={(event, selectedDate) => {
+                          if (selectedDate) {
+                            setTempBirthDate(selectedDate);
+                          }
+                        }}
+                        maximumDate={new Date()}
+                        textColor="#ffffff"
+                        themeVariant="dark"
+                        style={{ backgroundColor: '#171616' }}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+            ) : (
+              showBirthDatePicker && (
+                <DateTimePicker
+                  value={birthDate || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowBirthDatePicker(false);
+                    if (event.type === 'set' && selectedDate) {
+                      setBirthDate(selectedDate);
+                    }
+                  }}
+                  maximumDate={new Date()}
+                />
+              )
+            )}
           </>
         );
       case 2:

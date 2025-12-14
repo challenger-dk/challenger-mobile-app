@@ -62,8 +62,8 @@ export const register = async (data: CreateUser) => {
     payload.city = data.city.trim();
   }
 
-  if (data.age !== undefined) {
-    payload.age = data.age;
+  if (data.birth_date !== undefined) {
+    payload.birth_date = data.birth_date;
   }
 
   const response = await fetch(getApiUrl('/auth/register'), {

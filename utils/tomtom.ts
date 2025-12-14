@@ -6,6 +6,27 @@
 
 import type { Location } from '../types/location';
 
+/**
+ * Extract postal code from Danish address string
+ * Danish postal codes are 4 digits and typically appear before the city name
+ * Format: "Street Name, 1234 City Name" or "Street Name 1234 City Name"
+ * Examples: "Nyløkke 2, 6200 Aabenraa" -> "6200"
+ */
+export const extractPostalCodeFromAddress = (address: string): string => {
+  if (!address) return '';
+  
+  // Match 4-digit postal code (Danish format)
+  // Look for pattern: comma/space followed by 4 digits, optionally followed by space and city name
+  // This handles formats like: "Street, 1234 City" or "Street 1234 City"
+  const postalCodeMatch = address.match(/(?:,\s*|\s+)(\d{4})(?:\s|$|[^\d])/);
+  
+  if (postalCodeMatch && postalCodeMatch[1]) {
+    return postalCodeMatch[1];
+  }
+  
+  return '';
+};
+
 export interface TomTomSearchResult {
   id: string;
   type: string;
