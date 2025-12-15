@@ -17,7 +17,10 @@
     "test:e2e:full": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/full.yaml",
     "test:e2e:login": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/auth/login.yaml",
     "test:e2e:register": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/auth/register.yaml",
-    "test:e2e:profile": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/profile/editProfile.yaml"
+    "test:e2e:profile": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/profile/editProfile.yaml",
+    "test:e2e:challenges": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/challenges.yaml",
+    "test:e2e:maps": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/maps.yaml",
+    "test:e2e:navigation": "EXPO_PUBLIC_DISABLE_LOGBOX=true MAESTRO_APP_ID=com.daniellorenzen.challenger maestro test .maestro/tests/suites/navigation.yaml"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -48,6 +51,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-calendars": "^1.1313.0",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-maps": "^1.26.18",
     "react-native-reanimated": "~4.1.1",

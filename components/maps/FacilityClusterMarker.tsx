@@ -30,6 +30,7 @@ export const FacilityClusterMarker = ({
       description={`Tryk for at zoome ind`}
       onPress={() => onPress(cluster)}
       zIndex={500}
+      testID="facility-cluster-marker"
     >
       <View className="items-center">
         {/* Circular cluster marker with blue background to match FacilityMarker */}

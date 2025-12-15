@@ -1,10 +1,10 @@
 import { Avatar } from '@/components/common';
 import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
 import { ReportModal } from '@/components/common/ReportModal';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
-import type { Message } from '../../types/message';
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import type { Message } from '../../types/message';
 
 interface MessageBubbleProps {
   message: Message;
@@ -39,6 +39,7 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
       />
 
       <View
+        testID="message-bubble"
         className={`flex-row mb-4 ${isMe ? 'justify-end' : 'justify-start'}`}
       >
         {!isMe && (

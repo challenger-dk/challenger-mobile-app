@@ -50,6 +50,14 @@ export const TopActionBar = ({
     }
   };
 
+  const handleCalendarPress = () => {
+    if (onCalendarPress) {
+      onCalendarPress();
+    } else {
+      router.push('/hub/calendar' as any);
+    }
+  };
+
   // Check if there are any right actions
   const hasRightActions = showNotifications || showCalendar || showSettings;
   // Title should be left-aligned if there are right actions AND no left action
@@ -105,12 +113,12 @@ export const TopActionBar = ({
           </Pressable>
         )}
         {showCalendar && (
-          <Pressable onPress={onCalendarPress} aria-label="Calendar">
+          <Pressable onPress={handleCalendarPress} testID="calendar" aria-label="Calendar">
             <Ionicons name="calendar-outline" size={28} color="#ffffff" />
           </Pressable>
         )}
         {showSettings && (
-          <Pressable onPress={handleSettingsPress} aria-label="Settings">
+          <Pressable onPress={handleSettingsPress} testID="settings" aria-label="Settings">
             <Ionicons name="settings" size={28} color="#ffffff" />
           </Pressable>
         )}

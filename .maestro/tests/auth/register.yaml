@@ -35,9 +35,14 @@ env:
 - tapOn: "Efternavn"
 - inputText: "Test"
 - pressKey: Enter
-- tapOn: "Alder"
-- inputText: "25"
+- tapOn: "By"
+- inputText: "København"
 - pressKey: Enter
+- tapOn: "Fødselsdato"
+- waitForAnimationToEnd
+# Tap "Færdig" button to confirm (iOS) or the picker may auto-confirm (Android)
+- tapOn: "Færdig"
+- waitForAnimationToEnd
 - tapOn: "Fortsæt" # Next button
 
 # Step 2: Bio (optional, can skip)

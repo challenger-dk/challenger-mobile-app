@@ -1,0 +1,16 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - suite
+  - maps
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Maps Test Suite
+# Tests all map-related functionality
+
+- runFlow: "../auth/login.yaml"
+- runFlow: "../maps/viewMap.yaml"
+- runFlow: "../maps/filterChallenges.yaml"
+

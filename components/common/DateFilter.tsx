@@ -6,13 +6,13 @@ interface DateFilterProps {
 }
 
 export const DateFilter = ({ selectedDate, onDateSelect }: DateFilterProps) => {
-  // Generate dates: today + next 6 days
+  // Generate dates: today + next 14 days
   const generateDates = () => {
     const dates: Date[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 14; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       dates.push(date);

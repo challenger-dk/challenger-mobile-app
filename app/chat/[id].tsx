@@ -104,6 +104,7 @@ export default function ChatRoomScreen() {
           style={{ paddingBottom: 16 + insets.bottom }}
         >
           <TextInput
+            testID="input-text"
             value={inputText}
             onChangeText={setInputText}
             placeholder="Skriv en besked..."
@@ -112,6 +113,7 @@ export default function ChatRoomScreen() {
             multiline
           />
           <Pressable
+            testID="send-button"
             onPress={handleSend}
             disabled={!inputText.trim() || status !== 'connected'}
             className={`p-3 rounded-full ${inputText.trim() ? 'bg-primary' : 'bg-surface'}`}

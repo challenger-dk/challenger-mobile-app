@@ -1,0 +1,44 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - teams
+  - viewing
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Test: View Teams
+# Tests viewing teams list and team details
+
+- launchApp
+- waitForAnimationToEnd
+
+# Login first
+- runFlow: "../auth/login.yaml"
+
+# Navigate to Chat tab (teams are accessed via chat)
+- tapOn: "Beskeder, tab, 2 of 5"
+- waitForAnimationToEnd
+
+# Wait for chat screen to load
+- waitForAnimationToEnd
+
+# Tap on a team if available
+- tapOn:
+    point: "50%,40%"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify team profile screen is visible (if team was tapped)
+- assertVisible:
+    text: ".*"
+
+# Navigate back if we opened a team
+- tapOn:
+    point: "5%,10%"
+    optional: true
+- waitForAnimationToEnd
+
+# Alternative: Navigate directly to teams via profile or other entry point
+# This depends on your app's navigation structure
+

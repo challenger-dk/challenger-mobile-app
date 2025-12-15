@@ -1,0 +1,61 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - challenges
+  - hub
+  - viewing
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Test: View Challenges in Hub
+# Tests viewing challenges in the hub screen, switching between tabs, and filtering
+
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Hub tab
+- tapOn: "Hub, tab, 3 of 5"
+- waitForAnimationToEnd
+- assertVisible: "Hub"
+
+# Verify Hub screen elements are visible
+- assertVisible: "Offentligt"
+- assertVisible: "Venner"
+
+# Test switching between Public and Friends tabs
+- tapOn: "Venner"
+- waitForAnimationToEnd
+- assertVisible: "Venner"
+
+- tapOn: "Offentligt"
+- waitForAnimationToEnd
+- assertVisible: "Offentligt"
+
+# Verify date filter is visible
+- assertVisible:
+    text: ".*Idag.*"
+
+# Test personal view toggle
+- tapOn:
+    id: "VS-button"
+- waitForAnimationToEnd
+
+# Verify personal tabs are visible
+- assertVisible:
+    text: "Mine udfordringer"
+- assertVisible:
+    text: "Tilmeldte"
+
+# Go back to default view
+- tapOn:
+    id: "VS-back-button"
+- waitForAnimationToEnd
+
+# Verify we're back to public view
+- assertVisible: "Offentligt"
+
+# Verify that there is a challenge card visible
+- assertVisible:
+    text: ".*Basket.*"
+

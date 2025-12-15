@@ -1,0 +1,47 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - challenges
+  - hub
+  - details
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Test: View and Join Challenge
+# Tests opening and joining a challenge
+
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Hub tab
+- tapOn: "Hub, tab, 3 of 5"
+- waitForAnimationToEnd
+- assertVisible: "Hub"
+
+# Wait for challenges to load
+- waitForAnimationToEnd
+
+# Tap on first challenge card (if available)
+- tapOn:
+    text: ".*Basket.*"
+- waitForAnimationToEnd
+
+# Verify challenge detail screen elements
+- assertVisible:
+    text: "Udfordring"
+
+# Check for common challenge detail elements
+- assertVisible:
+    text: "Deltagere"
+
+# Press "Deltag" button
+- scroll
+- tapOn:
+    text: "Deltag i udfordring"
+- waitForAnimationToEnd
+
+# Verify we're back at hub
+- assertVisible: "Succes"
+- assertVisible: "Du har deltaget i udfordringen"
+

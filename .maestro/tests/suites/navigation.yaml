@@ -1,0 +1,16 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - suite
+  - navigation
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Navigation Test Suite
+# Tests navigation and screen transitions
+
+- runFlow: "../auth/login.yaml"
+- runFlow: "../navigation/tabNavigation.yaml"
+- runFlow: "../navigation/screenTransitions.yaml"
+

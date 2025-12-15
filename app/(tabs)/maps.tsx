@@ -578,6 +578,7 @@ export default function MapsScreen() {
 
       {/* Filter Button */}
       <Pressable
+        testID="filter-button"
         onPress={() => setFilterMenuVisible(!filterMenuVisible)}
         className="absolute top-[75px] right-4 z-10 bg-[#1E1E1E] rounded-xl p-2.5 border"
       >

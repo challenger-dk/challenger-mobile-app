@@ -5,6 +5,7 @@ export default function HubLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="create" />
       <Stack.Screen name="[id]" />
+      <Stack.Screen name="calendar" />
     </Stack>
   );
 }

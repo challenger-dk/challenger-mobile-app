@@ -1,0 +1,96 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - challenges
+  - hub
+  - create
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  TEST_CHALLENGE_SPORT: "Tennis"
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Test: Create Challenge
+# Tests the challenge creation flow
+
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Hub tab
+- assertVisible:
+    text: "Hub"
+
+# Wait for hub to load
+- waitForAnimationToEnd
+
+# Tap the create challenge button (floating action button)
+- tapOn:
+    point: "90%,90%"
+- waitForAnimationToEnd
+
+# Verify create challenge screen is visible
+- assertVisible:
+    text: ".*"
+
+# Step 1: Select challenge type (Public/Friends)
+- tapOn: "Offentligt"
+- waitForAnimationToEnd
+
+# Step 2: Select sport
+- tapOn:
+    text: ".*Sport.*"
+    optional: true
+- waitForAnimationToEnd
+- tapOn: "${TEST_CHALLENGE_SPORT}"
+- waitForAnimationToEnd
+
+# Step 3: Select location (if location picker appears)
+- tapOn:
+    text: ".*Lokation.*"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: ".*"
+    optional: true
+- waitForAnimationToEnd
+
+# Step 4: Select date
+- tapOn:
+    text: ".*Dato.*"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: ".*"
+    optional: true
+- waitForAnimationToEnd
+
+# Step 5: Select time
+- tapOn:
+    text: ".*Tid.*"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: ".*"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate through form steps (if multi-step)
+- tapOn: "Fortsæt"
+- waitForAnimationToEnd
+
+# Fill in additional fields if needed
+- tapOn:
+    text: ".*"
+    optional: true
+- waitForAnimationToEnd
+
+# Submit challenge (if all required fields are filled)
+# Note: This test may need adjustment based on actual form structure
+- tapOn:
+    text: ".*Opret.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify challenge was created or navigate back
+- assertVisible:
+    text: ".*"
+

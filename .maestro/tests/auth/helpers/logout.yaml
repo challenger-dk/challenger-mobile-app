@@ -19,7 +19,9 @@ tags:
 # If we're on profile screen (logged in), find and tap it
 # If we're not (already logged out), these steps will be skipped
 - tapOn:
-    text: "Log ud"
+    id: "settings"
+
+- tapOn: "Log ud"
 
 # Confirm logout in alert dialog even when it's the same text as the button behind
 - assertVisible: "Er du sikker på, at du vil logge ud?"

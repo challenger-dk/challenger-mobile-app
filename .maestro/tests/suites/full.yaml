@@ -38,12 +38,27 @@ env:
 - runFlow: "../auth/login.yaml"
 
 # Step 2: Tests that require authentication
-# Add authenticated tests here as they are created
-# Examples (commented out until implemented):
-# - runFlow: "../navigation/tabs.yaml"
-# - runFlow: "../maps/basic.yaml"
-# - runFlow: "../profile/information.yaml"
-# - runFlow: "../teams/create.yaml"
-# - runFlow: "../challenges/create.yaml"
-# - runFlow: "../chat/send-message.yaml"
+# Navigation tests
+- runFlow: "../navigation/tabNavigation.yaml"
+
+# Hub and Challenges tests
+- runFlow: "../hub/viewChallenges.yaml"
+- runFlow: "../hub/viewAndJoinChallenge.yaml"
+
+# Maps tests
+- runFlow: "../maps/viewMap.yaml"
+
+# Chat tests
+- runFlow: "../chat/sendChatMessage.yaml"
+
+# Teams tests
+# - runFlow: "../teams/viewTeams.yaml"
+
+# Profile tests (already exists)
+- runFlow: "../profile/editProfile.yaml"
+
+# Note: Create tests are commented out as they may create test data
+# Uncomment when you want to test creation flows:
+# - runFlow: "../challenges/createChallenge.yaml"
+# - runFlow: "../teams/createTeam.yaml"
 

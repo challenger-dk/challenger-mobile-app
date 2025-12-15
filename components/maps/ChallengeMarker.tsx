@@ -79,6 +79,7 @@ export const ChallengeMarker = ({
       tappable={true}
       zIndex={isSelected ? 1001 : 1000}
       tracksViewChanges={false}
+      testID="challenge-marker"
     >
       <View className="items-center z-20" pointerEvents="none">
         <View

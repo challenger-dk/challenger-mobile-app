@@ -110,6 +110,7 @@ export default function ProfileScreen() {
         title={'Profil'}
         leftAction={
           <Pressable
+            testID="editProfile"
             onPress={() => router.push('/profile/information' as any)}
             className="flex-row items-center bg-surface px-3 py-1.5 rounded-full gap-2"
           >

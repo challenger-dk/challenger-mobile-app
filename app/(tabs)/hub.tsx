@@ -49,6 +49,21 @@ export default function HubScreen() {
   useFocusEffect(
     useCallback(() => {
       refetch();
+      // Update selectedDate to today if it's in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Use functional update to avoid dependency on selectedDate
+      setSelectedDate((currentSelected) => {
+        const current = new Date(currentSelected);
+        current.setHours(0, 0, 0, 0);
+        
+        // If selectedDate is before today, update it to today
+        if (current < today) {
+          return today;
+        }
+        return currentSelected;
+      });
     }, [refetch])
   );
 
@@ -66,22 +81,38 @@ export default function HubScreen() {
   };
 
   const filteredChallenges = useMemo(() => {
-    let filtered = challenges;
-
-    console.log('filtered', filtered);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todaySelected = isSameDate(selectedDate, today);
+    const now = new Date();
 
     // Filter by date first
-    filtered = filtered.filter((challenge: Challenge) => {
+    const filtered = challenges.filter((challenge: Challenge) => {
       if (!challenge.date) return false;
+      
       const challengeDate = new Date(challenge.date);
-      challengeDate.setHours(0, 0, 0, 0);
+      
+      // If viewing today, only show today's challenges
+      if (todaySelected) {
+        if (isSameDate(challengeDate, today)) {
+          // For today's challenges, check if start_time has passed
+          if (challenge.start_time) {
+            const endTime = new Date(challenge.start_time);
+            return endTime <= now;
+          }
+          return true;
+        }
+        return false;
+      }
+      
+      // For other selected dates, show challenges matching that date
       return isSameDate(challengeDate, selectedDate);
     });
 
     // Then filter by view mode and tabs
     if (viewMode === 'default') {
       // Default view: Public and Friends tabs
-      filtered = filtered.filter((challenge: Challenge) =>
+      return filtered.filter((challenge: Challenge) =>
         activeTab === 'public' ? challenge.is_public : !challenge.is_public
       );
     } else {
@@ -90,12 +121,12 @@ export default function HubScreen() {
 
       if (activePersonalTab === 'mine') {
         // My challenges: challenges created by the current user
-        filtered = filtered.filter(
+        return filtered.filter(
           (challenge: Challenge) => challenge.creator.id === user.id
         );
-      } else {
+      } else {  
         // Registered: challenges where user has joined (but not created)
-        filtered = filtered.filter((challenge: Challenge) => {
+        return filtered.filter((challenge: Challenge) => {
           // Exclude challenges created by the user
           if (challenge.creator.id === user.id) {
             return false;
@@ -111,7 +142,6 @@ export default function HubScreen() {
       }
     }
 
-    return filtered;
   }, [challenges, activeTab, activePersonalTab, viewMode, user, selectedDate]);
 
   if (loading) {
@@ -137,6 +167,7 @@ export default function HubScreen() {
         leftAction={
           viewMode === 'personal' ? (
             <Pressable
+              testID="VS-back-button"
               onPress={() => setViewMode('default')}
               className="p-2 -ml-2"
             >
@@ -144,6 +175,7 @@ export default function HubScreen() {
             </Pressable>
           ) : (
             <Pressable
+              testID="VS-button"
               onPress={() =>
                 setViewMode(viewMode === 'default' ? 'personal' : 'default')
               }
@@ -170,6 +202,7 @@ export default function HubScreen() {
         showNotifications={viewMode === 'default'}
         showCalendar={viewMode === 'default'}
         showSettings={false}
+        onCalendarPress={() => router.push('/hub/calendar' as any)}
       />
 
       <View className="px-6 pt-2 pb-2">
@@ -194,7 +227,9 @@ export default function HubScreen() {
         )}
       </View>
 
-      <DateFilter selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+      {viewMode === 'default' && (
+        <DateFilter selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+      )}
 
       <FlatList
         data={filteredChallenges}

@@ -1,0 +1,18 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - suite
+  - challenges
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Challenges Test Suite
+# Tests all challenge-related functionality
+
+- runFlow: "../auth/login.yaml"
+- runFlow: "../challenges/viewChallenges.yaml"
+- runFlow: "../challenges/viewChallengeDetails.yaml"
+- runFlow: "../hub/calendar.yaml"
+- runFlow: "../challenges/joinChallenge.yaml"
+

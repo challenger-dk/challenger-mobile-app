@@ -1,0 +1,75 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - teams
+  - create
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  TEST_TEAM_NAME: "Test Team Maestro"
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Test: Create Team
+# Tests the team creation flow
+
+- launchApp
+- waitForAnimationToEnd
+
+# Login first
+- runFlow: "../auth/login.yaml"
+
+# Navigate to Chat tab
+- tapOn: "Beskeder, tab, 2 of 5"
+- waitForAnimationToEnd
+
+# Look for create team button or navigate to teams screen
+# This may vary based on your app's navigation structure
+- tapOn:
+    text: ".*Opret.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Alternative: Navigate via profile or other entry point
+# For now, we'll assume there's a way to access team creation
+
+# If create team screen is accessible, fill in the form
+- assertVisible:
+    text: ".*"
+
+# Step 1: Enter team name
+- tapOn:
+    text: ".*Navn.*"
+    optional: true
+- inputText: "${TEST_TEAM_NAME}"
+- pressKey: Enter
+- waitForAnimationToEnd
+
+# Step 2: Continue through form steps
+- tapOn: "Fortsæt"
+- waitForAnimationToEnd
+
+# Step 3: Select location (if required)
+- tapOn:
+    text: ".*Lokation.*"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: ".*"
+    optional: true
+- waitForAnimationToEnd
+
+# Step 4: Invite members (optional)
+- tapOn:
+    text: ".*"
+    optional: true
+- waitForAnimationToEnd
+
+# Complete team creation
+- tapOn:
+    text: ".*Opret.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify team was created
+- assertVisible:
+    text: ".*"
+

@@ -12,22 +12,30 @@ env:
 - tapOn: "Profil, tab, 5 of 5"
 - tapOn:
     id: "editProfile"
-
 - waitForAnimationToEnd
 - assertVisible: "Rediger Profil"
 
 - tapOn:
     id: "firstName"
+- eraseText
 - inputText: "Johnny"
 - pressKey: Enter
 
 - tapOn:
     id: "lastName"
+- eraseText
 - inputText: "Doe"
 - pressKey: Enter
 
 - tapOn:
+    id: "city"
+- eraseText
+- inputText: "Aarhus"
+- pressKey: Enter
+
+- tapOn:
     id: "bio"
+- eraseText
 - inputText: "I am a test user"
 - hideKeyboard
 
@@ -36,4 +44,5 @@ env:
 
 - tapOn: "Gem ændringer"
 
+- assertVisible: "Succes"
 - assertVisible: "Profil opdateret"

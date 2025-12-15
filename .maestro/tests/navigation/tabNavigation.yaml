@@ -1,0 +1,48 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - navigation
+  - tabs
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Test: Tab Navigation
+# Tests navigation between all main tabs
+
+- launchApp
+- waitForAnimationToEnd
+
+# Verify we're on Home tab
+- assertVisible:
+    text: "Home"
+
+# Navigate to Chat tab
+- tapOn: "Chat, tab, 2 of 5"
+- waitForAnimationToEnd
+- assertVisible: "Beskeder"
+
+# Navigate to Hub tab
+- tapOn: "Hub, tab, 3 of 5"
+- waitForAnimationToEnd
+- assertVisible: "Hub"
+
+# Navigate to Maps tab
+- tapOn: "Maps, tab, 4 of 5"
+- waitForAnimationToEnd
+- assertVisible: "Kort"
+
+# Navigate to Profile tab
+- tapOn: "Profil, tab, 5 of 5"
+- waitForAnimationToEnd
+- assertVisible:
+    text: ".*"
+
+# Navigate back to Home tab
+- tapOn: "Home, tab, 1 of 5"
+- waitForAnimationToEnd
+- assertVisible: "Home"
+
+# Verify tab navigation works correctly
+- assertVisible: "Home"
+

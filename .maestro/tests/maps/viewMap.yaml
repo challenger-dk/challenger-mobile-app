@@ -1,0 +1,42 @@
+appId: ${MAESTRO_APP_ID}
+tags:
+  - maps
+  - challenges
+env:
+  USER1_EMAIL: user1@challenger.dk
+  USER1_PASSWORD: password12
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID || "com.daniellorenzen.challenger"}
+---
+# Test: View Map
+# Tests viewing the map screen and switching between challenge and facility views
+
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Maps tab
+- tapOn: "Maps, tab, 4 of 5"
+- waitForAnimationToEnd
+
+# Verify map screen is visible
+- assertVisible:
+    text: "Kort"
+
+# Verify view toggle tabs are visible
+- assertVisible: "Challenges"
+- assertVisible: "Faciliteter"
+
+# Test switching to Facilities view
+- tapOn: "Faciliteter"
+- waitForAnimationToEnd
+
+# Test switching back to Challenges view
+- tapOn: "Challenges"
+- waitForAnimationToEnd
+
+# Verify filter button is visible
+- assertVisible:
+    id: "filter-button"
+
+# Swipte to the left to make sure map is interactive
+- swipe: 
+    direction: LEFT

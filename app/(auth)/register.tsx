@@ -295,6 +295,7 @@ export default function RegisterScreen() {
             ) : (
               showBirthDatePicker && (
                 <DateTimePicker
+                  testID="birthDatePicker"
                   value={birthDate || new Date()}
                   mode="date"
                   display="default"

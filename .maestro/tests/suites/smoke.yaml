@@ -15,4 +15,7 @@ env:
 # Run this suite to ensure basic app functionality works
 
 - runFlow: "../auth/login.yaml"
+- runFlow: "../navigation/tabNavigation.yaml"
+- runFlow: "../challenges/viewChallenges.yaml"
+- runFlow: "../chat/viewChatList.yaml"
 
