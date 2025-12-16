@@ -199,6 +199,7 @@ export default function HubScreen() {
             </Pressable>
           ) : undefined
         }
+        showMessages={viewMode === 'default'}
         showNotifications={viewMode === 'default'}
         showCalendar={viewMode === 'default'}
         showSettings={false}
