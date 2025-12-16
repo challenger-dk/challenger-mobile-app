@@ -45,10 +45,10 @@ export default function ChatListScreen() {
               params: { id },
             } as any);
           } else {
-            // Friends still open a direct 1:1 chat
+            // Friends - navigate to user profile
             router.push({
-              pathname: '/chat/[id]',
-              params: { id, type: 'user', name },
+              pathname: '/users/[id]',
+              params: { id },
             } as any);
           }
         }}
@@ -65,7 +65,7 @@ export default function ChatListScreen() {
         <View className="flex-1">
           <Text className="text-text text-base font-medium">{name}</Text>
           <Text className="text-text-disabled text-sm">
-            {isTeam ? 'Gå til holdets profil' : 'Tryk for at chatte'}
+            {isTeam ? 'Gå til holdets profil' : 'Gå til profil'}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#575757" />
@@ -76,7 +76,7 @@ export default function ChatListScreen() {
   return (
     <ScreenContainer className="pt-5">
       <TopActionBar
-        title="Beskeder"
+        title="Social"
         showNotifications={false}
         showCalendar={false}
         showSettings={false}

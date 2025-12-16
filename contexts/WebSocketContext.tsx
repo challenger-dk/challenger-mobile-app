@@ -9,23 +9,23 @@ import React, {
 } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from './AuthContext';
-import { getWebSocketUrl } from '../utils/api'; // <-- Import the new helper
+import { getWebSocketUrl } from '../utils/api';
 import type {
-  IncomingMessage,
   Message,
-  ConversationType,
-} from '../types/message';
-import { getMessagesHistory } from '../api/messages';
+  WebSocketOutgoingMessage,
+  WebSocketIncomingMessage,
+} from '../types/conversation';
+import { getConversationMessages } from '../api/conversations';
 
 interface WebSocketContextType {
   messages: Message[];
   status: 'connecting' | 'connected' | 'disconnected' | 'error';
-  sendMessage: (msg: IncomingMessage) => void;
-  loadHistory: (id: number | string, type: ConversationType) => Promise<void>;
-  currentConversation: {
-    id: number | string | null;
-    type: ConversationType | null;
-  };
+  sendMessage: (msg: WebSocketOutgoingMessage) => void;
+  loadConversationHistory: (conversationId: number) => Promise<void>;
+  currentConversationId: number | null;
+  setCurrentConversationId: (id: number | null) => void;
+  // Callback for when a new message arrives (for updating conversation list)
+  onMessageReceived?: (message: Message) => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(
@@ -37,9 +37,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [status, setStatus] =
     useState<WebSocketContextType['status']>('disconnected');
-  const [currentConversation, setCurrentConversation] = useState<
-    WebSocketContextType['currentConversation']
-  >({ id: null, type: null });
+  const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
+  const [onMessageReceived, setOnMessageReceived] = useState<
+    ((message: Message) => void) | undefined
+  >(undefined);
 
   const ws = useRef<WebSocket | null>(null);
 
@@ -69,21 +70,22 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
       newWs.onmessage = (event) => {
         try {
-          const newMessage: Message = JSON.parse(event.data);
+          const newMessage: WebSocketIncomingMessage = JSON.parse(event.data);
+
+          // Notify callback for conversation list updates
+          if (onMessageReceived) {
+            onMessageReceived(newMessage);
+          }
 
           // Only add message to list if it belongs to the current active conversation
           setMessages((prevMessages) => {
-            const isRelevant =
-              (currentConversation.type === 'team' &&
-                newMessage.team_id == currentConversation.id) ||
-              (currentConversation.type === 'user' &&
-                (newMessage.recipient_id == currentConversation.id ||
-                  newMessage.sender_id == currentConversation.id));
-
-            if (isRelevant) {
-              if (prevMessages.some((m) => m.id === newMessage.id))
+            if (currentConversationId && newMessage.conversation_id === currentConversationId) {
+              // Avoid duplicates
+              if (prevMessages.some((m) => m.id === newMessage.id)) {
                 return prevMessages;
-              return [newMessage, ...prevMessages];
+              }
+              // Add new message to the end (newest messages at bottom)
+              return [...prevMessages, newMessage];
             }
             return prevMessages;
           });
@@ -108,7 +110,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       console.error('Connection error:', err);
       setStatus('error');
     }
-  }, [isAuthenticated, currentConversation]);
+  }, [isAuthenticated, currentConversationId, onMessageReceived]);
 
   // Connect on mount/auth change
   useEffect(() => {
@@ -121,7 +123,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, connect]);
 
   const sendMessage = useCallback(
-    (msg: IncomingMessage) => {
+    (msg: WebSocketOutgoingMessage) => {
       if (ws.current?.readyState === WebSocket.OPEN) {
         ws.current.send(JSON.stringify(msg));
       } else {
@@ -132,14 +134,17 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     [connect]
   );
 
-  const loadHistory = useCallback(
-    async (id: number | string, type: ConversationType) => {
-      setCurrentConversation({ id, type });
+  const loadConversationHistory = useCallback(
+    async (conversationId: number) => {
+      // Clear messages when switching conversations
+      setMessages([]);
+      setCurrentConversationId(conversationId);
       try {
-        const history = await getMessagesHistory(id, type);
-        setMessages(Array.isArray(history) ? history : []);
+        const response = await getConversationMessages(conversationId, 50);
+        // Messages come in descending order (newest first), reverse to show oldest first
+        setMessages(response.messages.reverse());
       } catch (e) {
-        console.error('Failed to load history', e);
+        console.error('Failed to load conversation history', e);
         setMessages([]);
       }
     },
@@ -152,8 +157,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         messages,
         status,
         sendMessage,
-        loadHistory,
-        currentConversation,
+        loadConversationHistory,
+        currentConversationId,
+        setCurrentConversationId,
+        onMessageReceived,
       }}
     >
       {children}

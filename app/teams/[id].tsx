@@ -11,11 +11,13 @@ import {
   ScreenHeader,
   TabNavigation,
 } from '@/components/common';
+import { ChatView } from '@/components/chat';
 import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
 import { ReportModal } from '@/components/common/ReportModal';
 import type { Team } from '@/types/team';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDeleteTeam, useLeaveTeam } from '@/hooks/queries/useTeams';
+import { useTeamConversation } from '@/hooks/queries/useConversations';
 
 export default function TeamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,7 +30,22 @@ export default function TeamDetailScreen() {
   const leaveTeamMutation = useLeaveTeam();
   const deleteTeamMutation = useDeleteTeam();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'chat'>('profile');
+  const [activeTab, setActiveTab] = useState<'chat' | 'profile'>('chat');
+
+  // Check if user is a member of the team
+  const isMember = team && currentUser && team.users.some(u => u.id === currentUser.id);
+
+  // Get team conversation (only if user is a member)
+  const teamId = id ? parseInt(id, 10) : null;
+  const { data: teamConversation } = useTeamConversation(isMember ? teamId : null);
+
+  // Update active tab when team loads
+  useEffect(() => {
+    if (team && currentUser) {
+      const userIsMember = team.users.some(u => u.id === currentUser.id);
+      setActiveTab(userIsMember ? 'chat' : 'profile');
+    }
+  }, [team, currentUser]);
 
   useEffect(() => {
     const loadTeam = async () => {
@@ -95,19 +112,9 @@ export default function TeamDetailScreen() {
     }
   };
 
-  const handleGoToChat = () => {
-    if (!team) return;
-    setActiveTab('chat');
-    router.push(
-      `/chat/${team.id}?type=team&name=${encodeURIComponent(team.name)}` as any
-    );
-  };
-
   const handleTabChange = (key: string) => {
-    if (key === 'profile') {
-      setActiveTab('profile');
-    } else if (key === 'chat') {
-      handleGoToChat();
+    if (key === 'chat' || key === 'profile') {
+      setActiveTab(key);
     }
   };
 
@@ -156,24 +163,38 @@ export default function TeamDetailScreen() {
           rightAction={<ActionMenu actions={menuActions} />}
         />
 
-        {/* Tabs */}
-        <View className="mt-2 pb-2">
-          <TabNavigation
-            tabs={[
-              { key: 'profile', label: 'Profil' },
-              { key: 'chat', label: 'Chat' },
-            ]}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-          />
-        </View>
+        {/* Tabs - Only show if user is a member */}
+        {isMember && (
+          <View className="mt-2 pb-2">
+            <TabNavigation
+              tabs={[
+                { key: 'chat', label: 'Chat' },
+                { key: 'profile', label: 'Profil' },
+              ]}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+            />
+          </View>
+        )}
 
         {/* Content */}
-        <ScrollView
-          className="mt-3 flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 24 }}
-        >
+        {activeTab === 'chat' && isMember && teamConversation ? (
+          <View className="flex-1 mt-3">
+            <ChatView
+              conversationId={teamConversation.id}
+              conversationName={team.name}
+            />
+          </View>
+        ) : activeTab === 'chat' && isMember && !teamConversation ? (
+          <View className="flex-1 items-center justify-center mt-20">
+            <Text className="text-text-disabled">Indlæser chat...</Text>
+          </View>
+        ) : (
+          <ScrollView
+            className="mt-3 flex-1"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 24 }}
+          >
           {/* Team info */}
           <View className="bg-[#2c2c2c] p-5 rounded-2xl mb-6 flex-row items-center justify-between">
             <View className="flex-1 pr-4">
@@ -229,7 +250,7 @@ export default function TeamDetailScreen() {
 
             <Pressable
               className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2"
-              onPress={handleGoToChat}
+              onPress={() => setActiveTab('chat')}
             >
               <Ionicons name="chatbubble" size={24} color="#ffffff" />
               <Text className="text-sm text-gray-300">Chat</Text>
@@ -267,6 +288,7 @@ export default function TeamDetailScreen() {
             </View>
           </View>
         </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );

@@ -4,11 +4,16 @@ import { Tabs, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useConversations } from '@/hooks/queries/useConversations';
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { data: conversations = [] } = useConversations();
+
+  // Calculate total unread messages
+  const unreadMessagesCount = conversations.reduce((sum, conv) => sum + conv.unread_count, 0);
 
   useEffect(() => {
     // Redirect unauthenticated users to auth screens
@@ -47,11 +52,21 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages"
+        options={{
+          title: 'Beskeder',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubble-ellipses" size={size || 28} color={color} />
+          ),
+          tabBarBadge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined,
+        }}
+      />
+      <Tabs.Screen
         name="chat"
         options={{
-          title: 'Chat',
+          title: 'Social',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubble" size={size || 28} color={color} />
+            <Ionicons name="people" size={size || 28} color={color} />
           ),
         }}
       />

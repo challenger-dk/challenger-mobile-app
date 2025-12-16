@@ -70,4 +70,11 @@ export const queryKeys = {
     all: ['notifications'] as const,
     unread: () => [...queryKeys.notifications.all, 'unread'] as const,
   },
+  conversations: {
+    all: ['conversations'] as const,
+    lists: () => [...queryKeys.conversations.all, 'list'] as const,
+    details: () => [...queryKeys.conversations.all, 'detail'] as const,
+    detail: (id: number) => [...queryKeys.conversations.details(), id] as const,
+    messages: (id: number) => [...queryKeys.conversations.detail(id), 'messages'] as const,
+  },
 };

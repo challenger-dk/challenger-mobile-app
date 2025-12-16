@@ -1,10 +1,10 @@
 import { Avatar } from '@/components/common';
 import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
 import { ReportModal } from '@/components/common/ReportModal';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import type { Message } from '../../types/conversation';
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
-import type { Message } from '../../types/message';
 
 interface MessageBubbleProps {
   message: Message;

@@ -1,15 +1,10 @@
 import { MessageBubble } from '@/components/chat';
-import { LoadingScreen, ScreenContainer } from '@/components/common';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import {
-  useConversation,
-  useMarkConversationAsRead
-} from '@/hooks/queries/useConversations';
+import { useMarkConversationAsRead } from '@/hooks/queries/useConversations';
 import { getConversationMessages } from '@/api/conversations';
 import type { Message } from '@/types/conversation';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -21,48 +16,41 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function ChatRoomScreen() {
-  const router = useRouter();
-  const { id, name } = useLocalSearchParams<{
-    id: string;
-    name: string;
-  }>();
+interface ChatViewProps {
+  conversationId: number;
+  conversationName?: string;
+}
+
+export const ChatView: React.FC<ChatViewProps> = ({ conversationId, conversationName }) => {
   const { user } = useCurrentUser();
   const {
     messages,
-    status,
     sendMessage,
     loadConversationHistory,
     setCurrentConversationId,
   } = useWebSocket();
-  const insets = useSafeAreaInsets();
   const flatListRef = useRef<FlatList>(null);
-
-  const conversationId = id ? parseInt(id, 10) : null;
-  const { data: conversation, isLoading: conversationLoading } = useConversation(conversationId);
   const { mutate: markAsRead } = useMarkConversationAsRead();
 
   const [inputText, setInputText] = useState('');
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Load initial messages when conversation ID changes
   useEffect(() => {
     if (conversationId) {
-      // Clear local messages first
+      setIsInitialLoading(true);
       setLocalMessages([]);
       setHasMore(true);
-
-      // Set current conversation in WebSocket context
+      
       setCurrentConversationId(conversationId);
-
-      // Load conversation history
-      loadConversationHistory(conversationId);
-
-      // Mark as read when opening conversation
+      loadConversationHistory(conversationId).finally(() => {
+        setIsInitialLoading(false);
+      });
+      
       markAsRead({ conversationId });
     }
 
@@ -76,21 +64,14 @@ export default function ChatRoomScreen() {
   useEffect(() => {
     if (messages.length > 0 && conversationId) {
       setLocalMessages((prev) => {
-        // Filter messages for ONLY this conversation
         const relevantMessages = messages.filter(msg => msg.conversation_id === conversationId);
-
+        
         if (relevantMessages.length === 0) return prev;
-
-        // Merge messages, avoiding duplicates
+        
         const messageMap = new Map<number, Message>();
-
-        // Add existing messages
         prev.forEach((msg) => messageMap.set(msg.id, msg));
-
-        // Add/update with WebSocket messages (these have real IDs from server)
         relevantMessages.forEach((msg) => messageMap.set(msg.id, msg));
-
-        // Convert back to array and sort by created_at
+        
         return Array.from(messageMap.values()).sort(
           (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         );
@@ -110,7 +91,6 @@ export default function ChatRoomScreen() {
       const response = await getConversationMessages(conversationId, 50, oldestMessage.id);
 
       if (response.messages.length > 0) {
-        // Prepend older messages (they come in descending order, so reverse them)
         setLocalMessages((prev) => [...response.messages.reverse(), ...prev]);
       }
 
@@ -126,10 +106,9 @@ export default function ChatRoomScreen() {
     if (!inputText.trim() || !conversationId || !user) return;
 
     const messageContent = inputText.trim();
-
-    // Create optimistic message
+    
     const optimisticMessage: Message = {
-      id: Date.now(), // Temporary ID
+      id: Date.now(),
       conversation_id: conversationId,
       sender_id: user.id,
       content: messageContent,
@@ -142,106 +121,92 @@ export default function ChatRoomScreen() {
       },
     };
 
-    // Add optimistic message immediately
     setLocalMessages((prev) => [...prev, optimisticMessage]);
-
-    // Clear input
     setInputText('');
 
-    // Send via WebSocket
     sendMessage({
       conversation_id: conversationId,
       content: messageContent,
     });
 
-    // Auto-scroll to bottom after sending
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
   };
 
-  if (!user || !id || conversationLoading) return <LoadingScreen />;
+  if (!user) return null;
+
+  if (isInitialLoading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#0A84FF" />
+        <Text className="text-text-disabled mt-4">Indlæser beskeder...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScreenContainer safeArea edges={['top', 'left', 'right', 'bottom']}>
-      <View className="px-6 py-3 border-b border-surface flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          <Pressable onPress={() => router.back()} className="mr-3">
-            <Ionicons name="chevron-back" size={28} color="#ffffff" />
-          </Pressable>
-          <View>
-            <Text className="text-text text-lg font-bold">
-              {name || 'Chat'}
-            </Text>
-            <View className="flex-row items-center">
-              <View
-                className={`w-2 h-2 rounded-full mr-2 ${status === 'connected' ? 'bg-green-500' : 'bg-red-500'}`}
-              />
-              <Text className="text-text-muted text-xs">
-                {status === 'connected' ? 'Online' : 'Forbinder...'}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      {/* Messages List */}
       <FlatList
         ref={flatListRef}
         data={localMessages}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <MessageBubble message={item} />}
-        contentContainerStyle={{ padding: 20, flexGrow: 1 }}
+        renderItem={({ item }) => (
+          <MessageBubble message={item} isOwnMessage={item.sender_id === user.id} />
+        )}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}
         onEndReached={loadMoreMessages}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
           isLoadingMore ? (
             <View className="py-4 items-center">
-              <ActivityIndicator size="small" color="#ffffff" />
+              <ActivityIndicator size="small" color="#0A84FF" />
             </View>
           ) : null
         }
         ListEmptyComponent={
-          <View className="flex-1 justify-center items-center">
-            <Ionicons name="chatbubble-ellipses-outline" size={64} color="#575757" />
-            <Text className="text-text-muted mt-4">No messages yet.</Text>
-            <Text className="text-text-disabled text-sm mt-2">
-              Start the conversation!
+          <View className="flex-1 items-center justify-center py-20">
+            <Ionicons name="chatbubble-outline" size={64} color="#575757" />
+            <Text className="text-text-disabled mt-4 text-center">
+              Ingen beskeder endnu{'\n'}Send den første besked!
             </Text>
           </View>
         }
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom : 0}
-      >
-        <View
-          className="p-4 bg-background border-t border-surface flex-row items-center gap-3"
-          style={{ paddingBottom: 16 + insets.bottom }}
-        >
+      {/* Input Area */}
+      <View className="border-t border-surface px-4 py-3 bg-background">
+        <View className="flex-row items-center gap-2">
           <TextInput
-            testID="input-text"
+            className="flex-1 bg-surface rounded-full px-4 py-3 text-white"
+            placeholder="Skriv en besked..."
+            placeholderTextColor="#6B7280"
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Skriv en besked..."
-            placeholderTextColor="#575757"
-            className="flex-1 bg-surface text-text p-3 rounded-2xl max-h-24"
             multiline
+            maxLength={1000}
           />
           <Pressable
-            testID="send-button"
             onPress={handleSend}
-            disabled={!inputText.trim() || status !== 'connected'}
-            className={`p-3 rounded-full ${inputText.trim() ? 'bg-primary' : 'bg-surface'}`}
+            disabled={!inputText.trim()}
+            className={`w-10 h-10 rounded-full items-center justify-center ${
+              inputText.trim() ? 'bg-primary' : 'bg-surface'
+            }`}
           >
             <Ionicons
               name="send"
               size={20}
-              color={inputText.trim() ? '#ffffff' : '#575757'}
+              color={inputText.trim() ? '#ffffff' : '#6B7280'}
             />
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </ScreenContainer>
+      </View>
+    </KeyboardAvoidingView>
   );
-}
+};
+

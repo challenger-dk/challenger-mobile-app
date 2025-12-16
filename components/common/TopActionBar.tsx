@@ -1,4 +1,5 @@
 import { useUnreadNotifications } from '@/hooks/queries';
+import { useConversations } from '@/hooks/queries/useConversations';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
@@ -8,9 +9,11 @@ interface TopActionBarProps {
   leftAction?: React.ReactNode;
   centerAction?: React.ReactNode;
   showNotifications?: boolean;
+  showMessages?: boolean;
   showCalendar?: boolean;
   showSettings?: boolean;
   onNotificationsPress?: () => void;
+  onMessagesPress?: () => void;
   onCalendarPress?: () => void;
   onSettingsPress?: () => void;
   settingsRoute?: string;
@@ -21,9 +24,11 @@ export const TopActionBar = ({
   leftAction,
   centerAction,
   showNotifications = true,
+  showMessages = false,
   showCalendar = true,
   showSettings = true,
   onNotificationsPress,
+  onMessagesPress,
   onCalendarPress,
   onSettingsPress,
   settingsRoute,
@@ -33,6 +38,10 @@ export const TopActionBar = ({
   // Fetch unread count
   const { data: unreadNotifications = [] } = useUnreadNotifications();
   const unreadCount = unreadNotifications.length;
+
+  // Fetch unread messages count
+  const { data: conversations = [] } = useConversations();
+  const unreadMessagesCount = conversations.reduce((sum, conv) => sum + conv.unread_count, 0);
 
   const handleSettingsPress = () => {
     if (onSettingsPress) {
@@ -58,8 +67,16 @@ export const TopActionBar = ({
     }
   };
 
+  const handleMessagesPress = () => {
+    if (onMessagesPress) {
+      onMessagesPress();
+    } else {
+      router.push('/messages' as any);
+    }
+  };
+
   // Check if there are any right actions
-  const hasRightActions = showNotifications || showCalendar || showSettings;
+  const hasRightActions = showNotifications || showMessages || showCalendar || showSettings;
   // Title should be left-aligned if there are right actions AND no left action
   // Title should be centered if there are NO right actions OR there IS a left action
   const shouldCenterTitle = !hasRightActions || !!leftAction;
@@ -96,6 +113,22 @@ export const TopActionBar = ({
       ) : null}
 
       <View className="flex-1 flex-row items-center justify-end gap-2">
+        {showMessages && (
+          <Pressable
+            onPress={handleMessagesPress}
+            aria-label="Messages"
+            className="relative"
+          >
+            <Ionicons name="chatbubble-ellipses" size={28} color="#ffffff" />
+            {unreadMessagesCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-red-600 rounded-full min-w-[16px] h-[16px] items-center justify-center px-[2px] border border-[#171616]">
+                <Text className="text-white text-[10px] font-bold leading-3">
+                  {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+        )}
         {showNotifications && (
           <Pressable
             onPress={handleNotificationsPress}

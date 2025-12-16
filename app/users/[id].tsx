@@ -4,6 +4,7 @@ import { Avatar, ScreenContainer, ScreenHeader } from '@/components/common';
 import { ActionMenu, MenuAction } from '@/components/common/ActionMenu';
 import { ReportModal } from '@/components/common/ReportModal';
 import { useBlockUser, useUnblockUser } from '@/hooks/queries/useUsers';
+import { useCreateDirectConversation } from '@/hooks/queries/useConversations';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { queryKeys } from '@/lib/queryClient';
 import { CommonStats, PublicUser } from '@/types/user';
@@ -16,6 +17,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -105,6 +107,7 @@ export default function UserProfileScreen() {
 
   const blockUserMutation = useBlockUser();
   const unblockUserMutation = useUnblockUser();
+  const { mutate: createConversation, isPending: isCreatingConversation } = useCreateDirectConversation();
 
   const [user, setUser] = useState<PublicUser | null>(null);
   const [commonStats, setCommonStats] = useState<CommonStats | null>(null);
@@ -246,6 +249,29 @@ export default function UserProfileScreen() {
     );
   }
 
+  const handleStartChat = () => {
+    if (!user) return;
+
+    createConversation(
+      { other_user_id: user.id },
+      {
+        onSuccess: (conversation) => {
+          router.push({
+            pathname: '/chat/[id]',
+            params: {
+              id: conversation.id,
+              name: `${user.first_name} ${user.last_name || ''}`,
+            },
+          } as any);
+        },
+        onError: (error) => {
+          showErrorToast('Kunne ikke starte chat');
+          console.error('Failed to create conversation:', error);
+        },
+      }
+    );
+  };
+
   const menuActions: MenuAction[] = [
     {
       label: isFriend ? 'Fjern ven' : 'Tilføj ven',
@@ -327,16 +353,24 @@ export default function UserProfileScreen() {
               </View>
             </View>
 
-            <View className="items-center">
+            <Pressable
+              onPress={handleStartChat}
+              disabled={isCreatingConversation}
+              className="items-center"
+            >
               <View className="w-9 h-9 rounded-xl bg-surface items-center justify-center mb-1">
-                <Ionicons
-                  name="chatbubble-ellipses-outline"
-                  size={18}
-                  color="#ffffff"
-                />
+                {isCreatingConversation ? (
+                  <ActivityIndicator size="small" color="#0A84FF" />
+                ) : (
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={18}
+                    color="#ffffff"
+                  />
+                )}
               </View>
               <Text className="text-[11px] text-gray-200">Besked</Text>
-            </View>
+            </Pressable>
           </View>
 
           <View className="mt-3 rounded-2xl px-5 py-3">
