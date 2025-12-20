@@ -2,8 +2,13 @@ import type { UserSettings } from '@/types/settings';
 import type { CommonStats, CreateUser, EmergencyContact, UpdateUser, UsersSearchResponse } from '@/types/user';
 import { authenticatedFetch, getApiUrl } from '@/utils/api';
 
-export const getUsers = async () => {
+export const getUsers = async (): Promise<UsersSearchResponse> => {
   const response = await authenticatedFetch(getApiUrl('/users'));
+
+  if (!response.ok) {
+    throw new Error(`Failed to get users: ${response.status}`);
+  }
+
   return response.json();
 };
 

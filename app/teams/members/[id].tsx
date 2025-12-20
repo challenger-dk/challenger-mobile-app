@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -21,7 +21,7 @@ import {
 } from '@/components/common';
 import { UserCard } from '@/components/users/UserCard';
 import { useRemoveUserFromTeam, useTeam } from '@/hooks/queries/useTeams';
-import { useUsers } from '@/hooks/queries/useUsers';
+import { useSearchUsers } from '@/hooks/queries/useUsers';
 import { useSendInvitation } from '@/hooks/queries/useInvitations';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { User } from '@/types/user';
@@ -38,22 +38,34 @@ export default function TeamMembersScreen() {
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [invitedUserIds, setInvitedUserIds] = useState<Set<number>>(new Set());
 
-  const { data: allUsers = [] } = useUsers();
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Only fetch users when searching
+  const { data: searchResults, isLoading: searchLoading } = useSearchUsers(
+    debouncedSearchQuery.trim() || undefined,
+    20
+  );
 
   const getAvailableUsers = () => {
-    if (!team || !allUsers) return [];
+    if (!team || !searchResults?.users) return [];
+
     const memberIds = new Set(team.users.map((u) => u.id));
     if (currentUser) memberIds.add(Number(currentUser.id));
 
-    return allUsers.filter(
+    return searchResults.users.filter(
       (u: User) =>
         !memberIds.has(Number(u.id)) &&
-        !invitedUserIds.has(Number(u.id)) &&
-        `${u.first_name} ${u.last_name || ''}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
+        !invitedUserIds.has(Number(u.id))
     );
   };
 
@@ -226,38 +238,45 @@ export default function TeamMembersScreen() {
             </View>
           </View>
 
-          <FlatList
-            data={getAvailableUsers()}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
-            keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
-              <UserCard
-                user={item}
-                rightAction={
-                  <Pressable
-                    onPress={() => handleInviteUser(item)}
-                    disabled={sendInvitationMutation.isPending}
-                    className="bg-primary rounded-full px-4 py-2"
-                  >
-                    <Text className="text-white text-xs font-medium">
-                      Inviter
-                    </Text>
-                  </Pressable>
-                }
-              />
-            )}
-            ListEmptyComponent={
-              <EmptyState
-                title={
-                  searchQuery
-                    ? 'Ingen brugere fundet'
-                    : 'Søg for at finde brugere'
-                }
-                icon="search-outline"
-              />
-            }
-          />
+          {searchLoading ? (
+            <View className="flex-1 justify-center items-center py-10">
+              <ActivityIndicator size="large" color="#0A84FF" />
+              <Text className="text-text-muted mt-4">Søger...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={getAvailableUsers()}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <UserCard
+                  user={item}
+                  rightAction={
+                    <Pressable
+                      onPress={() => handleInviteUser(item)}
+                      disabled={sendInvitationMutation.isPending}
+                      className="bg-primary rounded-full px-4 py-2"
+                    >
+                      <Text className="text-white text-xs font-medium">
+                        Inviter
+                      </Text>
+                    </Pressable>
+                  }
+                />
+              )}
+              ListEmptyComponent={
+                <EmptyState
+                  title={
+                    debouncedSearchQuery
+                      ? 'Ingen brugere fundet'
+                      : 'Søg for at finde brugere'
+                  }
+                  icon="search-outline"
+                />
+              }
+            />
+          )}
         </View>
       </Modal>
     </ScreenContainer>

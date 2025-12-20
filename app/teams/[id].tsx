@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getTeam } from '@/api/teams';
@@ -23,6 +23,7 @@ export default function TeamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user: currentUser } = useCurrentUser();
+  const { width } = useWindowDimensions();
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [reportModalVisible, setReportModalVisible] = useState(false);
@@ -30,7 +31,7 @@ export default function TeamDetailScreen() {
   const leaveTeamMutation = useLeaveTeam();
   const deleteTeamMutation = useDeleteTeam();
 
-  const [activeTab, setActiveTab] = useState<'chat' | 'profile'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'profile'>('profile');
 
   // Check if user is a member of the team
   const isMember = team && currentUser && team.users.some(u => u.id === currentUser.id);
@@ -146,6 +147,9 @@ export default function TeamDetailScreen() {
     },
   ];
 
+  const membersCount = team.users?.length || 0;
+  const challengesCount = 0; // TODO: Implement when team challenges are added
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right', 'bottom']}>
       <ReportModal
@@ -169,7 +173,7 @@ export default function TeamDetailScreen() {
             <TabNavigation
               tabs={[
                 { key: 'chat', label: 'Chat' },
-                { key: 'profile', label: 'Profil' },
+                { key: 'profile', label: 'Holdinfo' },
               ]}
               activeTab={activeTab}
               onTabChange={handleTabChange}
@@ -177,118 +181,163 @@ export default function TeamDetailScreen() {
           </View>
         )}
 
-        {/* Content */}
-        {activeTab === 'chat' && isMember && teamConversation ? (
-          <View className="flex-1 mt-3">
-            <ChatView
-              conversationId={teamConversation.id}
-              conversationName={team.name}
-            />
-          </View>
-        ) : activeTab === 'chat' && isMember && !teamConversation ? (
-          <View className="flex-1 items-center justify-center mt-20">
-            <Text className="text-text-disabled">Indlæser chat...</Text>
-          </View>
-        ) : (
-          <ScrollView
-            className="mt-3 flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 24 }}
-          >
-          {/* Team info */}
-          <View className="bg-[#2c2c2c] p-5 rounded-2xl mb-6 flex-row items-center justify-between">
-            <View className="flex-1 pr-4">
-              <Text className="text-xl font-semibold mb-1 text-white">
-                {team.name}
-              </Text>
+        {/* Content - Full screen switch between chat and profile */}
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          {activeTab === 'chat' && isMember && teamConversation ? (
+            <View className="flex-1 mt-3">
+              <ChatView
+                conversationId={teamConversation.id}
+                conversationName={team.name}
+              />
             </View>
-            <View className="bg-blue-900 rounded-2xl p-3">
-              <Ionicons name="shield" size={40} color="#ffffff" />
+          ) : activeTab === 'chat' && isMember && !teamConversation ? (
+            <View className="flex-1 items-center justify-center mt-20">
+              <Text className="text-text-disabled">Indlæser chat...</Text>
             </View>
-          </View>
-
-          {/* Upcoming Events */}
-          <View className="mb-6">
-            <Text className="text-gray-300 text-sm mb-3">
-              Kommende begivenheder
-            </Text>
-            <View className="flex-row gap-3">
-              <View className="flex-1 bg-[#2c2c2c] p-4 rounded-xl">
-                <Text className="text-sm text-gray-300 font-semibold">
-                  Man 17 Juli
-                </Text>
-                <Text className="text-xs text-gray-400 mb-2">18.00</Text>
-                <Text className="text-xs text-gray-500">København</Text>
-                <Text className="text-xs text-blue-400 underline">
-                  Blågårdsgade
-                </Text>
-              </View>
-
-              <View className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center justify-center">
-                <View className="flex-row items-center gap-3">
-                  <View className="bg-blue-900 p-2 rounded-xl">
-                    <Ionicons name="shield" size={24} color="#ffffff" />
+          ) : (
+            <View className="mt-3">
+              {/* Header card - same as profile */}
+              <View className="rounded-2xl px-5 py-4 flex-row items-center justify-between">
+                <View className="flex-row items-center gap-4 flex-1">
+                  <View className="w-20 h-20 rounded-full bg-[#3A3A3C] items-center justify-center">
+                    <Ionicons name="shield" size={40} color="#ffffff" />
                   </View>
-                  <Text className="text-gray-300 text-sm">vs</Text>
-                  <View className="bg-red-900 p-2 rounded-xl">
-                    <Ionicons name="shield" size={24} color="#ffffff" />
+                  <View className="flex-1">
+                    <Text className="text-white text-xl font-semibold">
+                      {team.name}
+                    </Text>
+                    <Text className="text-sm text-gray-300 mt-1">
+                      24-26 år
+                    </Text>
+                    <Text className="text-sm text-gray-300 mt-1">
+                      København N
+                    </Text>
                   </View>
                 </View>
               </View>
-            </View>
-          </View>
 
-          {/* Quick actions */}
-          <View className="flex-row gap-3 mb-6">
-            <Pressable
-              className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2"
-              onPress={() => router.push(`/teams/members/${id}` as any)}
-            >
-              <Ionicons name="people" size={24} color="#ffffff" />
-              <Text className="text-sm text-gray-300">Medlemmer</Text>
-            </Pressable>
+              {/* Stats + Interests - same as profile */}
+              <View className="mt-3 rounded-2xl px-5 py-3">
+                {/* Stats row */}
+                <View className="flex-row items-center mb-3">
+                  {/* Left separator */}
+                  <View className="w-[1px] h-12 bg-[#3A3A3C]" />
 
-            <Pressable
-              className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2"
-              onPress={() => setActiveTab('chat')}
-            >
-              <Ionicons name="chatbubble" size={24} color="#ffffff" />
-              <Text className="text-sm text-gray-300">Chat</Text>
-            </Pressable>
+                  {/* Medlemmer - Clickable */}
+                  <Pressable
+                    style={{ flex: 1 }}
+                    className="items-center justify-center px-2"
+                    onPress={() => router.push(`/teams/members/${id}` as any)}
+                  >
+                    <View className="items-center justify-center">
+                      <Text
+                        className="text-[11px] uppercase tracking-[1px] text-gray-400"
+                        numberOfLines={1}
+                      >
+                        Medlemmer
+                      </Text>
+                      <Text className="text-2xl font-semibold text-white mt-1">{membersCount}</Text>
+                    </View>
+                  </Pressable>
 
-            <Pressable className="flex-1 bg-[#2c2c2c] p-4 rounded-xl items-center gap-2">
-              <Ionicons name="calendar" size={24} color="#ffffff" />
-              <Text className="text-sm text-gray-300">Begivenheder</Text>
-            </Pressable>
-          </View>
+                  {/* Separator */}
+                  <View className="w-[1px] h-12 bg-[#3A3A3C]" />
 
-          {/* Invitations / Suggestions */}
-          <View>
-            <Text className="text-gray-300 text-sm mb-3">
-              Invitationer / Forslag
-            </Text>
-            <View className="bg-[#2c2c2c] rounded-2xl overflow-hidden">
-              <View className="flex-row justify-between items-center p-4 border-b border-gray-700">
-                <View className="flex-1">
-                  <Text className="font-semibold text-white">Soccer</Text>
-                  <Text className="text-gray-400 text-xs">Emil Matic, 23</Text>
+                  {/* Fuldførte Challenges */}
+                  <View
+                    style={{ flex: 3 }}
+                    className="items-center justify-center px-1"
+                  >
+                    <Text
+                      className="text-[11px] uppercase tracking-[1px] text-gray-400"
+                      numberOfLines={1}
+                    >
+                      Fuldførte Challenges
+                    </Text>
+                    <Text className="text-2xl font-semibold text-white mt-1">
+                      {challengesCount}
+                    </Text>
+                  </View>
+
+                  {/* Right separator */}
+                  <View className="w-[1px] h-12 bg-[#3A3A3C]" />
                 </View>
-                <View className="bg-blue-700 rounded-xl px-3 py-2">
-                  <Text className="text-white font-bold">6 vs 6</Text>
+
+                {/* Interests */}
+                <View className="mt-2">
+                  <View className="flex-row items-center">
+                    {/* Left separator */}
+                    <View className="w-[1px] h-12 bg-[#3A3A3C] mr-3" />
+
+                    {/* Label + icons */}
+                    <View className="flex-row items-center gap-3 flex-shrink">
+                      <Text className="text-xs uppercase tracking-[1px] text-gray-400">
+                        Interesser
+                      </Text>
+
+                      <View className="w-10 h-10 rounded-full bg-surface items-center justify-center">
+                        <Ionicons name="football" size={22} color="#ffffff" />
+                      </View>
+                      <View className="w-10 h-10 rounded-full bg-surface items-center justify-center">
+                        <Ionicons name="basketball" size={22} color="#ffffff" />
+                      </View>
+                    </View>
+
+                    {/* Right separator */}
+                    <View className="w-[1px] h-12 bg-[#3A3A3C] ml-3" />
+                  </View>
                 </View>
               </View>
-              <View className="p-4">
-                <Text className="text-sm text-gray-400">
-                  Gymnasievej 2, 3060 Espergærde
-                </Text>
-                <Text className="mt-1 text-gray-500 text-sm">
-                  Tag gerne en bold med så vi har flere!
+
+              {/* Tabs row – same as profile */}
+              <View className="mt-4">
+                <View className="flex-row w-full">
+                  {/* VS tab */}
+                  <Pressable className="flex-1 items-center">
+                    <View className="px-4 py-1.5 rounded-full border border-white bg-white/10">
+                      <Text className="text-xs font-semibold text-white">
+                        VS
+                      </Text>
+                    </View>
+                  </Pressable>
+
+                  {/* Home tab */}
+                  <Pressable className="flex-1 items-center">
+                    <View className="px-4 py-1.5 rounded-full border border-transparent bg-transparent">
+                      <Ionicons name="home" size={16} color="#9CA3AF" />
+                    </View>
+                  </Pressable>
+
+                  {/* Stats tab */}
+                  <Pressable className="flex-1 items-center">
+                    <View className="px-4 py-1.5 rounded-full border border-transparent bg-transparent">
+                      <Ionicons name="stats-chart" size={16} color="#9CA3AF" />
+                    </View>
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Full-width baseline with active highlight */}
+              <View className="mt-3 h-[1px] bg-gray-700 w-full relative">
+                <View
+                  className="absolute h-[2px] bg-white"
+                  style={{
+                    width: width / 3,
+                    left: 0,
+                    top: -0.5,
+                  }}
+                />
+              </View>
+
+              {/* Content area - placeholder for now */}
+              <View className="mt-4">
+                <Text className="text-white text-sm">
+                  Team challenges will appear here
                 </Text>
               </View>
             </View>
-          </View>
+          )}
         </ScrollView>
-        )}
       </View>
     </SafeAreaView>
   );

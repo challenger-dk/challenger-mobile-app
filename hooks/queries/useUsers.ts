@@ -17,11 +17,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
  * Query hook to fetch all users
+ * Returns the users array from the paginated response
  */
 export const useUsers = () => {
   return useQuery({
     queryKey: queryKeys.users.lists(),
-    queryFn: getUsers,
+    queryFn: async () => {
+      const response = await getUsers();
+      return response.users; // Extract users array from paginated response
+    },
   });
 };
 
