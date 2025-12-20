@@ -19,6 +19,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import type { Challenge } from '../../types/challenge';
 import type { Team } from '../../types/team';
 import type { User } from '../../types/user';
+import { CreateNewButton } from '@/components/common/CreateNewButton';
 
 type TabType = 'public' | 'friends';
 type PersonalTabType = 'mine' | 'tilmeldte';
@@ -254,20 +255,7 @@ export default function HubScreen() {
         }
       />
 
-      <Pressable
-        onPress={() => router.push('/hub/create' as any)}
-        className="absolute bottom-8 right-6 bg-white rounded-full p-4 shadow-lg"
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          elevation: 5,
-        }}
-        aria-label="Create Challenge"
-      >
-        <Ionicons name="add" size={28} color="#171616" />
-      </Pressable>
+      <CreateNewButton onPress={() => router.push('/hub/create' as any)} />
     </ScreenContainer>
   );
 }

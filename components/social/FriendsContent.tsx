@@ -80,13 +80,6 @@ export function FriendsContent() {
     return ids;
   }, [friends, user]);
 
-  const filterFriends = (users: User[]) =>
-    users.filter((u) =>
-      `${u.first_name} ${u.last_name}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-
   const renderFriendCard = (friend: User) => (
     <Pressable
       key={friend.id}
@@ -121,6 +114,8 @@ export function FriendsContent() {
     );
   }
 
+  const isSearching = search.length > 0;
+
   return (
     <ScrollView
       className="flex-1 bg-background"
@@ -144,42 +139,41 @@ export function FriendsContent() {
           />
         </View>
 
-        {invitations.length > 0 && (
-          <View className="mb-6">
-            <Text className="text-text-muted text-sm mb-3">Invitationer</Text>
-            {invitations.map((inv) => (
-              <InvitationCard
-                key={inv.id}
-                invitation={inv}
-                onInvitationHandled={handleInvitationHandled}
-              />
-            ))}
-          </View>
+        {isSearching ? (
+          /* When searching, only show search results */
+          <UserSearchResults searchQuery={search} currentFriendIds={friendIds} />
+        ) : (
+          /* When not searching, show invitations, suggestions, and friends */
+          <>
+            {invitations.length > 0 && (
+              <View className="mb-6">
+                <Text className="text-text-muted text-sm mb-3">Invitationer</Text>
+                {invitations.map((inv) => (
+                  <InvitationCard
+                    key={inv.id}
+                    invitation={inv}
+                    onInvitationHandled={handleInvitationHandled}
+                  />
+                ))}
+              </View>
+            )}
+
+            <SuggestedFriendsSection />
+
+            {/* Mine venner */}
+            <View className="mb-6">
+              <Text className="text-text-muted text-sm mb-3">Mine venner</Text>
+              {friends.map(renderFriendCard)}
+              {friends.length === 0 && (
+                <EmptyState
+                  title="Ingen venner"
+                  description="Du har ingen venner endnu."
+                  icon="people-outline"
+                />
+              )}
+            </View>
+          </>
         )}
-
-        {/* Suggested Friends - Only show when not searching */}
-        {search.length === 0 && <SuggestedFriendsSection />}
-
-        {/* User Search Results - Shows all users or search results */}
-        <UserSearchResults searchQuery={search} currentFriendIds={friendIds} />
-
-        {/* Mine venner */}
-        <View className="mb-6">
-          <Text className="text-text-muted text-sm mb-3">Mine venner</Text>
-          {filterFriends(friends).map(renderFriendCard)}
-          {filterFriends(friends).length === 0 && search.length === 0 && (
-            <EmptyState
-              title="Ingen venner"
-              description="Du har ingen venner endnu."
-              icon="people-outline"
-            />
-          )}
-          {filterFriends(friends).length === 0 && search.length > 0 && (
-            <Text className="text-text-muted text-sm">
-              Ingen venner matcher din søgning.
-            </Text>
-          )}
-        </View>
       </View>
     </ScrollView>
   );

@@ -110,22 +110,15 @@ export function TeamsContent() {
       }
     >
       <View className="px-6 py-4">
-        <View className="flex-row items-center gap-3 mb-5">
+        <View className="mb-5">
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder="Navn"
             placeholderTextColor="#9CA3AF"
-            className="flex-1 bg-surface text-text p-3 rounded-lg border border-text-disabled"
+            className="w-full bg-surface text-text p-3 rounded-lg border border-text-disabled"
             style={{ color: '#ffffff' }}
           />
-          <Pressable
-            onPress={() => router.push('/teams/createTeam')}
-            className="bg-white rounded-full p-2"
-            aria-label="Create Team"
-          >
-            <Ionicons name="add" size={24} color="#171616" />
-          </Pressable>
         </View>
 
         {invitations.length > 0 && (

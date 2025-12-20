@@ -82,7 +82,7 @@ export default function TeamDetailScreen() {
             onPress: async () => {
               try {
                 await deleteTeamMutation.mutateAsync(id);
-                router.replace('/teams' as any);
+                router.replace('/(tabs)/social' as any);
               } catch {
                 // handled in hook
               }
@@ -102,7 +102,7 @@ export default function TeamDetailScreen() {
             onPress: async () => {
               try {
                 await leaveTeamMutation.mutateAsync(id);
-                router.replace('/teams' as any);
+                router.replace('/(tabs)/social' as any);
               } catch {
                 // handled in hook
               }
