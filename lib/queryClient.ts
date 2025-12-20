@@ -37,6 +37,7 @@ export const queryKeys = {
     detail: (id: string | number) =>
       [...queryKeys.users.details(), id] as const,
     current: () => [...queryKeys.users.all, 'current'] as const,
+    suggestedFriends: () => [...queryKeys.users.all, 'suggested-friends'] as const,
   },
   challenges: {
     all: ['challenges'] as const,

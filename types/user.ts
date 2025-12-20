@@ -69,3 +69,8 @@ export interface CommonStats {
   common_teams_count: number;
   common_sports: Sport[];
 }
+
+export interface UsersSearchResponse {
+  users: User[];
+  next_cursor: string | null;
+}

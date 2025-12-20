@@ -4,6 +4,8 @@ import {
   getCurrentUser,
   getUserById,
   getUsers,
+  getSuggestedFriends,
+  searchUsers,
   unblockUser,
   updateUser,
   updateUserSettings,
@@ -42,6 +44,37 @@ export const useUser = (userId: string | number) => {
     queryKey: queryKeys.users.detail(userId),
     queryFn: () => getUserById(userId),
     enabled: !!userId, // Only fetch if userId is provided
+  });
+};
+
+/**
+ * Query hook to fetch suggested friends for the current user
+ * Uses the friend suggestion algorithm based on common friends, teams, challenges, and sports
+ */
+export const useSuggestedFriends = () => {
+  return useQuery({
+    queryKey: queryKeys.users.suggestedFriends(),
+    queryFn: getSuggestedFriends,
+    staleTime: 1000 * 60 * 5, // Suggestions are fresh for 5 minutes
+  });
+};
+
+/**
+ * Query hook to search users with optional query and pagination
+ * @param searchQuery - Optional search query to filter users
+ * @param limit - Number of results per page
+ * @param cursor - Cursor for pagination
+ */
+export const useSearchUsers = (
+  searchQuery?: string,
+  limit: number = 20,
+  cursor?: string
+) => {
+  return useQuery({
+    queryKey: [...queryKeys.users.lists(), { q: searchQuery, limit, cursor }],
+    queryFn: () => searchUsers(searchQuery, limit, cursor),
+    staleTime: 1000 * 60 * 2, // Search results are fresh for 2 minutes
+    enabled: true, // Always enabled, even with empty query
   });
 };
 

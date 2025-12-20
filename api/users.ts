@@ -1,9 +1,48 @@
 import type { UserSettings } from '@/types/settings';
-import type { CommonStats, CreateUser, EmergencyContact, UpdateUser } from '@/types/user';
+import type { CommonStats, CreateUser, EmergencyContact, UpdateUser, UsersSearchResponse } from '@/types/user';
 import { authenticatedFetch, getApiUrl } from '@/utils/api';
 
 export const getUsers = async () => {
   const response = await authenticatedFetch(getApiUrl('/users'));
+  return response.json();
+};
+
+/**
+ * Search users with optional query and pagination
+ * @param searchQuery - Optional search query to filter users by name or email
+ * @param limit - Number of results per page (default: 20, max: 50)
+ * @param cursor - Cursor for pagination (from previous response's next_cursor)
+ * @returns UsersSearchResponse with users array and next_cursor for pagination
+ */
+export const searchUsers = async (
+  searchQuery?: string,
+  limit: number = 20,
+  cursor?: string
+): Promise<UsersSearchResponse> => {
+  const params = new URLSearchParams();
+
+  if (searchQuery && searchQuery.trim()) {
+    params.append('q', searchQuery.trim());
+  }
+
+  if (limit) {
+    params.append('limit', limit.toString());
+  }
+
+  if (cursor) {
+    params.append('cursor', cursor);
+  }
+
+  const url = params.toString()
+    ? getApiUrl(`/users?${params.toString()}`)
+    : getApiUrl('/users');
+
+  const response = await authenticatedFetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to search users: ${response.status}`);
+  }
+
   return response.json();
 };
 
@@ -33,6 +72,11 @@ export const getUserCommonStats = async (targetUserId: string | number) => {
     };
   }
   return response.json() as Promise<CommonStats>;
+};
+
+export const getSuggestedFriends = async () => {
+  const response = await authenticatedFetch(getApiUrl('/users/suggested-friends'));
+  return response.json();
 };
 
 export const updateUser = async (user: UpdateUser) => {

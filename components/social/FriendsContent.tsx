@@ -1,6 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -9,20 +8,20 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SendInvitation, getMyInvitations } from '../../api/invitations';
-import { getCurrentUser, getUsers } from '../../api/users';
+import { getMyInvitations } from '../../api/invitations';
+import { getCurrentUser } from '../../api/users';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import type { CreateInvitation, Invitation } from '../../types/invitation';
+import type { Invitation } from '../../types/invitation';
 import type { User } from '../../types/user';
-import { showErrorToast, showSuccessToast } from '../../utils/toast';
 import { InvitationCard } from '../InvitationCard';
 import { EmptyState, LoadingScreen, Avatar } from '../common';
+import { SuggestedFriendsSection } from './SuggestedFriendsSection';
+import { UserSearchResults } from './UserSearchResults';
 
 export function FriendsContent() {
   const router = useRouter();
   const { user, loading: userLoading, error: userError } = useCurrentUser();
   const [friends, setFriends] = useState<User[]>([]);
-  const [otherUsers, setOtherUsers] = useState<User[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -32,17 +31,14 @@ export function FriendsContent() {
     if (!user) return;
 
     try {
-      const [freshUser, allUsers, myInvitations] = await Promise.all([
+      const [freshUser, myInvitations] = await Promise.all([
         getCurrentUser(),
-        getUsers(),
         getMyInvitations(),
       ]);
 
       const myFriends: User[] = freshUser.friends || [];
       const myFriendIds = new Set(myFriends.map((f: User) => f.id));
       myFriendIds.add(user.id);
-
-      const others = allUsers.filter((u: User) => !myFriendIds.has(u.id));
 
       const pendingInvitations = Array.isArray(myInvitations)
         ? myInvitations.filter(
@@ -52,7 +48,6 @@ export function FriendsContent() {
         : [];
 
       setFriends(myFriends);
-      setOtherUsers(others);
       setInvitations(pendingInvitations);
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -76,32 +71,16 @@ export function FriendsContent() {
     loadData();
   };
 
-  const handleAddFriend = async (inviteeId: number | string) => {
-    if (!user) return;
-
-    const numericInviterId =
-      typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
-    const numericInviteeId =
-      typeof inviteeId === 'string' ? parseInt(inviteeId, 10) : inviteeId;
-
-    try {
-      const invitation: CreateInvitation = {
-        inviter_id: numericInviterId,
-        invitee_id: numericInviteeId,
-        note: `${user.first_name} har sendt der en venneanmodning`,
-        resource_type: 'friend',
-      };
-
-      await SendInvitation(invitation);
-      showSuccessToast('Venneanmodning sendt!');
-      loadData();
-    } catch (err) {
-      console.error('Failed to send invitation:', err);
-      showErrorToast('Kunne ikke sende venneanmodning.');
+  // Memoize friend IDs for efficient lookup
+  const friendIds = useMemo(() => {
+    const ids = new Set(friends.map((f: User) => f.id));
+    if (user) {
+      ids.add(user.id);
     }
-  };
+    return ids;
+  }, [friends, user]);
 
-  const filterUsers = (users: User[]) =>
+  const filterFriends = (users: User[]) =>
     users.filter((u) =>
       `${u.first_name} ${u.last_name}`
         .toLowerCase()
@@ -127,36 +106,6 @@ export function FriendsContent() {
           <Text className="text-sm text-text-muted">Tryk for at se profil</Text>
         </View>
       </View>
-    </Pressable>
-  );
-
-  const renderOtherUserCard = (otherUser: User) => (
-    <Pressable
-      key={otherUser.id}
-      onPress={() => router.push(`/users/${otherUser.id}` as any)}
-      className="flex-row items-center justify-between bg-surface rounded-2xl p-4 mb-3"
-    >
-      <View className="flex-row items-center gap-3">
-        <Avatar
-          uri={otherUser.profile_picture}
-          size={40}
-          placeholderIcon="person"
-        />
-        <View>
-          <Text className="text-text text-base font-semibold">
-            {otherUser.first_name} {otherUser.last_name}
-          </Text>
-        </View>
-      </View>
-      <Pressable
-        onPress={(e) => {
-          e.stopPropagation();
-          handleAddFriend(otherUser.id);
-        }}
-        className="bg-warning rounded-full p-2"
-      >
-        <Ionicons name="add" size={20} color="#ffffff" />
-      </Pressable>
     </Pressable>
   );
 
@@ -208,27 +157,27 @@ export function FriendsContent() {
           </View>
         )}
 
-        {/* Find nye venner FIRST */}
-        <View className="mb-6">
-          <Text className="text-text-muted text-sm mb-3">Find nye venner</Text>
-          {filterUsers(otherUsers).map(renderOtherUserCard)}
-          {filterUsers(otherUsers).length === 0 && search.length > 0 && (
-            <Text className="text-text-muted text-sm">
-              Ingen brugere fundet.
-            </Text>
-          )}
-        </View>
+        {/* Suggested Friends - Only show when not searching */}
+        {search.length === 0 && <SuggestedFriendsSection />}
 
-        {/* Mine venner AFTER */}
+        {/* User Search Results - Shows all users or search results */}
+        <UserSearchResults searchQuery={search} currentFriendIds={friendIds} />
+
+        {/* Mine venner */}
         <View className="mb-6">
           <Text className="text-text-muted text-sm mb-3">Mine venner</Text>
-          {filterUsers(friends).map(renderFriendCard)}
-          {filterUsers(friends).length === 0 && (
+          {filterFriends(friends).map(renderFriendCard)}
+          {filterFriends(friends).length === 0 && search.length === 0 && (
             <EmptyState
               title="Ingen venner"
               description="Du har ingen venner endnu."
               icon="people-outline"
             />
+          )}
+          {filterFriends(friends).length === 0 && search.length > 0 && (
+            <Text className="text-text-muted text-sm">
+              Ingen venner matcher din søgning.
+            </Text>
           )}
         </View>
       </View>
