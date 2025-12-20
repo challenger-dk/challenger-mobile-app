@@ -7,6 +7,7 @@ import {
   createGroupConversation,
   sendMessage,
   markConversationAsRead,
+  getTeamConversation,
 } from '@/api/conversations';
 import { queryKeys } from '@/lib/queryClient';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -46,20 +47,16 @@ export const useConversation = (conversationId: number | null) => {
 };
 
 /**
- * Query hook to find a team conversation by team ID
- * Team conversations are auto-created by the backend
+ * Query hook to get a team conversation by team ID
+ * Fetches directly from the backend, creating the conversation if it doesn't exist
  */
 export const useTeamConversation = (teamId: number | null) => {
-  const { data: conversations = [] } = useConversations();
-
-  const teamConversation = conversations.find(
-    (conv) => conv.type === 'team' && conv.team_id === teamId
-  );
-
-  return {
-    data: teamConversation,
-    isLoading: false,
-  };
+  return useQuery({
+    queryKey: teamId ? ['conversations', 'team', teamId] : ['conversations', 'team', 'none'],
+    queryFn: () => teamId ? getTeamConversation(teamId) : Promise.reject('No team ID'),
+    enabled: !!teamId,
+    staleTime: 60000, // 1 minute
+  });
 };
 
 /**

@@ -99,6 +99,22 @@ export const getConversation = async (conversationId: number): Promise<Conversat
 };
 
 /**
+ * Get the conversation for a team by team ID
+ * Creates the conversation if it doesn't exist
+ */
+export const getTeamConversation = async (teamId: number): Promise<Conversation> => {
+  const url = getConversationUrl(`/conversations/team/${teamId}`);
+  const response = await authenticatedFetch(url);
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Failed to fetch team conversation: ${response.status} ${text}`);
+  }
+
+  return response.json();
+};
+
+/**
  * Get messages for a conversation with pagination
  * @param conversationId - The conversation ID
  * @param limit - Number of messages to return (default: 50, max: 100)

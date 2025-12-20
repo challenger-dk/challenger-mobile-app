@@ -4,10 +4,9 @@ import {
   TopActionBar,
 } from '@/components/common';
 import { FriendsContent, TeamsContent } from '@/components/social';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable } from 'react-native';
+import { View } from 'react-native';
 import { CreateNewButton } from '@/components/common/CreateNewButton';
 
 type TabType = 'friends' | 'teams';
@@ -24,8 +23,9 @@ export default function SocialScreen() {
     <ScreenContainer className="pt-5">
       <TopActionBar
         title="Social"
-        showNotifications={false}
-        showCalendar={false}
+        leftAction={<View className="w-7 h-7" />}
+        showNotifications={true}
+				showMessages={true}
         showSettings={false}
       />
 

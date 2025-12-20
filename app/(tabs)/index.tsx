@@ -16,7 +16,12 @@ export default function HomeScreen() {
   return (
     <ScreenContainer className="pt-1">
       {/* Header Section */}
-      <TopActionBar title="Home" showMessages={true} showSettings={false} />
+      <TopActionBar
+        title="Home"
+        leftAction={<View className="w-7 h-7" />}
+        showMessages={true}
+        showSettings={false}
+      />
 
       {/* Navigation Tab Bar */}
       <TabNavigation
