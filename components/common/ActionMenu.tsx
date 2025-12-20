@@ -23,9 +23,9 @@ export const ActionMenu = ({ actions, trigger }: ActionMenuProps) => {
         {trigger || (
           <View className="p-2">
             <Ionicons
-              name="ellipsis-horizontal-circle"
-              size={32}
-              color="#3b82f6"
+              name="ellipsis-horizontal"
+              size={28}
+              color="#ffffff"
             />
           </View>
         )}
